@@ -29,6 +29,8 @@ cmake_dependent_option(FSM_BUILD_PACKAGE_RPM
   "Create RPM Package (${PROJECT_NAME})" ON
   "FSM_BUILD_PACKAGE;FSM_RPMBUILD_FOUND" OFF)
 
+#add_compile_options(-Wall -Wextra -pedantic -Werror)
+
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
@@ -37,6 +39,12 @@ target_include_directories(${PROJECT_NAME}
             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
             )
+
+target_compile_options(${PROJECT_NAME} INTERFACE
+            -Wall -Wextra -Wpedantic
+          )
+
+#target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17})
 
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets)
 
