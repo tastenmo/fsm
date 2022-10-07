@@ -60,3 +60,9 @@ endif()
 if(HAS_CPPLATEST_FLAG)
     make_test(testFirst.cpp testFirst-cpplatest c++latest)
 endif()
+
+make_test(testDelegates.cpp testDelegates-cpp17 c++17)
+
+if(HAS_CPP20_FLAG)
+    make_test(testDelegates.cpp testDelegates-cpp20 c++20)
+endif()
