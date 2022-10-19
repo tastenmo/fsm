@@ -17,7 +17,7 @@
 #include <type_traits>
 #include <utility>
 #include "../base/assert.h"
-#include "../base/type_traits.hpp"
+#include "../base/type_traits.h"
 
 //#include "fwd.hpp"
 
