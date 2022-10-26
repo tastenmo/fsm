@@ -18,8 +18,7 @@
 #include <utility>
 #include "../base/assert.h"
 #include "../base/type_traits.h"
-
-//#include "fwd.hpp"
+#include "forwards.h"
 
 namespace signal
 {

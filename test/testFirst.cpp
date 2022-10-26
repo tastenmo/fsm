@@ -13,8 +13,8 @@
 
 //#include <catch2/catch.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <base/overload.h>
 #include <fsm/fsm.h>
-
 
 // events
 
@@ -110,9 +110,63 @@ class Fsm : public fsm::fsm<state>
 {
 };
 
+class StateHandler
+{
+
+public:
+  StateHandler(Fsm *fsm)
+      : fsm_(fsm), cmd_sent_(0), stopped_(false) {}
+
+  void OnEvent(const state &state_variant)
+  {
+    std::visit(
+        Overload{
+            [&](const Running &state)
+            {
+              fsm_->dispatch(stop_event{});
+            },
+            [&](const Interrupted &state)
+            {
+              fsm_->dispatch(abort_event{});
+            },
+            [&](auto) {}},
+        state_variant);
+  }
+
+private:
+  Fsm *fsm_;
+
+  bool cmd_sent_;
+  bool stopped_;
+};
+
 TEST_CASE("Simple FSM numeric")
 {
   Fsm myfsm;
+
+
+  /*myfsm.NewState.connect([&](const state &state_variant)
+                         { std::visit(
+                               Overload{
+                                   [&](const Running &state)
+                                   {
+                                     myfsm.dispatch(stop_event{});
+                                   },
+                                   [&](const Interrupted &state)
+                                   {
+                                     myfsm.dispatch(abort_event{});
+                                   },
+                                   [&](auto) {}},
+                               state_variant); });*/
+  
+  StateHandler handler(&myfsm);
+
+  //signal::slot sink{myfsm.NewState};
+
+  //sink.connect(&handler::OnEvent);
+  auto conn = myfsm.NewState.connect<&StateHandler::OnEvent>(&handler);
+
+  REQUIRE(conn);
 
   myfsm.init(Initial{});
 
@@ -121,5 +175,11 @@ TEST_CASE("Simple FSM numeric")
 
   myfsm.dispatch(start_event{});
 
-  REQUIRE(myfsm.is_state<Running>());
+  REQUIRE(myfsm.is_state<Initial>());
+
+  conn.release();
+  
+  REQUIRE(myfsm.NewState.empty());
+  REQUIRE_FALSE(conn);
+
 }

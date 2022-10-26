@@ -15,8 +15,8 @@
 #include <utility>
 #include <variant>
 
-#include "wink/signal.hpp"
-#include "wink/slot.hpp"
+#include "../signal/signal.h"
+
 
 namespace fsm {
 
@@ -32,10 +32,18 @@ template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
 template <typename StateVariant> class fsm {
 
 public:
-  using NewStateSlot = wink::slot<void(const StateVariant &)>;
-  using NewStateSignal = wink::signal<NewStateSlot>;
+  using NewStateType = signal::signal<void(const StateVariant &)>;
 
-  NewStateSignal NewState;
+
+  /**
+   * @brief Construct a new fsm object
+   * 
+   */
+  fsm() : state_{}, NewStateSignal_{}, NewState{NewStateSignal_} {}
+
+  fsm(const StateVariant &initial) : state_{initial}, NewStateSignal_{}, NewState{NewStateSignal_} {}
+
+
 
   /**
    * @brief Get the state object
@@ -91,7 +99,7 @@ public:
       std::visit([&](auto& statePtr) { enter(statePtr, event); }, state_);
 
       // emit State Changed
-      NewState.emit(state_);
+      NewStateSignal_.publish(state_);
     } else {
       auto new_state_internal = std::visit(
           [&](auto &statePtr) -> std::optional<StateVariant> {
@@ -106,7 +114,7 @@ public:
         std::visit([&](auto &statePtr) { enter(statePtr, event); }, state_);
 
         // emit State Changed
-        NewState.emit(state_);
+        NewStateSignal_.publish(state_);
       }
 
       // std::visit([&](auto statePtr) { handle(statePtr, event); }, state_);
@@ -114,11 +122,15 @@ public:
   }
 
 private:
-  /**
-   * @brief actual state
-   *
-   */
   StateVariant state_;
+  NewStateType NewStateSignal_;
+
+public:
+  signal::slot<NewStateType> NewState;
+
+   
+
+private:
 
   void enter(...) {}
 
