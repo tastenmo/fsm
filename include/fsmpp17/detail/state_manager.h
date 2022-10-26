@@ -42,7 +42,7 @@ template<class States, class Context, class Tracer = NullTracer>
 struct state_manager
 {
 private:
-    using type_list = typename States::list;
+   using type_list = typename States::type_list;
 
 public:
     state_manager(Context &ctx, Tracer& tracer)
@@ -142,7 +142,7 @@ private:
 
     void enter_first() {
         if constexpr (States::count > 0) {
-            using first_t = type_list_element_t<1u, type_list>;
+            using first_t = typename mpl::type_list_first<type_list>::type;
             enter<first_t>();
         }
     }
@@ -202,10 +202,11 @@ private:
     void handle_transition_impl(Transition trans) {
         if (trans.idx == I) {
             using transition_type_list = typename Transition::list;
-            
-            using type_at_index = type_list_element<I, transition_type_list>;
+            //using type_at_index = typename meta::type_list_type<I, transition_type_list>::type;
+            using type_at_index = mpl::type_list_element_t<I, transition_type_list>;
 
-            if (type_list_contains_v<type_list, type_at_index>) {
+            //if constexpr (meta::type_list_has<type_at_index>(type_list{})) {
+            if (mpl::type_list_contains_v<type_list, type_at_index>) {
                 tracer_.template transition<type_at_index>();
                 enter<type_at_index>();
             }

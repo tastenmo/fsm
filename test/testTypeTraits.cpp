@@ -7,6 +7,8 @@
 #include <variant>
 #include <base/type_traits.h>
 
+using namespace mpl;
+
 template <typename, typename Type = void>
 struct multi_argument_operation
 {
@@ -100,6 +102,6 @@ TEST_CASE("TypeList", "[type_traits]")
     // type_list_rename
     using states_variant = typename type_list_rename<states_variant_list, std::variant>::result;
     
-    STATIC_REQUIRE(std::is_same_v<states_variant, std::variant>); // "states_variant is std::variant");
+    STATIC_REQUIRE(std::is_same_v<states_variant, std::variant<std::monostate, char, int, float>>); // "states_variant is std::variant");
 
 }

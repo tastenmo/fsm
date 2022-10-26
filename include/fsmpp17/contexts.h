@@ -49,7 +49,7 @@ template<class... T> struct contexts {
     }
 
     template<class U>
-    static auto constexpr has = type_list_contains_v<type_list<T...>, U>;
+    static auto constexpr has = mpl::type_list_contains_v<mpl::type_list<T...>, U>;
 
 private:
     std::tuple<T&...> contexts_;

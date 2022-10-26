@@ -36,15 +36,15 @@ struct event {};
  **/
 
 template<class... E>
-using events = type_list<E...>;
+using events = mpl::type_list<E...>;
 
 /**
  * Defines a set of states. This is used as a parameter to a state_machine.
  **/
 template<class... S>
 struct states {
-    using list = type_list<S...>;
-    static constexpr auto count = list::size;
+    using type_list = mpl::type_list<S...>;
+    static constexpr auto count = type_list::size;
 };
 
 /**

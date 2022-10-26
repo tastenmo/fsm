@@ -56,14 +56,14 @@ public:
      */
     template<class T>
     transitions(detail::transition<T>) noexcept
-        : idx {type_list_index_v<T, list>}
+        : idx {mpl::type_list_index_v<T, list>}
         , outcome {result::transition}
     {
     }
 
     template<class T>
     transitions(transitions<T>) noexcept
-        : idx {type_list_index_v<T, list>}
+        : idx {mpl::type_list_index_v<T, list>}
         , outcome {result::transition}
     {}
 
@@ -103,7 +103,7 @@ public:
         return outcome == result::handled;
     }
 
-    using list = type_list<S...>;
+    using list = mpl::type_list<S...>;
 
     std::size_t const idx;
     result      const outcome;

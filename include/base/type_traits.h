@@ -17,7 +17,7 @@
 #include <utility>
 
 
-
+namespace mpl{
 /**
  * @brief Utility class to disambiguate overloaded functions.
  * @tparam N Number of choices available.
@@ -777,3 +777,4 @@ public:
  */
 template<std::size_t Index, auto Candidate>
 using nth_argument_t = typename nth_argument<Index, Candidate>::type;
+}

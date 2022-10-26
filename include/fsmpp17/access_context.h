@@ -20,7 +20,7 @@ namespace fsm
 
 template<class C, class... D>
 struct access_context final {
-    using access_context_type = type_list<C, D...>;
+    using access_context_type = mpl::type_list<C, D...>;
 
     template<
         class T,

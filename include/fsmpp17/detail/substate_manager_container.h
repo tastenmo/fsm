@@ -31,7 +31,7 @@ public:
      **/
     template<class State, class... Args>
     void create(Args&... args) {
-        constexpr auto Index = type_list_index_v<State, type_list>;
+        constexpr auto Index = mpl::type_list_index_v<State, type_list>;
         managers_.template emplace<1 + Index>(args...);
     }
 
@@ -45,7 +45,7 @@ public:
 
 private:
     // a list of states: type_list<A, B, C...>;
-    using type_list = typename States::list;
+    using type_list = typename States::type_list;
 
     // meta-function extracting substate_type from a state
     // substate_type is a states<SubA1, SubA2, SubA3...> specialization
@@ -55,13 +55,13 @@ private:
 
     // use this meta-function to transform a list of states to a list of its substate managers in form of:
     // type_list<state_manager<states<SubA1, SubA2, SubA3...>>, state_manager<states<SubB1, SubB2, SubB3...>>...>
-    using substates_manager_list = type_list_transform_t<type_list, get_substate_manager_type>;
+    using substates_manager_list = mpl::type_list_transform_t<type_list, get_substate_manager_type>;
 
     // prepend with monostate for default construction
-    using substates_manager_list_fin = typename type_list_push_front<substates_manager_list, std::monostate>::result;
+    using substates_manager_list_fin = typename mpl::type_list_push_front<substates_manager_list, std::monostate>::result;
 
     // rename type_list<...> to std::variant<...> which will be the final storage type
-    using substates_manager_variant = typename type_list_rename<
+    using substates_manager_variant = typename mpl::type_list_rename<
         substates_manager_list_fin,
         std::variant>::result;
 

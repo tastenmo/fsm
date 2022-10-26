@@ -101,7 +101,7 @@ namespace signal
             return [](const void *, Args... args) -> Ret
             {
                 [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
-                return static_cast<Ret>(std::invoke(Candidate, std::forward<type_list_element_t<Index, type_list<Args...>>>(std::get<Index>(arguments))...));
+                return static_cast<Ret>(std::invoke(Candidate, std::forward<mpl::type_list_element_t<Index, mpl::type_list<Args...>>>(std::get<Index>(arguments))...));
             };
         }
 
@@ -111,8 +111,8 @@ namespace signal
             return [](const void *payload, Args... args) -> Ret
             {
                 [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
-                Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
-                return static_cast<Ret>(std::invoke(Candidate, *curr, std::forward<type_list_element_t<Index, type_list<Args...>>>(std::get<Index>(arguments))...));
+                Type *curr = static_cast<Type *>(const_cast<mpl::constness_as_t<void, Type> *>(payload));
+                return static_cast<Ret>(std::invoke(Candidate, *curr, std::forward<mpl::type_list_element_t<Index, mpl::type_list<Args...>>>(std::get<Index>(arguments))...));
             };
         }
 
@@ -122,8 +122,8 @@ namespace signal
             return [](const void *payload, Args... args) -> Ret
             {
                 [[maybe_unused]] const auto arguments = std::forward_as_tuple(std::forward<Args>(args)...);
-                Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
-                return static_cast<Ret>(std::invoke(Candidate, curr, std::forward<type_list_element_t<Index, type_list<Args...>>>(std::get<Index>(arguments))...));
+                Type *curr = static_cast<Type *>(const_cast<mpl::constness_as_t<void, Type> *>(payload));
+                return static_cast<Ret>(std::invoke(Candidate, curr, std::forward<mpl::type_list_element_t<Index, mpl::type_list<Args...>>>(std::get<Index>(arguments))...));
             };
         }
 
@@ -181,7 +181,7 @@ namespace signal
             }
             else if constexpr (std::is_member_pointer_v<decltype(Candidate)>)
             {
-                fn = wrap<Candidate>(details::index_sequence_for<type_list_element_t<0, type_list<Args...>>>(details::function_pointer_t<decltype(Candidate)>{}));
+                fn = wrap<Candidate>(details::index_sequence_for<mpl::type_list_element_t<0, mpl::type_list<Args...>>>(details::function_pointer_t<decltype(Candidate)>{}));
             }
             else
             {
@@ -213,7 +213,7 @@ namespace signal
             {
                 fn = [](const void *payload, Args... args) -> Ret
                 {
-                    Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
+                    Type *curr = static_cast<Type *>(const_cast<mpl::constness_as_t<void, Type> *>(payload));
                     return Ret(std::invoke(Candidate, *curr, std::forward<Args>(args)...));
                 };
             }
@@ -242,7 +242,7 @@ namespace signal
             {
                 fn = [](const void *payload, Args... args) -> Ret
                 {
-                    Type *curr = static_cast<Type *>(const_cast<constness_as_t<void, Type> *>(payload));
+                    Type *curr = static_cast<Type *>(const_cast<mpl::constness_as_t<void, Type> *>(payload));
                     return Ret(std::invoke(Candidate, curr, std::forward<Args>(args)...));
                 };
             }
