@@ -18,7 +18,7 @@
 #include "../signal/signal.h"
 
 
-namespace fsm {
+namespace escad {
 
 template <typename... Ts> struct Overload : Ts... { using Ts::operator()...; };
 template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
@@ -32,7 +32,7 @@ template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
 template <typename StateVariant> class fsm {
 
 public:
-  using NewStateType = signal::signal<void(const StateVariant &)>;
+  using NewStateType = signal<void(const StateVariant &)>;
 
 
   /**
@@ -126,7 +126,7 @@ private:
   NewStateType NewStateSignal_;
 
 public:
-  signal::slot<NewStateType> NewState;
+  slot<NewStateType> NewState;
 
    
 
@@ -189,4 +189,4 @@ private:
   }
 };
 
-} // namespace fsm
+} // namespace escad

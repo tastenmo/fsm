@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace signal {
+namespace escad {
 
 template<typename>
 class delegate;
@@ -37,4 +37,4 @@ class signal;
 /*! @brief Alias declaration for the most common use case. */
 //using dispatcher = basic_dispatcher<>;
 
-} // namespace signal
+} // namespace escad

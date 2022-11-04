@@ -20,7 +20,7 @@
 #include "../base/type_traits.h"
 #include "forwards.h"
 
-namespace signal
+namespace escad
 {
 
     namespace details
@@ -370,6 +370,6 @@ namespace signal
     template <typename Ret, typename... Args>
     delegate(Ret (*)(const void *, Args...), const void * = nullptr) -> delegate<Ret(Args...)>;
 
-} // namespace signal
+} // namespace escad
 
 

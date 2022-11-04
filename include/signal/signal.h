@@ -19,7 +19,7 @@
 #include "delegate.h"
 #include "forwards.h"
 
-namespace signal
+namespace escad
 {
     /**
      * @brief Slot class.

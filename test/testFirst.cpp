@@ -106,7 +106,7 @@ auto Interrupted::transitionTo(const abort_event &ev)
 
 using state = std::variant<Initial, Running, Interrupted>;
 
-class Fsm : public fsm::fsm<state>
+class Fsm : public escad::fsm<state>
 {
 };
 
@@ -161,7 +161,7 @@ TEST_CASE("Simple FSM numeric")
   
   StateHandler handler(&myfsm);
 
-  //signal::slot sink{myfsm.NewState};
+  //escad::slot sink{myfsm.NewState};
 
   //sink.connect(&handler::OnEvent);
   auto conn = myfsm.NewState.connect<&StateHandler::OnEvent>(&handler);
