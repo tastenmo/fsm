@@ -15,7 +15,7 @@
 #include <catch2/catch_all.hpp>
 #include <signal/delegate.h>
 
-using namespace signal;
+using namespace escad;
 
 int delegate_function(const int &i)
 {
