@@ -141,7 +141,7 @@ private:
   }
 
   template <typename State, typename Event>
-  auto enter(State &state, const Event &event) -> decltype(state.onEnter()) {
+  auto enter(State &state, [[maybe_unused]]const Event &event) -> decltype(state.onEnter()) {
     return state.onEnter();
   }
 
