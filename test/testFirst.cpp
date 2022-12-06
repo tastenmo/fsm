@@ -13,7 +13,7 @@
 
 //#include <catch2/catch.hpp>
 #include <catch2/catch_test_macros.hpp>
-#include <base/overload.h>
+#include <base/utils.h>
 #include <fsm/fsm.h>
 
 // events
@@ -120,7 +120,7 @@ public:
   void OnEvent(const state &state_variant)
   {
     std::visit(
-        Overload{
+        base::overloaded{
             [&](const Running &state)
             {
               fsm_->dispatch(stop_event{});

@@ -18,11 +18,11 @@ namespace signal {
 template<typename>
 class delegate;
 
-//template<typename = std::allocator<void>>
-//class basic_dispatcher;
+template<typename = std::allocator<void>>
+class basic_dispatcher;
 
-//template<typename, typename = std::allocator<void>>
-//class emitter;
+template<typename, typename = std::allocator<void>>
+class emitter;
 
 class connection;
 
@@ -35,6 +35,6 @@ template<typename Type, typename = std::allocator<void>>
 class signal;
 
 /*! @brief Alias declaration for the most common use case. */
-//using dispatcher = basic_dispatcher<>;
+using dispatcher = basic_dispatcher<>;
 
 } // namespace signal

@@ -78,3 +78,13 @@ make_test(testTypeTraits.cpp testTypeTraits-cpp17 c++17)
 make_test(testStateManager.cpp testStateManager-cpp17 c++17)
 
 make_test(testFSMpp17.cpp testFSMpp-cpp17 c++17)
+
+make_test(testCompressedPair.cpp testCompressedPair-cpp17 c++17)
+
+make_test(testIterator.cpp testIterator-cpp17 c++17)
+
+make_test(testDenseMap.cpp testDenseMap-cpp17 c++17)
+
+make_test(testEmitter.cpp testEmitter-cpp17 c++17)
+
+make_test(testDispatcher.cpp testDispatcher-cpp17 c++17)

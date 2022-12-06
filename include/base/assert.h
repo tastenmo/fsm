@@ -11,5 +11,8 @@
 #pragma once
 
 #include <cassert>
+#include <iostream>
 
-#define FSM_ASSERT(EXPR, MSG) std::cout << "Assertion-Beschreibung: " MSG << std::endl; assert(EXPR)
+
+#define FSM_ASSERT(EXPR, ...) assert(EXPR)
+//#define FSM_ASSERT(EXPR, MSG) std::cout << "Assertion-Beschreibung: " MSG << std::endl; assert(EXPR)
