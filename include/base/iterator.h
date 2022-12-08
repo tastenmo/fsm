@@ -6,7 +6,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace base {
+namespace escad {
 
 /**
  * @brief Helper type to use as pointer with input iterators.

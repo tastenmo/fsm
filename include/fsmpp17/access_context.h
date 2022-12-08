@@ -15,7 +15,7 @@
 
 #include "../base/type_traits.h"
 
-namespace fsm
+namespace escad
 {
 
 template<class C, class... D>

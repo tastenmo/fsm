@@ -14,7 +14,7 @@
 #include "../base/type_traits.h"
 #include "detail/handle_result.h"
 
-namespace fsm
+namespace escad
 {
 
 /**

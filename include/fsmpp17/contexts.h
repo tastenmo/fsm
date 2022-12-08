@@ -13,7 +13,7 @@
 
 #include <tuple>
 
-namespace fsm
+namespace escad
 {
 
 /**

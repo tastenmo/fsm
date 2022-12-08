@@ -48,26 +48,26 @@ TEST_CASE("CompressedPair_Size", "[CompressedPair]") {
         empty_type empty;
     };
 
-    static_assert(sizeof(base::compressed_pair<int, int>) == sizeof(int[2u]));
-    static_assert(sizeof(base::compressed_pair<empty_type, int>) == sizeof(int));
-    static_assert(sizeof(base::compressed_pair<int, empty_type>) == sizeof(int));
-    static_assert(sizeof(base::compressed_pair<int, empty_type>) < sizeof(local));
-    static_assert(sizeof(base::compressed_pair<int, empty_type>) < sizeof(std::pair<int, empty_type>));
+    static_assert(sizeof(escad::compressed_pair<int, int>) == sizeof(int[2u]));
+    static_assert(sizeof(escad::compressed_pair<empty_type, int>) == sizeof(int));
+    static_assert(sizeof(escad::compressed_pair<int, empty_type>) == sizeof(int));
+    static_assert(sizeof(escad::compressed_pair<int, empty_type>) < sizeof(local));
+    static_assert(sizeof(escad::compressed_pair<int, empty_type>) < sizeof(std::pair<int, empty_type>));
 }
 
 TEST_CASE("CompressedPair_ConstructCopyMove", "[CompressedPair]") {
-    static_assert(!std::is_default_constructible_v<base::compressed_pair<non_default_constructible, empty_type>>);
-    static_assert(std::is_default_constructible_v<base::compressed_pair<move_only_type, empty_type>>);
+    static_assert(!std::is_default_constructible_v<escad::compressed_pair<non_default_constructible, empty_type>>);
+    static_assert(std::is_default_constructible_v<escad::compressed_pair<move_only_type, empty_type>>);
 
-    static_assert(std::is_copy_constructible_v<base::compressed_pair<non_default_constructible, empty_type>>);
-    static_assert(!std::is_copy_constructible_v<base::compressed_pair<move_only_type, empty_type>>);
-    static_assert(std::is_copy_assignable_v<base::compressed_pair<non_default_constructible, empty_type>>);
-    static_assert(!std::is_copy_assignable_v<base::compressed_pair<move_only_type, empty_type>>);
+    static_assert(std::is_copy_constructible_v<escad::compressed_pair<non_default_constructible, empty_type>>);
+    static_assert(!std::is_copy_constructible_v<escad::compressed_pair<move_only_type, empty_type>>);
+    static_assert(std::is_copy_assignable_v<escad::compressed_pair<non_default_constructible, empty_type>>);
+    static_assert(!std::is_copy_assignable_v<escad::compressed_pair<move_only_type, empty_type>>);
 
-    static_assert(std::is_move_constructible_v<base::compressed_pair<move_only_type, empty_type>>);
-    static_assert(std::is_move_assignable_v<base::compressed_pair<move_only_type, empty_type>>);
+    static_assert(std::is_move_constructible_v<escad::compressed_pair<move_only_type, empty_type>>);
+    static_assert(std::is_move_assignable_v<escad::compressed_pair<move_only_type, empty_type>>);
 
-    base::compressed_pair copyable{non_default_constructible{42}, empty_type{}};
+    escad::compressed_pair copyable{non_default_constructible{42}, empty_type{}};
     auto by_copy{copyable};
 
     REQUIRE(by_copy.first().value == 42);
@@ -77,7 +77,7 @@ TEST_CASE("CompressedPair_ConstructCopyMove", "[CompressedPair]") {
 
     REQUIRE(copyable.first().value == 3);
 
-    base::compressed_pair<empty_type, move_only_type> movable{};
+    escad::compressed_pair<empty_type, move_only_type> movable{};
     auto by_move{std::move(movable)};
 
     REQUIRE(*by_move.second().value == 99);
@@ -92,8 +92,8 @@ TEST_CASE("CompressedPair_ConstructCopyMove", "[CompressedPair]") {
 
 TEST_CASE("CompressedPair_PiecewiseConstruct", "[CompressedPair]") {
     std::vector<int> vec{42};
-    base::compressed_pair<empty_type, empty_type> empty{std::piecewise_construct, std::make_tuple(), std::make_tuple()};
-    base::compressed_pair<std::vector<int>, std::size_t> pair{std::piecewise_construct, std::forward_as_tuple(std::move(vec)), std::make_tuple(sizeof(empty))};
+    escad::compressed_pair<empty_type, empty_type> empty{std::piecewise_construct, std::make_tuple(), std::make_tuple()};
+    escad::compressed_pair<std::vector<int>, std::size_t> pair{std::piecewise_construct, std::forward_as_tuple(std::move(vec)), std::make_tuple(sizeof(empty))};
 
     REQUIRE(pair.first().size() == 1u);
     REQUIRE(pair.second() == sizeof(empty));
@@ -103,17 +103,17 @@ TEST_CASE("CompressedPair_PiecewiseConstruct", "[CompressedPair]") {
 TEST_CASE("CompressedPair_DeductionGuide", "[CompressedPair]") {
     int value = 42;
     empty_type empty{};
-    base::compressed_pair pair{value, 3};
+    escad::compressed_pair pair{value, 3};
 
-    static_assert(std::is_same_v<decltype(base::compressed_pair{empty_type{}, empty}), base::compressed_pair<empty_type, empty_type>>);
+    static_assert(std::is_same_v<decltype(escad::compressed_pair{empty_type{}, empty}), escad::compressed_pair<empty_type, empty_type>>);
 
-    STATIC_REQUIRE(std::is_same_v<decltype(pair), base::compressed_pair<int, int>>);
+    STATIC_REQUIRE(std::is_same_v<decltype(pair), escad::compressed_pair<int, int>>);
     REQUIRE(pair.first() == 42);
     REQUIRE(pair.second() == 3);
 }
 
 TEST_CASE("CompressedPair_Getters", "[CompressedPair]") {
-    base::compressed_pair pair{3, empty_type{}};
+    escad::compressed_pair pair{3, empty_type{}};
     const auto &cpair = pair;
 
     static_assert(std::is_same_v<decltype(pair.first()), int &>);
@@ -127,8 +127,8 @@ TEST_CASE("CompressedPair_Getters", "[CompressedPair]") {
 }
 
 TEST_CASE("CompressedPair_Swap", "[CompressedPair]") {
-    base::compressed_pair pair{1, 2};
-    base::compressed_pair other{3, 4};
+    escad::compressed_pair pair{1, 2};
+    escad::compressed_pair other{3, 4};
 
     swap(pair, other);
 
@@ -146,7 +146,7 @@ TEST_CASE("CompressedPair_Swap", "[CompressedPair]") {
 }
 
 TEST_CASE("CompressedPair_Get", "[CompressedPair]") {
-    base::compressed_pair pair{1, 2};
+    escad::compressed_pair pair{1, 2};
 
     REQUIRE(pair.get<0>() == 1);
     REQUIRE(pair.get<1>() == 2);
@@ -173,7 +173,7 @@ TEST_CASE("CompressedPair_Get", "[CompressedPair]") {
     static_assert(std::is_same_v<decltype(cfirst), const int>);
     static_assert(std::is_same_v<decltype(csecond), const int>);
 
-    auto [tfirst, tsecond] = base::compressed_pair{9, 99};
+    auto [tfirst, tsecond] = escad::compressed_pair{9, 99};
 
     REQUIRE(tfirst == 9);
     REQUIRE(tsecond == 99);

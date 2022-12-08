@@ -13,7 +13,7 @@
 
 #include "../access_context.h"
 
-namespace fsm::detail
+namespace escad::detail
 {
 
 template<class T, class E>

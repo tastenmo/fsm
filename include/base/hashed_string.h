@@ -5,7 +5,7 @@
 #include <cstdint>
 #include "forwards.h"
 
-namespace base {
+namespace escad {
 
 /**
  * @cond TURN_OFF_DOXYGEN

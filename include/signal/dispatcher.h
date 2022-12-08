@@ -15,7 +15,7 @@
 #include "forwards.h"
 #include "signal.h"
 
-namespace signal {
+namespace escad {
 
 /**
  * @cond TURN_OFF_DOXYGEN
@@ -109,7 +109,7 @@ class basic_dispatcher {
   template <typename Type>
   using handler_type = details::dispatcher_handler<Type, Allocator>;
 
-  using key_type = base::id_type;
+  using key_type = escad::id_type;
   // std::shared_ptr because of its type erased allocator which is pretty useful
   // here
   using mapped_type = std::shared_ptr<details::basic_dispatcher_handler>;
@@ -118,11 +118,11 @@ class basic_dispatcher {
   using container_allocator = typename alloc_traits::template rebind_alloc<
       std::pair<const key_type, mapped_type>>;
   using container_type =
-      container::dense_map<key_type, mapped_type, base::identity, std::equal_to<key_type>,
+      escad::dense_map<key_type, mapped_type, escad::identity, std::equal_to<key_type>,
                 container_allocator>;
 
   template <typename Type>
-  [[nodiscard]] handler_type<Type> &assure(const base::id_type id) {
+  [[nodiscard]] handler_type<Type> &assure(const escad::id_type id) {
     static_assert(std::is_same_v<Type, std::decay_t<Type>>,
                   "Non-decayed types not allowed");
     auto &&ptr = pools.first()[id];
@@ -202,7 +202,7 @@ class basic_dispatcher {
    * @return The number of pending events for the given type.
    */
   template <typename Type>
-  size_type size(const base::id_type id = base::type_hash<Type>::value()) const noexcept {
+  size_type size(const escad::id_type id = escad::type_hash<Type>::value()) const noexcept {
     if (auto it = pools.first().find(id); it != pools.first().cend()) {
       return it->second->size();
     }
@@ -244,7 +244,7 @@ class basic_dispatcher {
    * @return A temporary sink object.
    */
   template <typename Type>
-  [[nodiscard]] auto slot(const base::id_type id = base::type_hash<Type>::value()) {
+  [[nodiscard]] auto slot(const escad::id_type id = escad::type_hash<Type>::value()) {
     return assure<Type>(id).bucket();
   }
 
@@ -255,7 +255,7 @@ class basic_dispatcher {
    */
   template <typename Type>
   void trigger(Type &&value = {}) {
-    trigger(base::type_hash<std::decay_t<Type>>::value(), std::forward<Type>(value));
+    trigger(escad::type_hash<std::decay_t<Type>>::value(), std::forward<Type>(value));
   }
 
   /**
@@ -265,7 +265,7 @@ class basic_dispatcher {
    * @param id Name used to map the event queue within the dispatcher.
    */
   template <typename Type>
-  void trigger(const base::id_type id, Type &&value = {}) {
+  void trigger(const escad::id_type id, Type &&value = {}) {
     assure<std::decay_t<Type>>(id).trigger(std::forward<Type>(value));
   }
 
@@ -277,7 +277,7 @@ class basic_dispatcher {
    */
   template <typename Type, typename... Args>
   void enqueue(Args &&...args) {
-    enqueue_hint<Type>(base::type_hash<Type>::value(), std::forward<Args>(args)...);
+    enqueue_hint<Type>(escad::type_hash<Type>::value(), std::forward<Args>(args)...);
   }
 
   /**
@@ -287,7 +287,7 @@ class basic_dispatcher {
    */
   template <typename Type>
   void enqueue(Type &&value) {
-    enqueue_hint(base::type_hash<std::decay_t<Type>>::value(),
+    enqueue_hint(escad::type_hash<std::decay_t<Type>>::value(),
                  std::forward<Type>(value));
   }
 
@@ -299,7 +299,7 @@ class basic_dispatcher {
    * @param args Arguments to use to construct the event.
    */
   template <typename Type, typename... Args>
-  void enqueue_hint(const base::id_type id, Args &&...args) {
+  void enqueue_hint(const escad::id_type id, Args &&...args) {
     assure<Type>(id).enqueue(std::forward<Args>(args)...);
   }
 
@@ -310,7 +310,7 @@ class basic_dispatcher {
    * @param value An instance of the given type of event.
    */
   template <typename Type>
-  void enqueue_hint(const base::id_type id, Type &&value) {
+  void enqueue_hint(const escad::id_type id, Type &&value) {
     assure<std::decay_t<Type>>(id).enqueue(std::forward<Type>(value));
   }
 
@@ -344,7 +344,7 @@ class basic_dispatcher {
    * @param id Name used to map the event queue within the dispatcher.
    */
   template <typename Type>
-  void clear(const base::id_type id = base::type_hash<Type>::value()) {
+  void clear(const escad::id_type id = escad::type_hash<Type>::value()) {
     assure<Type>(id).clear();
   }
 
@@ -361,7 +361,7 @@ class basic_dispatcher {
    * @param id Name used to map the event queue within the dispatcher.
    */
   template <typename Type>
-  void update(const base::id_type id = base::type_hash<Type>::value()) {
+  void update(const escad::id_type id = escad::type_hash<Type>::value()) {
     assure<Type>(id).publish();
   }
 
@@ -373,7 +373,7 @@ class basic_dispatcher {
   }
 
  private:
-  base::compressed_pair<container_type, allocator_type> pools;
+  escad::compressed_pair<container_type, allocator_type> pools;
 };
 
 }  // namespace signal

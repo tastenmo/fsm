@@ -18,7 +18,7 @@
 #include "../access_context.h"
 #include "traits.h"
 
-namespace fsm::detail
+namespace escad::detail
 {
 
     /**

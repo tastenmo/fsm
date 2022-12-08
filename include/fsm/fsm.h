@@ -17,11 +17,16 @@
 
 #include "../signal/signal.h"
 
+namespace escad {
 
-namespace fsm {
+inline namespace fsm_ {
 
-template <typename... Ts> struct Overload : Ts... { using Ts::operator()...; };
-template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
+template <typename... Ts>
+struct Overload : Ts... {
+  using Ts::operator()...;
+};
+template <class... Ts>
+Overload(Ts...) -> Overload<Ts...>;
 
 /**
  * @brief CRTP based FSM
@@ -29,30 +34,26 @@ template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
  * @tparam Derived
  * @tparam possible States bound in std::variant
  */
-template <typename StateVariant> class fsm {
-
-public:
-  using NewStateType = signal::signal<void(const StateVariant &)>;
-
+template <typename StateVariant>
+class fsm {
+ public:
+  using NewStateType = escad::signal<void(const StateVariant &)>;
 
   /**
    * @brief Construct a new fsm object
-   * 
+   *
    */
   fsm() : state_{}, NewStateSignal_{}, NewState{NewStateSignal_} {}
 
-  fsm(const StateVariant &initial) : state_{initial}, NewStateSignal_{}, NewState{NewStateSignal_} {}
-
-
+  fsm(const StateVariant &initial)
+      : state_{initial}, NewStateSignal_{}, NewState{NewStateSignal_} {}
 
   /**
    * @brief Get the state object
    *
    * @return const StateVariant&
    */
-  void init(const StateVariant &state) { 
-    state_ = state; 
-    }
+  void init(const StateVariant &state) { state_ = state; }
   /**
    * @brief Get the state object
    *
@@ -73,7 +74,9 @@ public:
    * @return StateVariant&
    */
   template <typename State>
-  bool is_state() { return std::holds_alternative<State>(state_); }
+  bool is_state() {
+    return std::holds_alternative<State>(state_);
+  }
 
   /**
    * @brief dispatch an Event
@@ -81,10 +84,11 @@ public:
    * @tparam Event
    * @param event
    */
-  template <typename Event> void dispatch(Event &&event) {
-    //Derived &child = static_cast<Derived &>(*this);
-    // visitor to call on_event for actual state
-    // gets new_state to transition or std::nullopt to stay in state_;
+  template <typename Event>
+  void dispatch(Event &&event) {
+    // Derived &child = static_cast<Derived &>(*this);
+    //  visitor to call on_event for actual state
+    //  gets new_state to transition or std::nullopt to stay in state_;
     auto new_state = std::visit(
         [&](auto &s) -> std::optional<StateVariant> {
           return transition(s, std::forward<Event>(event));
@@ -92,11 +96,10 @@ public:
         state_);
     // transition to new state
     if (new_state) {
-
       state_ = *std::move(new_state);
 
       // call onEnter of the state if it exists, uses decltype SFINAE, see below
-      std::visit([&](auto& statePtr) { enter(statePtr, event); }, state_);
+      std::visit([&](auto &statePtr) { enter(statePtr, event); }, state_);
 
       // emit State Changed
       NewStateSignal_.publish(state_);
@@ -121,17 +124,14 @@ public:
     }
   }
 
-private:
+ private:
   StateVariant state_;
   NewStateType NewStateSignal_;
 
-public:
-  signal::slot<NewStateType> NewState;
+ public:
+  escad::slot<NewStateType> NewState;
 
-   
-
-private:
-
+ private:
   void enter(...) {}
 
   template <typename State, typename Event>
@@ -148,8 +148,7 @@ private:
   void exit(...) {}
 
   template <typename State, typename Event>
-  auto exit(State &state, const Event &event)
-      -> decltype(state.onExit(event)) {
+  auto exit(State &state, const Event &event) -> decltype(state.onExit(event)) {
     return state.onExit(event);
   }
 
@@ -158,9 +157,7 @@ private:
     return state.onExit();
   }
 
-  std::optional<StateVariant> handle(...) {
-    return std::nullopt;
-  }
+  std::optional<StateVariant> handle(...) { return std::nullopt; }
 
   template <typename State, typename Event>
   auto handle(State &state, const Event &event)
@@ -173,9 +170,7 @@ private:
     return state.handle();
   }
 
-  std::optional<StateVariant> transition(...) {
-    return std::nullopt;
-  }
+  std::optional<StateVariant> transition(...) { return std::nullopt; }
 
   template <typename State, typename Event>
   auto transition(State &state, const Event &event)
@@ -184,9 +179,12 @@ private:
   }
 
   template <typename State, typename Event>
-  auto transition(State &state, const Event &event) -> decltype(state.transitionTo()) {
+  auto transition(State &state, const Event &event)
+      -> decltype(state.transitionTo()) {
     return state.transitionTo();
   }
 };
 
-} // namespace fsm
+}  // namespace fsm
+
+}  // namespace escad

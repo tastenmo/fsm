@@ -20,7 +20,7 @@
 #include "../base/type_traits.h"
 #include "forwards.h"
 
-namespace signal
+namespace escad
 {
 
     namespace details

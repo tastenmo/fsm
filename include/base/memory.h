@@ -13,7 +13,7 @@
 #include "assert.h"
 //#include "../config/config.h"
 
-namespace base {
+namespace escad {
 
 /**
  * @brief Unwraps fancy pointers, does nothing otherwise (waiting for C++20).

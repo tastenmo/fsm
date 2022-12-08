@@ -11,7 +11,7 @@
 #include "../base/utils.h"
 #include "forwards.h"
 
-namespace signal {
+namespace escad {
 
 /**
  * @brief General purpose event emitter.
@@ -34,12 +34,12 @@ namespace signal {
  */
 template<typename Derived, typename Allocator>
 class emitter {
-    using key_type = base::id_type;
+    using key_type = escad::id_type;
     using mapped_type = std::function<void(void *)>;
 
     using alloc_traits = std::allocator_traits<Allocator>;
     using container_allocator = typename alloc_traits::template rebind_alloc<std::pair<const key_type, mapped_type>>;
-    using container_type = container::dense_map<key_type, mapped_type, base::identity, std::equal_to<key_type>, container_allocator>;
+    using container_type = escad::dense_map<key_type, mapped_type, escad::identity, std::equal_to<key_type>, container_allocator>;
 
 public:
     /*! @brief Allocator type. */
@@ -112,7 +112,7 @@ public:
      */
     template<typename Type>
     void publish(Type &&value) {
-        if(const auto id = base::type_id<Type>().hash(); handlers.first().contains(id)) {
+        if(const auto id = escad::type_id<Type>().hash(); handlers.first().contains(id)) {
             handlers.first()[id](&value);
         }
     }
@@ -124,7 +124,7 @@ public:
      */
     template<typename Type>
     void on(std::function<void(Type &, Derived &)> func) {
-        handlers.first().insert_or_assign(base::type_id<Type>().hash(), [func = std::move(func), this](void *value) {
+        handlers.first().insert_or_assign(escad::type_id<Type>().hash(), [func = std::move(func), this](void *value) {
             func(*static_cast<Type *>(value), static_cast<Derived &>(*this));
         });
     }
@@ -135,7 +135,7 @@ public:
      */
     template<typename Type>
     void erase() {
-        handlers.first().erase(base::type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
+        handlers.first().erase(escad::type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
     }
 
     /*! @brief Disconnects all the listeners. */
@@ -150,7 +150,7 @@ public:
      */
     template<typename Type>
     [[nodiscard]] bool contains() const {
-        return handlers.first().contains(base::type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
+        return handlers.first().contains(escad::type_hash<std::remove_cv_t<std::remove_reference_t<Type>>>::value());
     }
 
     /**
@@ -162,7 +162,7 @@ public:
     }
 
 private:
-    base::compressed_pair<container_type, allocator_type> handlers;
+    escad::compressed_pair<container_type, allocator_type> handlers;
 };
 
 } // namespace signal

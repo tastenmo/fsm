@@ -7,7 +7,7 @@
 #include <utility>
 #include "type_traits.h"
 
-namespace base {
+namespace escad {
 
 /**
  * @cond TURN_OFF_DOXYGEN
@@ -260,7 +260,7 @@ namespace std {
  * @tparam Second The type of the second element that the pair stores.
  */
 template<typename First, typename Second>
-struct tuple_size<base::compressed_pair<First, Second>>: integral_constant<size_t, 2u> {};
+struct tuple_size<escad::compressed_pair<First, Second>>: integral_constant<size_t, 2u> {};
 
 /**
  * @brief `std::tuple_element` specialization for `compressed_pair`s.
@@ -269,7 +269,7 @@ struct tuple_size<base::compressed_pair<First, Second>>: integral_constant<size_
  * @tparam Second The type of the second element that the pair stores.
  */
 template<size_t Index, typename First, typename Second>
-struct tuple_element<Index, base::compressed_pair<First, Second>>: conditional<Index == 0u, First, Second> {
+struct tuple_element<Index, escad::compressed_pair<First, Second>>: conditional<Index == 0u, First, Second> {
     static_assert(Index < 2u, "Index out of bounds");
 };
 

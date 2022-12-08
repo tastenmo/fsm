@@ -17,7 +17,7 @@
 #include "../base/type_traits.h"
 #include "forwards.h"
 
-namespace container {
+namespace escad {
 
 /**
  * @cond TURN_OFF_DOXYGEN
@@ -38,17 +38,17 @@ struct dense_map_node final {
     template<typename Allocator, typename... Args>
     dense_map_node(std::allocator_arg_t, const Allocator &allocator, const std::size_t pos, Args &&...args)
         : next{pos},
-          element{base::make_obj_using_allocator<value_type>(allocator, std::forward<Args>(args)...)} {}
+          element{escad::make_obj_using_allocator<value_type>(allocator, std::forward<Args>(args)...)} {}
 
     template<typename Allocator>
     dense_map_node(std::allocator_arg_t, const Allocator &allocator, const dense_map_node &other)
         : next{other.next},
-          element{base::make_obj_using_allocator<value_type>(allocator, other.element)} {}
+          element{escad::make_obj_using_allocator<value_type>(allocator, other.element)} {}
 
     template<typename Allocator>
     dense_map_node(std::allocator_arg_t, const Allocator &allocator, dense_map_node &&other)
         : next{other.next},
-          element{base::make_obj_using_allocator<value_type>(allocator, std::move(other.element))} {}
+          element{escad::make_obj_using_allocator<value_type>(allocator, std::move(other.element))} {}
 
     std::size_t next;
     value_type element;
@@ -64,7 +64,7 @@ class dense_map_iterator final {
 
 public:
     using value_type = std::pair<first_type, second_type>;
-    using pointer = base::input_iterator_pointer<value_type>;
+    using pointer = escad::input_iterator_pointer<value_type>;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
@@ -185,7 +185,7 @@ class dense_map_local_iterator final {
 
 public:
     using value_type = std::pair<first_type, second_type>;
-    using pointer = base::input_iterator_pointer<value_type>;
+    using pointer = escad::input_iterator_pointer<value_type>;
     using reference = value_type;
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
@@ -272,7 +272,7 @@ class dense_map {
 
     template<typename Other>
     [[nodiscard]] std::size_t key_to_bucket(const Other &key) const noexcept {
-        return base::fast_mod(sparse.second()(key), bucket_count());
+        return escad::fast_mod(sparse.second()(key), bucket_count());
     }
 
     template<typename Other>
@@ -428,7 +428,7 @@ public:
           threshold{other.threshold} {}
 
     /*! @brief Default move constructor. */
-    dense_map(dense_map &&) noexcept(std::is_nothrow_move_constructible_v<base::compressed_pair<sparse_container_type, hasher>> &&std::is_nothrow_move_constructible_v<base::compressed_pair<packed_container_type, key_equal>>) = default;
+    dense_map(dense_map &&) noexcept(std::is_nothrow_move_constructible_v<escad::compressed_pair<sparse_container_type, hasher>> &&std::is_nothrow_move_constructible_v<escad::compressed_pair<packed_container_type, key_equal>>) = default;
 
     /**
      * @brief Allocator-extended move constructor.
@@ -450,7 +450,7 @@ public:
      * @brief Default move assignment operator.
      * @return This container.
      */
-    dense_map &operator=(dense_map &&) noexcept(std::is_nothrow_move_assignable_v<base::compressed_pair<sparse_container_type, hasher>> &&std::is_nothrow_move_assignable_v<base::compressed_pair<packed_container_type, key_equal>>) = default;
+    dense_map &operator=(dense_map &&) noexcept(std::is_nothrow_move_assignable_v<escad::compressed_pair<sparse_container_type, hasher>> &&std::is_nothrow_move_assignable_v<escad::compressed_pair<packed_container_type, key_equal>>) = default;
 
     /**
      * @brief Returns the associated allocator.
@@ -990,7 +990,7 @@ public:
         const auto cap = static_cast<size_type>(size() / max_load_factor());
         value = value > cap ? value : cap;
 
-        if(const auto sz = base::next_power_of_two(value); sz != bucket_count()) {
+        if(const auto sz = escad::next_power_of_two(value); sz != bucket_count()) {
             sparse.first().resize(sz);
 
             for(auto &&elem: sparse.first()) {
@@ -1031,8 +1031,8 @@ public:
     }
 
 private:
-    base::compressed_pair<sparse_container_type, hasher> sparse;
-    base::compressed_pair<packed_container_type, key_equal> packed;
+    escad::compressed_pair<sparse_container_type, hasher> sparse;
+    escad::compressed_pair<packed_container_type, key_equal> packed;
     float threshold;
 };
 
@@ -1046,7 +1046,7 @@ private:
 namespace std {
 
 template<typename Key, typename Value, typename Allocator>
-struct uses_allocator<container::details::dense_map_node<Key, Value>, Allocator>
+struct uses_allocator<escad::details::dense_map_node<Key, Value>, Allocator>
     : std::true_type {};
 
 } // namespace std

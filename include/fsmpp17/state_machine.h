@@ -14,7 +14,7 @@
 #include "detail/state_manager.h"
 #include "contexts.h"
 
-namespace fsm
+namespace escad
 {
 
 template<class States, class Events, class Context, class Tracer = detail::NullTracer>

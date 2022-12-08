@@ -14,7 +14,7 @@
 #include "../../base/type_traits.h"
 #include <variant>
 
-namespace fsm::detail
+namespace escad::detail
 {
 
 /**

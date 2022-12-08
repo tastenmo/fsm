@@ -26,7 +26,7 @@ struct one_more_event {
 };
 
 struct receiver {
-    static void forward(signal::dispatcher &dispatcher, an_event &event) {
+    static void forward(escad::dispatcher &dispatcher, an_event &event) {
         dispatcher.enqueue(event);
     }
 
@@ -42,8 +42,8 @@ struct receiver {
 };
 
 TEST_CASE("Dispatcher_Functionalities", "[Dispatcher]") {
-    signal::dispatcher dispatcher;
-    signal::dispatcher other;
+    escad::dispatcher dispatcher;
+    escad::dispatcher other;
     receiver receiver;
 
     //ASSERT_NO_FATAL_FAILURE(signal::dispatcher{std::move(dispatcher)});
@@ -106,8 +106,8 @@ TEST_CASE("Dispatcher_Functionalities", "[Dispatcher]") {
 }
 
 TEST_CASE("Dispatcher_Swap", "[Dispatcher]" ) {
-    signal::dispatcher dispatcher;
-    signal::dispatcher other;
+    escad::dispatcher dispatcher;
+    escad::dispatcher other;
     receiver receiver;
 
     dispatcher.slot<an_event>().connect<&receiver::receive>(receiver);
@@ -132,7 +132,7 @@ TEST_CASE("Dispatcher_Swap", "[Dispatcher]" ) {
 }
 
 TEST_CASE("Dispatcher_StopAndGo", "[Dispatcher]" ) {
-    signal::dispatcher dispatcher;
+    escad::dispatcher dispatcher;
     receiver receiver;
 
     dispatcher.slot<an_event>().connect<&receiver::forward>(dispatcher);
@@ -150,7 +150,7 @@ TEST_CASE("Dispatcher_StopAndGo", "[Dispatcher]" ) {
 }
 
 TEST_CASE("Dispatcher_OpaqueDisconnect", "[Dispatcher]") {
-    signal::dispatcher dispatcher;
+    escad::dispatcher dispatcher;
     receiver receiver;
 
     dispatcher.slot<an_event>().connect<&receiver::receive>(receiver);
@@ -165,9 +165,9 @@ TEST_CASE("Dispatcher_OpaqueDisconnect", "[Dispatcher]") {
 }
 
 TEST_CASE("Dispatcher_NamedQueue", "[Dispatcher]") {
-    using namespace base::literals;
+    using namespace escad::literals;
 
-    signal::dispatcher dispatcher;
+    escad::dispatcher dispatcher;
     receiver receiver;
 
     dispatcher.slot<an_event>("named"_hs).connect<&receiver::receive>(receiver);
@@ -201,7 +201,7 @@ TEST_CASE("Dispatcher_NamedQueue", "[Dispatcher]") {
 
 TEST_CASE("Dispatcher_CustomAllocator", "[Dispatcher]") {
     std::allocator<void> allocator;
-    signal::dispatcher dispatcher{allocator};
+    escad::dispatcher dispatcher{allocator};
 
     ASSERT_EQ(dispatcher.get_allocator(), allocator);
     ASSERT_FALSE(dispatcher.get_allocator() != allocator);

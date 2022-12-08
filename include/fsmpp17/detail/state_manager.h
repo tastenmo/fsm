@@ -24,7 +24,7 @@
 #include "traits.h"
 #include <variant>
 
-namespace fsm::detail
+namespace escad::detail
 {
 
 struct NullTracer {
@@ -121,15 +121,15 @@ private:
     }
 
     template<class T, class U, class... C>
-    void try_emplace_state(fsm::contexts<C...> &ctx) {
+    void try_emplace_state(escad::contexts<C...> &ctx) {
         if constexpr (std::is_constructible_v<T, U&>) {
             states_.template enter<T>(ctx.template get<U>());
         }
     }
 
     template<class T, class... C>
-    void emplace_state(fsm::contexts<C...> &ctx) {
-        if constexpr(std::is_constructible_v<T, fsm::contexts<C...> &>) {
+    void emplace_state(escad::contexts<C...> &ctx) {
+        if constexpr(std::is_constructible_v<T, escad::contexts<C...> &>) {
             states_.template enter<T>(ctx);
         } else {
             if constexpr(is_constructible_by_one_of<T, C...>()) {

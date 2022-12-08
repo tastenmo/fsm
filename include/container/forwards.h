@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 
-namespace container {
+namespace escad {
 
 template<
     typename Key,

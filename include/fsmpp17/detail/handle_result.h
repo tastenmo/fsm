@@ -11,7 +11,7 @@
 
 #pragma once
 
-namespace fsm::detail
+namespace escad::detail
 {
 
 struct handled {};

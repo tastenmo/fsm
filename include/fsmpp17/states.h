@@ -22,7 +22,7 @@
 //#include "fsmpp2/config.hpp"
 
 
-namespace fsm
+namespace escad
 {
 
 /**

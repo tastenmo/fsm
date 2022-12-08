@@ -21,19 +21,19 @@ struct EmptyContext
 
 // events
 
-struct start_event : fsm::event
+struct start_event : escad::event
 {
 };
 
-struct stop_event : fsm::event
+struct stop_event : escad::event
 {
 };
 
-struct cont_event : fsm::event
+struct cont_event : escad::event
 {
 };
 
-struct abort_event : fsm::event
+struct abort_event : escad::event
 {
 };
 
@@ -44,7 +44,7 @@ struct Running;
 struct Interrupted;
 struct Finished;
 
-struct Initial : fsm::state<>
+struct Initial : escad::state<>
 {
 
   Initial()
@@ -64,7 +64,7 @@ struct Initial : fsm::state<>
   }
 };
 
-struct Running : fsm::state<>
+struct Running : escad::state<>
 {
   Running()
   {
@@ -83,7 +83,7 @@ struct Running : fsm::state<>
   }
 };
 
-struct Interrupted : fsm::state<>
+struct Interrupted : escad::state<>
 {
 
     Interrupted()
@@ -110,7 +110,7 @@ struct Interrupted : fsm::state<>
   
 };
 
-struct Finished : fsm::state<>
+struct Finished : escad::state<>
 {
 
     Finished()
@@ -123,14 +123,14 @@ struct Finished : fsm::state<>
 TEST_CASE("Simple FSMpp17 numeric")
 {
 
-    using States = fsm::states<
+    using States = escad::states<
         Initial,
         Running,
         Interrupted,
         Finished
     >;
 
-    using Events = fsm::events<
+    using Events = escad::events<
         start_event,
         stop_event,
         cont_event,
@@ -138,7 +138,7 @@ TEST_CASE("Simple FSMpp17 numeric")
     >;
 
 
-  fsm::state_machine myfsm{States{}, Events{}, EmptyContext{}};
+  escad::state_machine myfsm{States{}, Events{}, EmptyContext{}};
   
 
   // REQUIRE(myfsm<Initial>.is_state())

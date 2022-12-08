@@ -13,7 +13,7 @@
 
 #include <memory>
 
-namespace signal {
+namespace escad {
 
 template<typename>
 class delegate;

@@ -9,7 +9,7 @@
 #include "forwards.h"
 #include "hashed_string.h"
 
-namespace base {
+namespace escad {
 
 /**
  * @cond TURN_OFF_DOXYGEN

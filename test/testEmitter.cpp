@@ -16,8 +16,8 @@
 #define ASSERT_GT(EXPR1, EXPR2) REQUIRE(EXPR1 > EXPR2)
 #define ASSERT_GE(EXPR1, EXPR2) REQUIRE(EXPR1 >= EXPR2)
 
-struct test_emitter: signal::emitter<test_emitter> {
-    using signal::emitter<test_emitter>::emitter;
+struct test_emitter: escad::emitter<test_emitter> {
+    using escad::emitter<test_emitter>::emitter;
 };
 
 struct foo_event {

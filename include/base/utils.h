@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace base {
+namespace escad {
 
 /*! @brief Identity function object (waiting for C++20). */
 struct identity {

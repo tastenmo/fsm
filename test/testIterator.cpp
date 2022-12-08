@@ -12,7 +12,7 @@ struct clazz {
 
 TEST_CASE("Iterator_InputIteratorPointer", "[Iterator]") {
     clazz instance{};
-    base::input_iterator_pointer ptr{std::move(instance)};
+    escad::input_iterator_pointer ptr{std::move(instance)};
     ptr->value = 42;
 
     REQUIRE(instance.value == 0);
@@ -22,8 +22,8 @@ TEST_CASE("Iterator_InputIteratorPointer", "[Iterator]") {
 }
 
 TEST_CASE("Iterator_IotaIterator", "[Iterator]") {
-    base::iota_iterator<std::size_t> first{};
-    const base::iota_iterator<std::size_t> last{2u};
+    escad::iota_iterator<std::size_t> first{};
+    const escad::iota_iterator<std::size_t> last{2u};
 
     REQUIRE_FALSE(first == last);
     REQUIRE(first != last);
@@ -36,7 +36,7 @@ TEST_CASE("Iterator_IotaIterator", "[Iterator]") {
 
 TEST_CASE("Iterator_IterableAdaptor", "[Iterator]") {
     std::vector<int> vec{1, 2};
-    base::iterable_adaptor iterable{vec.begin(), vec.end()};
+    escad::iterable_adaptor iterable{vec.begin(), vec.end()};
     decltype(iterable) other{};
 
     REQUIRE_NOTHROW(other = iterable);
@@ -49,7 +49,7 @@ TEST_CASE("Iterator_IterableAdaptor", "[Iterator]") {
     REQUIRE(*++iterable.cbegin() == 2);
     REQUIRE(++iterable.cbegin() == --iterable.end());
 
-    for(auto value: base::iterable_adaptor<const int *, const void *>{vec.data(), vec.data() + 1u}) {
+    for(auto value: escad::iterable_adaptor<const int *, const void *>{vec.data(), vec.data() + 1u}) {
         REQUIRE(value == 1);
     }
 }
