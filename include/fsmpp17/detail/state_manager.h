@@ -76,7 +76,8 @@ public:
         auto result = false;
 
         substates_.visit(
-            [this, &e, &result](auto &substate) {
+            [&](auto &substate) {
+                //Unused << this;
                 result = substate_dispatch(substate, e);
             }
         );
@@ -176,7 +177,7 @@ private:
     }
 
     template<class S, class E>
-    auto handle(S& state, E const& e) -> std::enable_if_t<
+    auto handle(S&, E const& ) -> std::enable_if_t<
             !detail::can_handle_event<S, E>::value && !detail::can_handle_event_with_context<S, E, Context>::value,
     bool> {
         return false;

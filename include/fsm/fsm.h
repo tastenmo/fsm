@@ -144,7 +144,7 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto enter(State &state, const Event &event) -> decltype(state.onEnter()) {
+  auto enter(State &state, const Event &) -> decltype(state.onEnter()) {
     return state.onEnter();
   }
   template <class... Args>
@@ -156,7 +156,7 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto exit(State &state, const Event &event) -> decltype(state.onExit()) {
+  auto exit(State &state, const Event &) -> decltype(state.onExit()) {
     return state.onExit();
   }
   template <class... Args>
@@ -169,7 +169,7 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto handle(State &state, const Event &event) -> decltype(state.handle()) {
+  auto handle(State &state, const Event &) -> decltype(state.handle()) {
     return state.handle();
   }
   
@@ -183,7 +183,7 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto transition(State &state, const Event &event)
+  auto transition(State &state, const Event &)
       -> decltype(state.transitionTo()) {
     return state.transitionTo();
   }
