@@ -45,42 +45,42 @@ class dispatcher_handler final : public basic_dispatcher_handler {
   using allocator_type = Allocator;
 
   dispatcher_handler(const allocator_type &allocator)
-      : signal{allocator}, events{allocator} {}
+      : signal_{allocator}, events_{allocator} {}
 
   void publish() override {
-    const auto length = events.size();
+    const auto length = events_.size();
 
     for (std::size_t pos{}; pos < length; ++pos) {
-      signal.publish(events[pos]);
+      signal_.publish(events_[pos]);
     }
 
-    events.erase(events.cbegin(), events.cbegin() + length);
+    events_.erase(events_.cbegin(), events_.cbegin() + length);
   }
 
   void disconnect(void *instance) override { bucket().disconnect(instance); }
 
-  void clear() noexcept override { events.clear(); }
+  void clear() noexcept override { events_.clear(); }
 
   [[nodiscard]] auto bucket() noexcept {
-    return typename signal_type::slot_type{signal};
+    return typename signal_type::slot_type{signal_};
   }
 
-  void trigger(Type event) { signal.publish(event); }
+  void trigger(Type event) { signal_.publish(event); }
 
   template <typename... Args>
   void enqueue(Args &&...args) {
     if constexpr (std::is_aggregate_v<Type>) {
-      events.push_back(Type{std::forward<Args>(args)...});
+      events_.push_back(Type{std::forward<Args>(args)...});
     } else {
-      events.emplace_back(std::forward<Args>(args)...);
+      events_.emplace_back(std::forward<Args>(args)...);
     }
   }
 
-  std::size_t size() const noexcept override { return events.size(); }
+  std::size_t size() const noexcept override { return events_.size(); }
 
  private:
-  signal_type signal;
-  container_type events;
+  signal_type signal_;
+  container_type events_;
 };
 
 }  // namespace details

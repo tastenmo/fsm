@@ -29,7 +29,29 @@ cmake_dependent_option(FSM_BUILD_PACKAGE_RPM
   "Create RPM Package (${PROJECT_NAME})" ON
   "FSM_BUILD_PACKAGE;FSM_RPMBUILD_FOUND" OFF)
 
+
+set(CMAKE_CXX_STANDARD 17)
+
 #add_compile_options(-Wall -Wextra -pedantic -Werror)
+
+
+FetchContent_Declare(
+  magic_enum
+  GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
+  GIT_TAG        v0.8.2 # or a later release
+)
+
+set(MAGIC_ENUM_OPT_INSTALL ON) 
+
+FetchContent_MakeAvailable(magic_enum)
+
+FetchContent_Declare(
+  date_src
+  GIT_REPOSITORY https://github.com/HowardHinnant/date.git
+  GIT_TAG        v3.0.1 # or a later release
+)
+
+FetchContent_MakeAvailable(date_src)
 
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
@@ -44,7 +66,11 @@ target_compile_options(${PROJECT_NAME} INTERFACE
             -Wall -Wextra -Wpedantic
           )
 
+target_link_libraries(${PROJECT_NAME} INTERFACE date::date magic_enum::magic_enum)
+
 #target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17})
+
+#install(TARGETS magic_enum EXPORT ${PROJECT_NAME}Targets)
 
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets)
 

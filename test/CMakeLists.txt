@@ -88,3 +88,5 @@ make_test(testDenseMap.cpp testDenseMap-cpp17 c++17)
 make_test(testEmitter.cpp testEmitter-cpp17 c++17)
 
 make_test(testDispatcher.cpp testDispatcher-cpp17 c++17)
+
+make_test(testLogging.cpp testLogging-cpp17 c++17)
