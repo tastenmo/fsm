@@ -33,6 +33,8 @@ Overload(Ts...) -> Overload<Ts...>;
  *
  * @tparam Derived
  * @tparam possible States bound in std::variant
+ * 
+ * @remark Implementing a state in a cpp file is not a good idea, because SFINAE does not work then!!!
  */
 template <typename StateVariant>
 class fsm {
@@ -132,7 +134,8 @@ class fsm {
   escad::slot<NewStateType> NewState;
 
  private:
-  void enter(...) {}
+ template <class... Args>
+  void enter(Args&&...) {}
 
   template <typename State, typename Event>
   auto enter(State &state, const Event &event)
@@ -144,8 +147,8 @@ class fsm {
   auto enter(State &state, const Event &event) -> decltype(state.onEnter()) {
     return state.onEnter();
   }
-
-  void exit(...) {}
+  template <class... Args>
+  void exit(Args&&...) {}
 
   template <typename State, typename Event>
   auto exit(State &state, const Event &event) -> decltype(state.onExit(event)) {
@@ -156,8 +159,8 @@ class fsm {
   auto exit(State &state, const Event &event) -> decltype(state.onExit()) {
     return state.onExit();
   }
-
-  std::optional<StateVariant> handle(...) { return std::nullopt; }
+  template <class... Args>
+  std::optional<StateVariant> handle(Args&&...) { return std::nullopt; }
 
   template <typename State, typename Event>
   auto handle(State &state, const Event &event)
@@ -169,8 +172,9 @@ class fsm {
   auto handle(State &state, const Event &event) -> decltype(state.handle()) {
     return state.handle();
   }
-
-  std::optional<StateVariant> transition(...) { return std::nullopt; }
+  
+  template <class... Args>
+  std::optional<StateVariant> transition(Args&&...) { return std::nullopt; }
 
   template <typename State, typename Event>
   auto transition(State &state, const Event &event)
