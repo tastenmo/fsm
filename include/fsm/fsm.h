@@ -134,8 +134,9 @@ class fsm {
   escad::slot<NewStateType> NewState;
 
  private:
- template <class... Args>
-  void enter(Args&&...) {}
+ //template <class... Args>
+ // void enter(Args&&...) {}
+ void enter(...) {}
 
   template <typename State, typename Event>
   auto enter(State &state, const Event &event)
@@ -144,11 +145,13 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto enter(State &state, const Event &event) -> decltype(state.onEnter()) {
+  auto enter(State &state, const Event &) -> decltype(state.onEnter()) {
     return state.onEnter();
   }
-  template <class... Args>
-  void exit(Args&&...) {}
+  
+  //template <class... Args>
+  //void exit(Args&&...) {}
+  void exit(...) {}
 
   template <typename State, typename Event>
   auto exit(State &state, const Event &event) -> decltype(state.onExit(event)) {
@@ -156,11 +159,13 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto exit(State &state, const Event &event) -> decltype(state.onExit()) {
+  auto exit(State &state, const Event &) -> decltype(state.onExit()) {
     return state.onExit();
   }
-  template <class... Args>
-  std::optional<StateVariant> handle(Args&&...) { return std::nullopt; }
+  
+  //template <class... Args>
+  //std::optional<StateVariant> handle(Args&&...) { return std::nullopt; }
+  std::optional<StateVariant> handle(...) { return std::nullopt; }
 
   template <typename State, typename Event>
   auto handle(State &state, const Event &event)
