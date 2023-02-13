@@ -68,7 +68,7 @@ void Initial::onEnter()
   std::cout << "Entered Initial." << std::endl;
 }
 
-auto Initial::transitionTo(const start_event &start)
+auto Initial::transitionTo(const start_event &)
 {
 
   return Running{};
@@ -80,7 +80,7 @@ void Running::onEnter()
   std::cout << "Entered Running." << std::endl;
 }
 
-auto Running::transitionTo(const stop_event &stop)
+auto Running::transitionTo(const stop_event &)
 {
 
   return Interrupted{};
@@ -92,13 +92,13 @@ void Interrupted::onEnter()
   std::cout << "Entered Interrupted." << std::endl;
 }
 
-auto Interrupted::transitionTo(const cont_event &ev)
+auto Interrupted::transitionTo(const cont_event &)
 {
 
   return Running{};
 }
 
-auto Interrupted::transitionTo(const abort_event &ev)
+auto Interrupted::transitionTo(const abort_event &)
 {
 
   return Initial{};
@@ -121,11 +121,11 @@ public:
   {
     std::visit(
         escad::overloaded{
-            [&](const Running &state)
+            [&](const Running &)
             {
               fsm_->dispatch(stop_event{});
             },
-            [&](const Interrupted &state)
+            [&](const Interrupted &)
             {
               fsm_->dispatch(abort_event{});
             },
@@ -164,9 +164,6 @@ TEST_CASE("Simple FSM numeric")
   //escad::slot sink{myfsm.NewState};
 
   //sink.connect(&handler::OnEvent);
-  auto conn = myfsm.NewState.connect<&StateHandler::OnEvent>(&handler);
-
-  REQUIRE(conn);
 
   myfsm.init(Initial{});
 
@@ -174,6 +171,18 @@ TEST_CASE("Simple FSM numeric")
   REQUIRE(myfsm.is_state<Initial>());
 
   myfsm.dispatch(start_event{});
+
+  REQUIRE(myfsm.is_state<Running>());
+
+  myfsm.dispatch(stop_event{});
+
+  REQUIRE(myfsm.is_state<Interrupted>());
+
+  auto conn = myfsm.NewState.connect<&StateHandler::OnEvent>(&handler);
+
+  REQUIRE(conn);
+
+  myfsm.dispatch(cont_event{});
 
   REQUIRE(myfsm.is_state<Initial>());
 

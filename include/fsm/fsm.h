@@ -144,7 +144,7 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto enter(State &state, const Event &) -> decltype(state.onEnter()) {
+  auto enter(State &state, const Event &event) -> decltype(state.onEnter()) {
     return state.onEnter();
   }
   template <class... Args>
@@ -156,7 +156,7 @@ class fsm {
   }
 
   template <typename State, typename Event>
-  auto exit(State &state, const Event &) -> decltype(state.onExit()) {
+  auto exit(State &state, const Event &event) -> decltype(state.onExit()) {
     return state.onExit();
   }
   template <class... Args>
@@ -168,13 +168,14 @@ class fsm {
     return state.handle(event);
   }
 
-  template <typename State, typename Event>
-  auto handle(State &state, const Event &) -> decltype(state.handle()) {
-    return state.handle();
-  }
+  //template <typename State, typename Event>
+  //auto handle(State &state, const Event &event) -> decltype(state.handle()) {
+  //  return state.handle();
+  //}
   
-  template <class... Args>
-  std::optional<StateVariant> transition(Args&&...) { return std::nullopt; }
+  //template <class... Args>
+  //std::optional<StateVariant> transition(Args&&...) { return std::nullopt; }
+  std::optional<StateVariant> transition(...) { return std::nullopt; }
 
   template <typename State, typename Event>
   auto transition(State &state, const Event &event)
@@ -182,11 +183,11 @@ class fsm {
     return state.transitionTo(event);
   }
 
-  template <typename State, typename Event>
-  auto transition(State &state, const Event &)
-      -> decltype(state.transitionTo()) {
-    return state.transitionTo();
-  }
+ // template <typename State, typename Event>
+ // auto transition(State &state, const Event &event)
+ //     -> decltype(state.transitionTo()) {
+ //   return state.transitionTo();
+ // }
 };
 
 }  // namespace fsm

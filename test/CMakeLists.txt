@@ -90,3 +90,7 @@ make_test(testEmitter.cpp testEmitter-cpp17 c++17)
 make_test(testDispatcher.cpp testDispatcher-cpp17 c++17)
 
 make_test(testLogging.cpp testLogging-cpp17 c++17)
+
+if(HAS_CPP20_FLAG)
+    make_test(testLogging.cpp testLogging-cpp20 c++20)
+endif()
