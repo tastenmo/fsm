@@ -28,6 +28,8 @@ cmake_dependent_option(FSM_BUILD_PACKAGE_DEB
 cmake_dependent_option(FSM_BUILD_PACKAGE_RPM
   "Create RPM Package (${PROJECT_NAME})" ON
   "FSM_BUILD_PACKAGE;FSM_RPMBUILD_FOUND" OFF)
+cmake_dependent_option(FSM_BUILD_DOC "Build fsm Docs" ON
+  "BUILD_TESTING;CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 
 
 set(CMAKE_CXX_STANDARD 17)
@@ -45,14 +47,16 @@ set(MAGIC_ENUM_OPT_INSTALL ON)
 
 FetchContent_MakeAvailable(magic_enum)
 
+set(USE_SYSTEM_TZ_DB ON) # use system timezone support
+set(BUILD_TZ_LIB ON) # build timezone support
+
 FetchContent_Declare(
   date_src
   GIT_REPOSITORY https://github.com/HowardHinnant/date.git
   GIT_TAG        v3.0.1 # or a later release
 )
 
-set(USE_SYSTEM_TZ_DB ON) # use system timezone support
-set(BUILD_TZ_LIB ON) # build timezone support
+
 
 FetchContent_MakeAvailable(date_src)
 
@@ -151,3 +155,15 @@ install(FILES "${PKG_CONFIG_FILE_NAME}"
 list(APPEND CPACK_SOURCE_IGNORE_FILES /.git/ /build/ .gitignore .DS_Store)
 
 include(CPack)
+
+#
+# Documentation
+#
+
+if(FSM_BUILD_DOC)
+    find_package(Doxygen 1.8)
+
+    if(DOXYGEN_FOUND)
+        add_subdirectory(docs)
+    endif()
+endif()
