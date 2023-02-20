@@ -51,6 +51,9 @@ FetchContent_Declare(
   GIT_TAG        v3.0.1 # or a later release
 )
 
+set(USE_SYSTEM_TZ_DB ON) # use system timezone support
+set(BUILD_TZ_LIB ON) # build timezone support
+
 FetchContent_MakeAvailable(date_src)
 
 add_library(${PROJECT_NAME} INTERFACE)
