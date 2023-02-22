@@ -85,6 +85,7 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "source_location": "cpp"
-    }
-    
+    },
+    "editor.formatOnSave": true,
+    "clang-format.executable": "/usr/bin/clang-format-16"
 }

@@ -113,3 +113,5 @@ if(HAS_CPP20_FLAG)
 endif()
 
 make_test_with_libs(testDateTime.cpp testDateTime-cpp17 c++17 date::date-tz) 
+
+make_test(testNewFSM.cpp testNewFSM-cpp17 c++17)
