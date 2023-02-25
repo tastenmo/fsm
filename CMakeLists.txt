@@ -47,6 +47,8 @@ set(MAGIC_ENUM_OPT_INSTALL ON)
 
 FetchContent_MakeAvailable(magic_enum)
 
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
 set(USE_SYSTEM_TZ_DB ON) # use system timezone support
 set(BUILD_TZ_LIB ON) # build timezone support
 
