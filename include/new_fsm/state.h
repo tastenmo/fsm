@@ -11,8 +11,11 @@
 
 #pragma once
 
+#include "transition.h"
+
 namespace escad {
 namespace new_fsm {
+
 
 /**
  * @brief state base
@@ -33,7 +36,7 @@ template <typename Derived> struct state {
 
   template <typename Target = Derived, typename Event>
   auto enter(const Event &event)
-      -> decltype(std::declval<Target>().onEnter(event), void()) {
+      -> std::void_t<decltype(std::declval<Target>().onEnter(event))> {
     static_cast<Target *>(this)->onEnter(event);
   }
 
@@ -46,7 +49,7 @@ template <typename Derived> struct state {
    * @see https://arne-mertz.de/2017/01/decltype-declval/
    */
   template <typename Target = Derived>
-  auto enter() -> decltype(std::declval<Target>().onEnter(), void()) {
+  auto enter() -> std::void_t<decltype(std::declval<Target>().onEnter())> {
     static_cast<Target *>(this)->onEnter();
   }
 
@@ -57,28 +60,28 @@ template <typename Derived> struct state {
    */
   void enter(...) const noexcept {}
 
-  /**
-   * @brief Calls the transitionTo(const Event &event) of Derived if it exists
-   * 
-   * @tparam Target 
-   * @tparam Event 
-   * @tparam NewState 
-   * @param event 
-   * @return decltype(std::declval<Target>().template transitionTo<NewState>(event),
-   * std::optional<NewState>()) 
-   * 
-   * @remarks Does not work yet. The NewState return type should be replaced with std::variant<states ...> from the fsm ????
-   */
-
-  template <typename Target = Derived, typename Event, typename NewState>
+  template <typename Target = Derived, typename Event>
   auto transition(const Event &event)
-      -> decltype(std::declval<Target>().template transitionTo<NewState>(event),
-                  std::optional<NewState>()) {
-    return static_cast<Target *>(this)->template transitionTo<NewState>(event);
+      -> decltype(std::declval<Target>().transitionTo(event)) {
+    return static_cast<Target *>(this)->transitionTo(event);
   }
 
-  auto transition(...) const noexcept { return std::nullopt; }
+  auto transition(...) const noexcept {
+    return transitions<>{detail::not_handled{}};
+  }
 
+  /*
+    template <typename Target = Derived, typename Event>
+    auto transition(const Event &event)
+        -> std::enable_if_t<detail::hasTransitionTo<Target, Event>::value, bool>
+    {
+
+      return static_cast<Target *>(this)->transitionTo(event);
+    }
+  */
+  template <class S> auto trans() const {
+    return transitions<S>{detail::transition<S>{}};
+  }
 };
 
 } // namespace new_fsm

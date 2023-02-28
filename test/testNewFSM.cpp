@@ -18,11 +18,10 @@ struct event2 {
 };
 struct event3 {};
 
-using StateVariant = fsm::StateVariant;
+// using StateVariant = fsm::StateVariant;
 
 struct StateSecond;
 struct StateThird;
-
 
 struct StateFirst : state<StateFirst> {
 
@@ -32,25 +31,17 @@ struct StateFirst : state<StateFirst> {
 
   void onEnter(const event2 &ev) { value2 += ev.value_; }
 
-
   // Think about this, should not be here
-  //template <typename Event, typename NewState>
-  //std::optional<NewState> transitionTo(const Event &) {
+  // template <typename Event, typename NewState>
+  // std::optional<NewState> transitionTo(const Event &) {
 
   //  return std::nullopt;
   //}
 
-  
-  std::optional<StateVariant> StateFirst::transitionTo(const event1 &){
+  auto transitionTo(const event1 &) { return trans<StateSecond>(); }
 
-    return StateSecond{};
-  }
-
-
-
-
-  //template<>
-  //auto transitionTo<StateSecond>(const event1 &);
+  // template<>
+  // auto transitionTo<StateSecond>(const event1 &);
 
   int count1;
   int value2;
@@ -120,28 +111,17 @@ TEST_CASE("state_onEnter", "[new_fsm]") {
   REQUIRE(third.count1 == 0);
 }
 
-TEST_CASE("state_transitionTo", "[new_fsm]"){
+TEST_CASE("state_transitionTo", "[new_fsm]") {
 
-    StateFirst first;
+  StateFirst first;
 
+  auto second = first.transitionTo(event1{});
 
-    auto second = first.transitionTo(event1{});
+  REQUIRE(second.is_transition());
 
+  auto ssecond = first.transition(event1{});
 
-    
-    
-    
-    
-    std::optional<StateSecond> second = first.transition(event1{});
+  REQUIRE(ssecond.is_transition());
 
-    REQUIRE(second);
-
-    REQUIRE(first.count1 == 1);
-
-
-
-
-
-
-
+  // REQUIRE(first.count1 == 1);
 }
