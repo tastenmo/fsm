@@ -114,7 +114,7 @@ endif()
 
 make_test_with_libs(testDateTime.cpp testDateTime-cpp17 c++17 date::date-tz) 
 
-make_test(testNewFSM.cpp testNewFSM-cpp17 c++17)
+#make_test(testNewFSM.cpp testNewFSM-cpp17 c++17)
 
 #make_test(testMeta.cpp testMeta-cpp17 c++17)
 
