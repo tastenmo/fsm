@@ -1,0 +1,85 @@
+@startuml tcp_client
+hide empty description
+[*] --> Initial
+
+Initial -->  Resolve : ConnectCmd
+
+Resolve : deadline.expires_after(10s)
+Resolve : deadline.async_wait(...)
+Resolve : resolver.async_resolve(...)
+
+Resolve --> Connect : ResolvedEvent
+Resolve --> Initial : StopCmd {stop()}
+
+Connect : deadline.expires_after(10s)
+Connect : io::async_connect(socket...)
+
+Connect --> Active : ConnectedEvent
+Connect --> Error : ErrorEvent
+Connect --> Error : TimeoutEvent
+Connect --> Initial : StopCmd {stop()}
+
+Active : deadline.expires_after(10s)
+Active : io::async_read_until(socket, "\\n")
+
+Active --> GetResponse : ReadEvent
+Active --> SendCmd : RequestEvent
+Active --> Initial : StopCmd {stop()}
+
+GetResponse : doSometing(buffer.received...)
+GetResponse : consume(ReadEvent.bytes_transferred);
+GetResponse : deadline.expires_after(60s)
+GetResponse : io::async_read_until(socket, "\\n")
+
+GetResponse --> GetResponse : ReadEvent
+GetResponse --> SendCmd : RequestEvent
+GetResponse --> Error : ErrorEvent
+GetResponse --> Initial : StopCmd {stop()}
+
+SendCmd : io::async_write(socket, RequestEvent.data)
+SendCmd --> GetResponse : ReadEvent
+SendCmd --> Active : WrittenEvent
+SendCmd --> Error : ErrorEvent
+
+Error : onEnter(ErrorEvent){Log Error;}
+Error : onEnter(TiemoutEvent){Log Timeout;}
+
+Error --> Resolve : ConnectCmd
+Error --> Initial : StopCmd {stop()}
+@enduml
+
+@startuml fsm2
+
+state NotShooting {
+  Idle --> Configuring : EvConfig
+  Configuring --> Idle : EvConfig
+}
+
+state Configuring {
+  
+  NewValueSelection --> NewValuePreview : EvNewValue
+  NewValuePreview --> NewValueSelection : EvNewValueRejected
+  NewValuePreview --> NewValueSelection : EvNewValueSaved
+
+  state NewValuePreview {
+     State1 -> State2
+  }
+
+}
+@enduml
+
+@startuml
+state Somp {
+  state entry1 <<entryPoint>>
+  state entry2 <<entryPoint>>
+  state sin
+  entry1 --> sin
+  entry2 -> sin
+  sin -> sin2
+  sin2 --> exitA <<exitPoint>>
+}
+
+[*] --> entry1
+exitA --> Foo
+Foo1 -> entry2
+@enduml

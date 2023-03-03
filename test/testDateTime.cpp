@@ -28,11 +28,15 @@ TEST_CASE("date", "[date]"){
 
     std::cout << ss.str() << std::endl;
 
+    std::cout << format("%Y-%m-%d %H:%M:%S", floor<std::chrono::seconds>(time_stamp)) << std::endl;
+
     std::stringstream ss_local;
     auto t = make_zoned(current_zone(), floor<std::chrono::seconds>(time_stamp));
     ss_local << t;
 
     std::cout << ss_local.str() << std::endl;
+    std::cout << format("%Y-%m-%d %H:%M:%S", t) << std::endl;
+
 
 
 }
