@@ -5,6 +5,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <new_fsm/machine.h>
 #include <new_fsm/state.h>
 
 using namespace escad::new_fsm;
@@ -18,12 +19,12 @@ struct event2 {
 };
 struct event3 {};
 
-// using StateVariant = fsm::StateVariant;
+using Machine = machine;
 
 struct StateSecond;
 struct StateThird;
 
-struct StateFirst : state<StateFirst> {
+struct StateFirst : state<StateFirst, Machine> {
 
   StateFirst() : count1(0), value2(0) {}
 
@@ -47,7 +48,7 @@ struct StateFirst : state<StateFirst> {
   int value2;
 };
 
-struct StateSecond : state<StateSecond> {
+struct StateSecond : state<StateSecond, Machine> {
 
   StateSecond() : count1(0) {}
 
@@ -56,12 +57,16 @@ struct StateSecond : state<StateSecond> {
   int count1;
 };
 
-struct StateThird : state<StateThird> {
+struct StateThird : state<StateThird, Machine> {
 
   StateThird() : count1(0) {}
 
   int count1;
 };
+
+static_assert(std::is_same_v<StateFirst::StateVariant,
+                             std::variant<std::monostate, StateFirst>>,
+              "Something is wrong.");
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
 

@@ -16,14 +16,16 @@
 namespace escad {
 namespace new_fsm {
 
-
 /**
  * @brief state base
  *
  * @tparam Derived
  */
 
-template <typename Derived> struct state {
+template <typename Derived, typename Machine> struct state {
+
+  using Old = typename Machine::StateVariant;
+  Machine::StateVariant = typename concatenator<Old, Derived>::type;
 
   /**
    * @brief Calls onEnter(const Event &event) ot Derived if it exists
