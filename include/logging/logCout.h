@@ -48,8 +48,18 @@ public:
               << "\033[32m " << event.level << "/"
               << event.location.function_name() << " - "
               << event.location.file_name() << ": line "
-              << event.location.line() << "\033[0m\t" << event.msg << std::endl;
+              << event.location.line() 
+              << "\033[0m\t" << event.name << ": "
+              << event.msg << std::endl;
+
     }
+
+    std::cerr << "<" << magic_enum::enum_integer(event.level) << "> "
+            << "[" << event.time_stamp << "]"
+            << event.level << "/"
+            << event.location.function_name() 
+            << "\033[0m\t" << event.msg << std::endl;
+
   }
 
   private:
