@@ -21,24 +21,84 @@ namespace escad {
 
 inline namespace fsm_ {
 
-template <typename... Ts>
-struct Overload : Ts... {
+template <typename... Ts> struct Overload : Ts... {
   using Ts::operator()...;
 };
-template <class... Ts>
-Overload(Ts...) -> Overload<Ts...>;
+template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
+
+namespace details {
+
+/**
+ *
+ */
+template <typename Target, typename = void>
+struct has_onEnter : std::false_type {};
+
+template <typename Target>
+struct has_onEnter<Target,
+                   std::void_t<decltype(std::declval<Target>().onEnter())>>
+    : std::true_type {};
+
+template <class T> inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
+
+/**
+ *
+ */
+template <typename Target, typename Event, typename = void>
+struct has_onEnterWithEvent : std::false_type {};
+
+template <typename Target, typename Event>
+struct has_onEnterWithEvent<Target, Event,
+                            std::void_t<decltype(std::declval<Target>().onEnter(
+                                std::declval<Event>()))>> : std::true_type {};
+
+template <class T, class E>
+inline constexpr bool has_onEnterWithEvent_v =
+    has_onEnterWithEvent<T, E>::value;
+
+/**
+ *
+ */
+template <typename Target, typename Event, typename = void>
+struct has_transitionTo : std::false_type {};
+
+template <typename Target, typename Event>
+struct has_transitionTo<
+    Target, Event,
+    std::void_t<decltype(std::declval<Target>().transitionTo(
+        std::declval<Event>()))>> : std::true_type {};
+
+template <class T, class E>
+inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
+
+/**
+ *
+ */
+template <typename Target, typename Event, typename = void>
+struct has_handle : std::false_type {};
+
+template <typename Target, typename Event>
+struct has_handle<
+    Target, Event,
+    std::void_t<decltype(std::declval<Target>().handle(std::declval<Event>()))>>
+    : std::true_type {};
+
+template <class T, class E>
+inline constexpr bool has_handle_v = has_handle<T, E>::value;
+
+} // namespace details
 
 /**
  * @brief CRTP based FSM
  *
  * @tparam Derived
  * @tparam possible States bound in std::variant
- * 
- * @remark Implementing a state in a cpp file is not a good idea, because SFINAE does not work then!!!
+ *
+ * @remark Implementing a state in a cpp file is not a good idea, because SFINAE
+ * does not work then!!!
  */
-template <typename StateVariant>
-class fsm {
- public:
+template <typename StateVariant> class fsm {
+public:
   using NewStateType = escad::signal<void(const StateVariant &)>;
 
   /**
@@ -75,8 +135,7 @@ class fsm {
    *
    * @return StateVariant&
    */
-  template <typename State>
-  bool is_state() {
+  template <typename State> bool is_state() {
     return std::holds_alternative<State>(state_);
   }
 
@@ -86,14 +145,14 @@ class fsm {
    * @tparam Event
    * @param event
    */
-  template <typename Event>
-  void dispatch(Event &&event) {
+  template <typename Event> void dispatch(Event &&event) {
     // Derived &child = static_cast<Derived &>(*this);
     //  visitor to call on_event for actual state
     //  gets new_state to transition or std::nullopt to stay in state_;
     auto new_state = std::visit(
         [&](auto &s) -> std::optional<StateVariant> {
-          return transition(s, std::forward<Event>(event));
+          // return transition(s, std::forward<Event>(event));
+          return transition(s, event);
         },
         state_);
     // transition to new state
@@ -101,6 +160,7 @@ class fsm {
       state_ = *std::move(new_state);
 
       // call onEnter of the state if it exists, uses decltype SFINAE, see below
+      std::visit([&](auto &statePtr) { enter(statePtr); }, state_);
       std::visit([&](auto &statePtr) { enter(statePtr, event); }, state_);
 
       // emit State Changed
@@ -126,75 +186,47 @@ class fsm {
     }
   }
 
- private:
+private:
   StateVariant state_;
   NewStateType NewStateSignal_;
 
- public:
+public:
   escad::slot<NewStateType> NewState;
 
- private:
- //template <class... Args>
- // void enter(Args&&...) {}
- void enter(...) {}
-
+private:
   template <typename State, typename Event>
-  auto enter(State &state, const Event &event)
-      -> decltype(state.onEnter(event)) {
-    return state.onEnter(event);
+  void enter(State &state, const Event &event) {
+    if constexpr (details::has_onEnterWithEvent_v<State, Event>) {
+      state.onEnter(event);
+    }
+  }
+
+  template <typename State> void enter(State &state) {
+    if constexpr (details::has_onEnter_v<State>) {
+      state.onEnter();
+    }
   }
 
   template <typename State, typename Event>
-  auto enter(State &state, const Event &) -> decltype(state.onEnter()) {
-    return state.onEnter();
-  }
-  
-  //template <class... Args>
-  //void exit(Args&&...) {}
-  void exit(...) {}
+  std::optional<StateVariant> handle(State &state, const Event &event) {
+    if constexpr (details::has_handle_v<State, Event>) {
 
-  template <typename State, typename Event>
-  auto exit(State &state, const Event &event) -> decltype(state.onExit(event)) {
-    return state.onExit(event);
+      return state.handle(event);
+    } else {
+      return std::nullopt;
+    }
   }
 
   template <typename State, typename Event>
-  auto exit(State &state, const Event &) -> decltype(state.onExit()) {
-    return state.onExit();
+  std::optional<StateVariant> transition(State &state, const Event &event) {
+    if constexpr (details::has_transitionTo_v<State, Event>) {
+      return state.transitionTo(event);
+    } else {
+      return std::nullopt;
+    }
   }
-  
-  //template <class... Args>
-  //std::optional<StateVariant> handle(Args&&...) { return std::nullopt; }
-  std::optional<StateVariant> handle(...) { return std::nullopt; }
-
-  template <typename State, typename Event>
-  auto handle(State &state, const Event &event)
-      -> decltype(state.handle(event)) {
-    return state.handle(event);
-  }
-
-  //template <typename State, typename Event>
-  //auto handle(State &state, const Event &event) -> decltype(state.handle()) {
-  //  return state.handle();
-  //}
-  
-  //template <class... Args>
-  //std::optional<StateVariant> transition(Args&&...) { return std::nullopt; }
-  std::optional<StateVariant> transition(...) { return std::nullopt; }
-
-  template <typename State, typename Event>
-  auto transition(State &state, const Event &event)
-      -> decltype(state.transitionTo(event)) {
-    return state.transitionTo(event);
-  }
-
- // template <typename State, typename Event>
- // auto transition(State &state, const Event &event)
- //     -> decltype(state.transitionTo()) {
- //   return state.transitionTo();
- // }
 };
 
-}  // namespace fsm
+} // namespace fsm_
 
-}  // namespace escad
+} // namespace escad

@@ -84,7 +84,24 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "source_location": "cpp"
-    }
-    
+        "source_location": "cpp",
+        "span": "cpp",
+        "cinttypes": "cpp",
+        "__bit_reference": "cpp",
+        "__config": "cpp",
+        "__debug": "cpp",
+        "__errc": "cpp",
+        "__hash_table": "cpp",
+        "__locale": "cpp",
+        "__mutex_base": "cpp",
+        "__node_handle": "cpp",
+        "__split_buffer": "cpp",
+        "__threading_support": "cpp",
+        "__verbose_abort": "cpp",
+        "queue": "cpp",
+        "semaphore": "cpp",
+        "codecvt": "cpp"
+    },
+    "editor.formatOnSave": true,
+    "clang-format.executable": "/usr/bin/clang-format-16"
 }

@@ -11,50 +11,42 @@
 
 #include <iostream>
 
-//#include <catch2/catch.hpp>
-#include <catch2/catch_test_macros.hpp>
+// #include <catch2/catch.hpp>
 #include <base/utils.h>
+#include <catch2/catch_test_macros.hpp>
 #include <fsm/fsm.h>
+
 
 // events
 
-struct start_event
-{
+struct start_event {
+  std::string msg;
 };
 
-struct stop_event
-{
-};
+struct stop_event {};
 
-struct cont_event
-{
-};
+struct cont_event {};
 
-struct abort_event
-{
-};
+struct abort_event {};
 
 // States
 struct Running;
 struct Interrupted;
 
-struct Initial
-{
+struct Initial {
 
   void onEnter();
 
   auto transitionTo(const start_event &);
 };
 
-struct Running
-{
-  void onEnter();
+struct Running {
+  void onEnter(const start_event &);
 
   auto transitionTo(const stop_event &);
 };
 
-struct Interrupted
-{
+struct Interrupted {
   void onEnter();
 
   auto transitionTo(const cont_event &);
@@ -63,87 +55,49 @@ struct Interrupted
 };
 
 // Initial
-void Initial::onEnter()
-{
-  std::cout << "Entered Initial." << std::endl;
-}
+void Initial::onEnter() { std::cout << "Entered Initial." << std::endl; }
 
-auto Initial::transitionTo(const start_event &)
-{
-
-  return Running{};
-}
+auto Initial::transitionTo(const start_event &) { return Running{}; }
 
 // Running
-void Running::onEnter()
-{
-  std::cout << "Entered Running." << std::endl;
+void Running::onEnter(const start_event &event) {
+  std::cout << "Entered Running: " << event.msg << std::endl;
 }
 
-auto Running::transitionTo(const stop_event &)
-{
-
-  return Interrupted{};
-}
+auto Running::transitionTo(const stop_event &) { return Interrupted{}; }
 
 // Interrupted
-void Interrupted::onEnter()
-{
+void Interrupted::onEnter() {
   std::cout << "Entered Interrupted." << std::endl;
 }
 
-auto Interrupted::transitionTo(const cont_event &)
-{
+auto Interrupted::transitionTo(const cont_event &) { return Running{}; }
 
-  return Running{};
-}
-
-auto Interrupted::transitionTo(const abort_event &)
-{
-
-  return Initial{};
-}
+auto Interrupted::transitionTo(const abort_event &) { return Initial{}; }
 
 using state = std::variant<Initial, Running, Interrupted>;
 
-class Fsm : public escad::fsm<state>
-{
-};
+class Fsm : public escad::fsm<state> {};
 
-class StateHandler
-{
+class StateHandler {
 
 public:
-  StateHandler(Fsm *fsm)
-      : fsm_(fsm), cmd_sent_(0), stopped_(false) {}
+  StateHandler(Fsm *fsm) : fsm_(fsm) {}
 
-  void OnEvent(const state &state_variant)
-  {
-    std::visit(
-        escad::overloaded{
-            [&](const Running &)
-            {
-              fsm_->dispatch(stop_event{});
-            },
-            [&](const Interrupted &)
-            {
-              fsm_->dispatch(abort_event{});
-            },
-            [&](auto) {}},
-        state_variant);
+  void OnEvent(const state &state_variant) {
+    std::visit(escad::overloaded{
+                   [&](const Running &) { fsm_->dispatch(stop_event{}); },
+                   [&](const Interrupted &) { fsm_->dispatch(abort_event{}); },
+                   [&](auto) {}},
+               state_variant);
   }
 
 private:
   Fsm *fsm_;
-
-  bool cmd_sent_;
-  bool stopped_;
 };
 
-TEST_CASE("Simple FSM numeric")
-{
+TEST_CASE("Simple FSM numeric") {
   Fsm myfsm;
-
 
   /*myfsm.NewState.connect([&](const state &state_variant)
                          { std::visit(
@@ -158,19 +112,19 @@ TEST_CASE("Simple FSM numeric")
                                    },
                                    [&](auto) {}},
                                state_variant); });*/
-  
+
   StateHandler handler(&myfsm);
 
-  //escad::slot sink{myfsm.NewState};
+  // escad::slot sink{myfsm.NewState};
 
-  //sink.connect(&handler::OnEvent);
+  // sink.connect(&handler::OnEvent);
 
   myfsm.init(Initial{});
 
   // REQUIRE(myfsm<Initial>.is_state())
   REQUIRE(myfsm.is_state<Initial>());
 
-  myfsm.dispatch(start_event{});
+  myfsm.dispatch(start_event{"Hello!!!"});
 
   REQUIRE(myfsm.is_state<Running>());
 
@@ -187,8 +141,7 @@ TEST_CASE("Simple FSM numeric")
   REQUIRE(myfsm.is_state<Initial>());
 
   conn.release();
-  
+
   REQUIRE(myfsm.NewState.empty());
   REQUIRE_FALSE(conn);
-
 }
