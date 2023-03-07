@@ -15,7 +15,7 @@ namespace escad {
 
 namespace logging {
 
-enum class LogLevel { FATAL, ERROR, WARNING, INFO, DEBUG, TRACE, NONE };
+enum class LogLevel {EMERG = 0, ALERT = 1, FATAL = 2, ERROR = 3, WARNING = 4, NOTICE = 5, INFO = 6, DEBUG = 7, TRACE, NONE };
 
 struct LogEvent {
 
@@ -25,11 +25,13 @@ struct LogEvent {
 
   std::experimental::source_location location;
 
+  std::string name;
+
   std::string msg;
 
-  LogEvent(LogLevel tlevel, const std::string tmsg,
+  LogEvent(LogLevel tlevel, std::string_view tname, std::string_view tmsg,
            const std::experimental::source_location &tloc)
-      : level(tlevel), location(tloc), msg(tmsg) {
+      : level(tlevel), location(tloc), name(tname), msg(tmsg) {
 
     time_stamp = std::chrono::system_clock::now();
     ;
