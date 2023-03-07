@@ -72,7 +72,7 @@ target_include_directories(${PROJECT_NAME}
             )
 
 target_compile_options(${PROJECT_NAME} INTERFACE
-            -Wall -Wextra -Wpedantic
+            -Wall -Wextra -Wpedantic -Wno-error=non-pod-varargs
           )
 
 target_link_libraries(${PROJECT_NAME} INTERFACE date::date magic_enum::magic_enum)

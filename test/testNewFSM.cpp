@@ -5,7 +5,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <new_fsm/machine.h>
+//#include <new_fsm/machine.h>
 #include <new_fsm/state.h>
 
 using namespace escad::new_fsm;
@@ -17,14 +17,15 @@ struct event2 {
 
   int value_;
 };
-struct event3 {};
+struct event3 {
+  std::string msg;
+};
 
-using Machine = machine;
 
 struct StateSecond;
 struct StateThird;
 
-struct StateFirst : state<StateFirst, Machine> {
+struct StateFirst : state<StateFirst> {
 
   StateFirst() : count1(0), value2(0) {}
 
@@ -48,7 +49,7 @@ struct StateFirst : state<StateFirst, Machine> {
   int value2;
 };
 
-struct StateSecond : state<StateSecond, Machine> {
+struct StateSecond : state<StateSecond> {
 
   StateSecond() : count1(0) {}
 
@@ -57,16 +58,13 @@ struct StateSecond : state<StateSecond, Machine> {
   int count1;
 };
 
-struct StateThird : state<StateThird, Machine> {
+struct StateThird : state<StateThird> {
 
   StateThird() : count1(0) {}
 
   int count1;
 };
 
-static_assert(std::is_same_v<StateFirst::StateVariant,
-                             std::variant<std::monostate, StateFirst>>,
-              "Something is wrong.");
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
 
@@ -88,9 +86,9 @@ TEST_CASE("state_onEnter", "[new_fsm]") {
   REQUIRE(second.count1 == 1);
   REQUIRE(third.count1 == 0);
 
-  first.enter(event3{});
-  second.enter(event3{});
-  third.enter(event3{});
+  first.enter(event3{"test"});
+  second.enter(event3{"test"});
+  third.enter(event3{"test"});
 
   REQUIRE(first.count1 == 0);
   REQUIRE(first.value2 == 0);

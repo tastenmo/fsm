@@ -16,16 +16,50 @@
 namespace escad {
 namespace new_fsm {
 
+namespace details {
+template <typename Target, typename = void>
+struct has_onEnter : std::false_type {};
+
+template <typename Target>
+struct has_onEnter<Target,
+                   std::void_t<decltype(std::declval<Target>().onEnter())>>
+    : std::true_type {};
+
+template <class T> inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
+
+template <typename Target, typename Event, typename = void>
+struct has_onEnterWithEvent : std::false_type {};
+
+template <typename Target, typename Event>
+struct has_onEnterWithEvent<Target, Event,
+                            std::void_t<decltype(std::declval<Target>().onEnter(
+                                std::declval<Event>()))>> : std::true_type {};
+
+template <class T, class E>
+inline constexpr bool has_onEnterWithEvent_v =
+    has_onEnterWithEvent<T, E>::value;
+
+template <typename Target, typename Event, typename = void>
+struct has_transitionTo : std::false_type {};
+
+template <typename Target, typename Event>
+struct has_transitionTo<
+    Target, Event,
+    std::void_t<decltype(std::declval<Target>().transitionTo(
+        std::declval<Event>()))>> : std::true_type {};
+
+template <class T, class E>
+inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
+
+} // namespace details
+
 /**
  * @brief state base
  *
  * @tparam Derived
  */
 
-template <typename Derived, typename Machine> struct state {
-
-  using Old = typename Machine::StateVariant;
-  Machine::StateVariant = typename concatenator<Old, Derived>::type;
+template <typename Derived> struct state {
 
   /**
    * @brief Calls onEnter(const Event &event) ot Derived if it exists
@@ -37,9 +71,11 @@ template <typename Derived, typename Machine> struct state {
    */
 
   template <typename Target = Derived, typename Event>
-  auto enter(const Event &event)
-      -> std::void_t<decltype(std::declval<Target>().onEnter(event))> {
-    static_cast<Target *>(this)->onEnter(event);
+  auto enter(const Event &event) {
+    if constexpr (details::has_onEnterWithEvent_v<Target, Event>) {
+
+      static_cast<Target *>(this)->onEnter(event);
+    }
   }
 
   /**
@@ -50,26 +86,18 @@ template <typename Derived, typename Machine> struct state {
    *
    * @see https://arne-mertz.de/2017/01/decltype-declval/
    */
-  template <typename Target = Derived>
-  auto enter() -> std::void_t<decltype(std::declval<Target>().onEnter())> {
-    static_cast<Target *>(this)->onEnter();
+  template <typename Target = Derived> auto enter() {
+    if constexpr (details::has_onEnter_v<Target>) {
+      static_cast<Target *>(this)->onEnter();
+    }
   }
-
-  /**
-   * @brief
-   *
-   * @param ...
-   */
-  void enter(...) const noexcept {}
 
   template <typename Target = Derived, typename Event>
   auto transition(const Event &event)
       -> decltype(std::declval<Target>().transitionTo(event)) {
-    return static_cast<Target *>(this)->transitionTo(event);
-  }
-
-  auto transition(...) const noexcept {
-    return transitions<>{detail::not_handled{}};
+    if constexpr (details::has_transitionTo_v<Target, Event>) {
+      return static_cast<Target *>(this)->transitionTo(event);
+    }
   }
 
   /*

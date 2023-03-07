@@ -99,7 +99,8 @@
         "__threading_support": "cpp",
         "__verbose_abort": "cpp",
         "queue": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "codecvt": "cpp"
     },
     "editor.formatOnSave": true,
     "clang-format.executable": "/usr/bin/clang-format-16"
