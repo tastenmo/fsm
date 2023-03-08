@@ -11,6 +11,9 @@
 
 #pragma once
 
+#include <type_traits>
+
+#include "../base/type_traits.h"
 #include "transition.h"
 
 namespace escad {
@@ -52,6 +55,14 @@ template <class T, class E>
 inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
 
 } // namespace details
+
+/**
+ * Defines a set of states. This is used as a parameter to a state_machine.
+ **/
+template <class... S> struct states {
+  using type_list = mpl::type_list<S...>;
+  static constexpr auto count = type_list::size;
+};
 
 /**
  * @brief state base
@@ -112,6 +123,10 @@ template <typename Derived> struct state {
   template <class S> auto trans() const {
     return transitions<S>{detail::transition<S>{}};
   }
+
+  auto not_handled() const { return transitions<>{detail::not_handled{}}; }
+
+  auto handled() const { return transitions<>{detail::handled{}}; }
 };
 
 } // namespace new_fsm
