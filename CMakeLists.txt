@@ -62,6 +62,16 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(date_src)
 
+FetchContent_Declare(
+  ctre
+  GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
+  GIT_TAG        v3.7.2 # or a later release
+)
+
+FetchContent_MakeAvailable(ctre)
+
+add_subdirectory(external/regs)
+
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
@@ -75,7 +85,7 @@ target_compile_options(${PROJECT_NAME} INTERFACE
             -Wall -Wextra -Wpedantic -Wno-error=non-pod-varargs
           )
 
-target_link_libraries(${PROJECT_NAME} INTERFACE date::date magic_enum::magic_enum)
+target_link_libraries(${PROJECT_NAME} INTERFACE date::date magic_enum::magic_enum ctre::ctre)
 
 #target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17})
 
@@ -142,7 +152,7 @@ set(CPACK_GENERATOR ${binary-generators})
 set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}")
 
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "MArtin Heubuch")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Martin Heubuch")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "${PROJECT_DESCRIPTION}")
 set(CPACK_DEBIAN_PACKAGE_NAME "lib${PROJECT_NAME}-dev")
 

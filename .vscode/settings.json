@@ -100,7 +100,9 @@
         "__verbose_abort": "cpp",
         "queue": "cpp",
         "semaphore": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "csignal": "cpp",
+        "stack": "cpp"
     },
     "editor.formatOnSave": true,
     "clang-format.executable": "/usr/bin/clang-format-16"

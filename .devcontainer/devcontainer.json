@@ -22,7 +22,8 @@
 				"ms-vscode.cpptools-extension-pack",
 				"fredericbonnet.cmake-test-adapter",
 				"xaver.clang-format",
-				"vadimcn.vscode-lldb"
+				"vadimcn.vscode-lldb",
+				"GitHub.copilot"
 			]
 		}
 	},
