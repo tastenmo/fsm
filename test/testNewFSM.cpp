@@ -5,7 +5,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-//#include <new_fsm/machine.h>
+// #include <new_fsm/machine.h>
 #include <new_fsm/state.h>
 
 using namespace escad::new_fsm;
@@ -21,7 +21,6 @@ struct event3 {
   std::string msg;
 };
 
-
 struct StateSecond;
 struct StateThird;
 
@@ -33,13 +32,11 @@ struct StateFirst : state<StateFirst> {
 
   void onEnter(const event2 &ev) { value2 += ev.value_; }
 
-  // Think about this, should not be here
-  // template <typename Event, typename NewState>
-  // std::optional<NewState> transitionTo(const Event &) {
-
-  //  return std::nullopt;
-  //}
-
+  /**
+   * @brief simple transition
+   *
+   * @return auto
+   */
   auto transitionTo(const event1 &) { return trans<StateSecond>(); }
 
   // template<>
@@ -55,6 +52,20 @@ struct StateSecond : state<StateSecond> {
 
   void onEnter() { count1++; }
 
+  auto transitionTo(const event2 &event) const
+      -> transitions<StateFirst, StateSecond, StateThird> {
+    if (event.value_ == 1) {
+      return trans<StateFirst>();
+    } else if (event.value_ == 2) {
+      return trans<StateThird>();
+    } else {
+      return trans<StateSecond>();
+    }
+
+    // handled() does not work yet
+    //    return handled();
+  }
+
   int count1;
 };
 
@@ -64,7 +75,6 @@ struct StateThird : state<StateThird> {
 
   int count1;
 };
-
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
 
@@ -118,13 +128,38 @@ TEST_CASE("state_transitionTo", "[new_fsm]") {
 
   StateFirst first;
 
-  auto second = first.transitionTo(event1{});
+  auto result = first.transitionTo(event1{});
 
-  REQUIRE(second.is_transition());
+  STATIC_REQUIRE(std::is_same_v<decltype(result), transitions<StateSecond>>);
+  REQUIRE(result.is_transition());
 
-  auto ssecond = first.transition(event1{});
+  auto result1 = first.transition(event1{});
 
-  REQUIRE(ssecond.is_transition());
+  STATIC_REQUIRE(std::is_same_v<decltype(result1), transitions<StateSecond>>);
+  REQUIRE(result1.is_transition());
+
+  StateSecond second;
+
+  auto result2 = second.transition(event2(0));
+  CHECK(result2.is_handled());
+
+  auto result3 = second.transition(event2(1));
+  STATIC_REQUIRE(
+      std::is_same_v<decltype(result3),
+                     transitions<StateFirst, StateSecond, StateThird>>);
+  REQUIRE(result3.is_transition());
+
+  auto result4 = second.transition(event2(2));
+  STATIC_REQUIRE(
+      std::is_same_v<decltype(result4),
+                     transitions<StateFirst, StateSecond, StateThird>>);
+  REQUIRE(result4.is_transition());
+
+  auto result5 = second.transition(event2(3));
+  STATIC_REQUIRE(
+      std::is_same_v<decltype(result5),
+                     transitions<StateFirst, StateSecond, StateThird>>);
+  REQUIRE(result5.is_transition());
 
   // REQUIRE(first.count1 == 1);
 }

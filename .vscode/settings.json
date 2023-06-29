@@ -105,5 +105,6 @@
         "stack": "cpp"
     },
     "editor.formatOnSave": true,
-    "clang-format.executable": "/usr/bin/clang-format-16"
+    "clang-format.executable": "/usr/bin/clang-format-16",
+    "cmake.configureOnOpen": true
 }

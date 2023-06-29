@@ -18,4 +18,4 @@ function(make_example target)
 endfunction()
 
 make_example(example)
-
+make_example(simple_fsm)

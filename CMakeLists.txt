@@ -30,7 +30,9 @@ cmake_dependent_option(FSM_BUILD_PACKAGE_RPM
   "FSM_BUILD_PACKAGE;FSM_RPMBUILD_FOUND" OFF)
 cmake_dependent_option(FSM_BUILD_DOC "Build fsm Docs" ON
   "BUILD_TESTING;CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
-
+#cmake_dependent_option(FSM_OPT_BUILD_EXAMPLES "Build Examples" OFF
+#  "IS_TOPLEVEL_PROJECT" ON)
+option(FSM_OPT_BUILD_EXAMPLES "Build Examples" ON)
 
 set(CMAKE_CXX_STANDARD 17)
 
