@@ -2,6 +2,7 @@
 
 #include <charconv>
 #include <iostream>
+#include <optional>
 #include <sstream>
 
 #include "base/type_traits.h"
@@ -40,7 +41,8 @@ template <typename StructType> struct struct_string {
       constexpr auto property = std::get<i>(StructType::properties);
 
       // set the value to the member
-      ss << property.name << " = " << object.*(property.member) << ";"
+      //ss << property.name << " = " << object.*(property.member) << ";"
+      ss  << object.*(property.member) << ";"
          << std::endl;
     });
 
@@ -59,7 +61,7 @@ template <typename StructType> struct struct_string {
         constexpr auto property = std::get<i>(StructType::properties);
 
         // get the capture view
-        capture = m.template get<i + 1>().to_view();
+        capture = m.template get<property.name>().to_view();
 
         // get the type of the property
         using objectType = typename decltype(property)::Type;
@@ -76,8 +78,9 @@ template <typename StructType> struct struct_string {
 
         // objectType is convertible by std::from_chars
         else if constexpr (mpl::is_from_chars_convertible<objectType>::value) {
-          [[maybe_unused]]auto [ptr, ec] =
-              std::from_chars(capture.data(), capture.data() + capture.size(), object.*(property.member));
+          [[maybe_unused]] auto [ptr, ec] =
+              std::from_chars(capture.data(), capture.data() + capture.size(),
+                              object.*(property.member));
 
         }
 

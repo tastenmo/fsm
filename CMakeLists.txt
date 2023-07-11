@@ -72,7 +72,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(ctre)
 
-add_subdirectory(external/regs)
+#add_subdirectory(external/regs)
 
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})

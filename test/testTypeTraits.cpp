@@ -105,3 +105,20 @@ TEST_CASE("TypeList", "[type_traits]")
     STATIC_REQUIRE(std::is_same_v<states_variant, std::variant<std::monostate, char, int, float>>); // "states_variant is std::variant");
 
 }
+
+TEST_CASE("ValueList", "[type_traits]"){
+    using value = value_list<0, 2>;
+    using other = value_list<1>;
+
+    STATIC_REQUIRE(value::size == 2u);
+    STATIC_REQUIRE(other::size == 1u);
+
+    STATIC_REQUIRE(std::is_same_v<decltype(value{} + other{}), value_list<0, 2, 1>>);
+    STATIC_REQUIRE(std::is_same_v<value_list_cat_t<value, other, value, other>, value_list<0, 2, 1, 0, 2, 1>>);
+    STATIC_REQUIRE(std::is_same_v<value_list_cat_t<value, other>, value_list<0, 2, 1>>);
+    STATIC_REQUIRE(std::is_same_v<value_list_cat_t<value, value>, value_list<0, 2, 0, 2>>);
+
+    STATIC_REQUIRE(value_list_element_v<0u, value> == 0);
+    STATIC_REQUIRE(value_list_element_v<1u, value> == 2);
+    STATIC_REQUIRE(value_list_element_v<0u, other> == 1);
+}

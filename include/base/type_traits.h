@@ -483,6 +483,21 @@ template <auto... Value> struct value_list_cat<value_list<Value...>> {
 template <typename... List>
 using value_list_cat_t = typename value_list_cat<List...>::type;
 
+
+template <typename List, size_t ... indexes>
+struct value_list_expand
+{
+    using type = std::tuple<typename value_list_element<indexes, List>::type...>;
+};
+
+template <typename List, size_t ... indexes>
+using value_list_expand_t = typename value_list_expand<List, indexes...>::type;
+
+
+
+
+
+
 /*! @brief Same as std::is_invocable, but with tuples. */
 template <typename, typename> struct is_applicable : std::false_type {};
 

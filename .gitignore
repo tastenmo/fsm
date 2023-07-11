@@ -32,5 +32,8 @@
 *.app
 
 
-/build
-/out
+# build dir
+build/*
+
+# cahe dir
+.cache/*

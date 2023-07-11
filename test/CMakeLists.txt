@@ -92,6 +92,10 @@ endif()
 
 make_test(testTypeTraits.cpp testTypeTraits-cpp17 c++17)
 
+if(HAS_CPP20_FLAG)
+    make_test(testTypeTraits.cpp testTypeTraits-cpp20 c++20)
+endif()
+
 make_test(testStateManager.cpp testStateManager-cpp17 c++17)
 
 make_test(testFSMpp17.cpp testFSMpp-cpp17 c++17)

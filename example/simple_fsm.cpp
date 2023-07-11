@@ -3,7 +3,7 @@
 #include <iostream>
 #include <utility>
 
-#include <new_fsm/machine.h>
+//#include <new_fsm/machine.h>
 #include <new_fsm/state.h>
 
 using namespace escad::new_fsm;
@@ -30,10 +30,10 @@ struct Initial : state<Initial> {
    *
    * @return auto
    */
-  auto transitionTo(const start &) { return trans<Running>(); }
+  auto transitionTo(const start &)   { return trans<Running>(); }
 };
 
-struct Running : state<Runnning> {
+struct Running : state<Running> {
 
   /**
    * @brief onEnter
