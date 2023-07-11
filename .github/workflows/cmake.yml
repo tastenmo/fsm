@@ -25,7 +25,7 @@ jobs:
         version: latest
     - name: "Install libc++"
         #if: ${{ matrix.stdlib == 'libc++' }}
-      run: sudo apt-get install libc++abi-16-dev libc++1-16 libc++-16-dev
+      run: sudo apt-get install libc++abi-15-dev libc++1-15 libc++-15-dev
 
     - uses: actions/checkout@v3
 
