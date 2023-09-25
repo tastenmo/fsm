@@ -34,6 +34,8 @@
 
 # build dir
 build/*
+docs/_build/*
+docs/doc_out/*
 
 # cahe dir
 .cache/*
