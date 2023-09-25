@@ -1,0 +1,42 @@
+@startuml
+scale 350 width
+
+[*] --> Object : '{'
+[*] --> Array : '['
+
+state Object{
+  [*] --> EmptyObject : '}'
+  [*] --> Members
+  
+  state Members{
+    [*] --> Pair
+
+    state Pair{
+      [*] --> key : isString
+      key --> Seperator : ':'
+      Seperator --> value :isValue
+      value --> [*]
+    }
+    
+    Pair -down-> Pair : ','
+
+    Pair --> [*]
+
+  }
+  
+  Members --> [*]
+  EmptyObject --> [*]
+}
+
+
+state Array{
+  [*] --> EmptyArray : ']'
+  [*] --> Elements
+
+  state Elements{
+     [*] --> ElementValue
+     
+  }
+
+}
+@enduml
