@@ -20,37 +20,72 @@ namespace escad {
 namespace new_fsm {
 
 namespace details {
+  /**
+   * @brief Default case of helper for detecting if type Target has a onEnter() method.
+   * 
+   */
 template <typename Target, typename = void>
 struct has_onEnter : std::false_type {};
 
+/**
+ * @brief Specialization for detecting if type Target has a onEnter() method.
+ * 
+ */
 template <typename Target>
 struct has_onEnter<Target,
                    std::void_t<decltype(std::declval<Target>().onEnter())>>
     : std::true_type {};
 
+/**
+ * @brief Helper helper template to acces the value of has_onEnter.
+ * 
+ */
 template <class T> inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
 
+  /**
+   * @brief Default case of helper for detecting if type Target has a onEnter(const Event &) method.
+   * 
+   */
 template <typename Target, typename Event, typename = void>
 struct has_onEnterWithEvent : std::false_type {};
 
+/**
+ * @brief Specialization for detecting if type Target has a onEnter(const Event &) method.
+ * 
+ */
 template <typename Target, typename Event>
 struct has_onEnterWithEvent<Target, Event,
                             std::void_t<decltype(std::declval<Target>().onEnter(
                                 std::declval<Event>()))>> : std::true_type {};
 
+/**
+ * @brief Helper helper template to acces the value of has_onEnterWithEvent.
+ */
 template <class T, class E>
 inline constexpr bool has_onEnterWithEvent_v =
     has_onEnterWithEvent<T, E>::value;
 
+/**
+ * @brief Default case of helper for detecting if type Target has a transitionTo(const Event &) method.
+ * 
+ */
 template <typename Target, typename Event, typename = void>
 struct has_transitionTo : std::false_type {};
 
+/**
+ * @brief Specialization for detecting if type Target has a transitionTo(const Event &) method.
+ * 
+ */
 template <typename Target, typename Event>
 struct has_transitionTo<
     Target, Event,
     std::void_t<decltype(std::declval<Target>().transitionTo(
         std::declval<Event>()))>> : std::true_type {};
 
+/**
+ * @brief Helper helper template to acces the value of has_transitionTo.
+ * 
+ */
 template <class T, class E>
 inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
 

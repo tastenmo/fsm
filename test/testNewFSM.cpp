@@ -4,6 +4,7 @@
 #include <utility>
 
 #include <catch2/catch_test_macros.hpp>
+#include <ctre.hpp>
 
 // #include <new_fsm/machine.h>
 #include <new_fsm/state.h>
@@ -60,11 +61,14 @@ struct StateSecond : state<StateSecond> {
       return trans<StateThird>();
     } else {
       return trans<StateSecond>();
+      // return not_handled()
     }
 
     // handled() does not work yet
     //    return handled();
   }
+
+  auto transitionTo(const event1 &) const { return handled(); }
 
   int count1;
 };
@@ -74,6 +78,44 @@ struct StateThird : state<StateThird> {
   StateThird() : count1(0) {}
 
   int count1;
+};
+
+constexpr auto number_rx =
+    ctll::fixed_string{"(-?[0-9]*\\.[0-9]*([eE]-?[0-9]+)?|-?[1-9][0-9]*)"};
+
+template <ctll::fixed_string regex> struct matcher {
+
+  auto match(std::string_view sv) const { return ctre::match<regex>(sv); }
+
+  int value_;
+};
+
+using number = matcher<number_rx>;
+
+struct StateCtre : state<StateCtre> {
+
+  StateCtre() : num1("") {}
+
+  void onEnter(const number &num) {
+
+    if (auto [m, integer, number] = num.match(std::string_view{"1.234"}); m) {
+      num1 = m.to_view();
+    }
+  }
+
+  std::string num1;
+
+  auto transitionTo(const number &num)
+      -> transitions<StateFirst, StateSecond> const {
+
+    auto m = num.match(std::string_view{"1.234"});
+    if (m) {
+      std::cout << "Transition:" << m.to_view() << std::endl;
+      return trans<StateFirst>();
+    }
+
+    return trans<StateSecond>();
+  }
 };
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
@@ -124,6 +166,14 @@ TEST_CASE("state_onEnter", "[new_fsm]") {
   REQUIRE(third.count1 == 0);
 }
 
+TEST_CASE("state_onEnterCTRE", "[new_fsm]") {
+
+  StateCtre first;
+
+  first.enter(number{});
+  REQUIRE(first.num1 == "1.234");
+};
+
 TEST_CASE("state_transitionTo", "[new_fsm]") {
 
   StateFirst first;
@@ -140,7 +190,7 @@ TEST_CASE("state_transitionTo", "[new_fsm]") {
 
   StateSecond second;
 
-  auto result2 = second.transition(event2(0));
+  auto result2 = second.transition(event1{});
   CHECK(result2.is_handled());
 
   auto result3 = second.transition(event2(1));
@@ -160,6 +210,13 @@ TEST_CASE("state_transitionTo", "[new_fsm]") {
       std::is_same_v<decltype(result5),
                      transitions<StateFirst, StateSecond, StateThird>>);
   REQUIRE(result5.is_transition());
+
+  StateCtre ctre;
+
+  auto result6 = ctre.transition(number{});
+  STATIC_REQUIRE(
+      std::is_same_v<decltype(result6), transitions<StateFirst, StateSecond>>);
+  REQUIRE(result6.is_transition());
 
   // REQUIRE(first.count1 == 1);
 }
