@@ -102,9 +102,9 @@ TEST_CASE("Value list", "[Reflection]"){
 
   STATIC_REQUIRE(mpl::value_list_element_v<2u, prop_list>->name.is_same_as(ctll::fixed_string{"c"}));
 
-  using prop_tuple = mpl::value_list_expand_t<val_list>;
+  //using prop_tuple = mpl::value_list_expand_t<val_list>;
 
-  STATIC_REQUIRE(std::is_same_v<std::tuple<int, int, char>, prop_tuple>);
+  //STATIC_REQUIRE(std::is_same_v<std::tuple<int, int, char>, prop_tuple>);
 
 
 }

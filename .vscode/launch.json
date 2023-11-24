@@ -15,7 +15,7 @@
         },
         {
             "name": "(gdb) Starten",
-            "type": "cppdbg",
+            "type": "lldbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/test/testFirst-cpp17",
             "args": [],

@@ -39,7 +39,8 @@ public:
    * type which needs to be converted here to transitions<A, B, C>.
    *
    */
-  constexpr transitions(transitions<> const &rhs) noexcept
+  template <class... T>
+  constexpr transitions(transitions<T...> const &rhs) noexcept
       : idx{0}, outcome{rhs.outcome} {}
 
   /**
@@ -60,13 +61,23 @@ public:
    * @brief Construct a new transitions object indicating handled event
    */
   transitions(detail::handled) noexcept
-      : idx{sizeof...(S)}, outcome{result::handled} {}
+      : idx{mpl::type_list_index_v<detail::handled, list>},
+        outcome{result::handled} {}
+
+  transitions(transitions<detail::handled>) noexcept
+      : idx{mpl::type_list_index_v<detail::handled, list>},
+        outcome{result::handled} {}
 
   /**
    * @brief Construct a new transitions object indicating not handled event
    */
   transitions(detail::not_handled) noexcept
-      : idx{sizeof...(S)}, outcome{result::not_handled} {}
+      : idx{mpl::type_list_index_v<detail::not_handled, list>},
+        outcome{result::not_handled} {}
+
+  transitions(transitions<detail::not_handled>) noexcept
+      : idx{mpl::type_list_index_v<detail::not_handled, list>},
+        outcome{result::not_handled} {}
 
   /**
    * @brief Check if this object is a transition type.
@@ -89,6 +100,22 @@ public:
   std::size_t const idx;
   result const outcome;
 };
+
+template <class S> inline auto trans() {
+  return transitions<S>{detail::transition<S>{}};
+}
+
+inline auto not_handled() {
+  return transitions<detail::not_handled>{detail::not_handled{}};
+}
+
+inline auto handled() {
+  return transitions<detail::handled>{detail::handled{}};
+}
+
+
+template <std::size_t Index, class Transition>
+using transition_t = mpl::type_list_element_t<Index, typename Transition::list>;
 
 } // namespace new_fsm
 } // namespace escad

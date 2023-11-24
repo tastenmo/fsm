@@ -84,7 +84,7 @@ target_include_directories(${PROJECT_NAME}
             )
 
 target_compile_options(${PROJECT_NAME} INTERFACE
-            -Wall -Wextra -Wpedantic -Wno-error=non-pod-varargs
+            -Wall -Wextra -Wpedantic #-Wno-error=non-pod-varargs
           )
 
 target_link_libraries(${PROJECT_NAME} INTERFACE date::date magic_enum::magic_enum ctre::ctre)
@@ -98,6 +98,12 @@ install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets)
 if (NOT EXISTS "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake.in")
   file(WRITE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake.in [[
     @PACKAGE_INIT@
+    include(CMakeFindDependencyMacro)
+
+    find_dependency(date REQUIRED)
+    find_dependency(magic_enum REQUIRED)
+    find_dependency(ctre REQUIRED)
+
     include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")
   ]])
 endif()

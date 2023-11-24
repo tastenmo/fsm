@@ -120,6 +120,10 @@ make_test_with_libs(testDateTime.cpp testDateTime-cpp17 c++17 date::date-tz)
 
 make_test(testNewFSM.cpp testNewFSM-cpp17 c++17)
 
+make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp17 c++17)
+
+make_test(testNewFsmManager.cpp testNewFsmManager-cpp17 c++17)
+
 make_test(testReflection.cpp testReflection-cpp17 c++17)
 
 if(HAS_CPP20_FLAG)

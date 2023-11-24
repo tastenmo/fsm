@@ -146,22 +146,14 @@ template <typename Derived> struct state {
     }
   }
 
-  /*
-    template <typename Target = Derived, typename Event>
-    auto transition(const Event &event)
-        -> std::enable_if_t<detail::hasTransitionTo<Target, Event>::value, bool>
-    {
-
-      return static_cast<Target *>(this)->transitionTo(event);
-    }
-  */
-  template <class S> auto trans() const {
+/*  template <class S> auto trans() const {
     return transitions<S>{detail::transition<S>{}};
   }
 
+
   auto not_handled() const { return transitions<>{detail::not_handled{}}; }
 
-  auto handled() const { return transitions<>{detail::handled{}}; }
+  auto handled() const { return transitions<>{detail::handled{}}; }*/
 };
 
 } // namespace new_fsm

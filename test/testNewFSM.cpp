@@ -25,9 +25,9 @@ struct event3 {
 struct StateSecond;
 struct StateThird;
 
-struct StateFirst : state<StateFirst> {
+struct StateInitial : state<StateInitial> {
 
-  StateFirst() : count1(0), value2(0) {}
+  StateInitial() : count1(0), value2(0) {}
 
   void onEnter(const event1 &) { count1++; }
 
@@ -54,18 +54,14 @@ struct StateSecond : state<StateSecond> {
   void onEnter() { count1++; }
 
   auto transitionTo(const event2 &event) const
-      -> transitions<StateFirst, StateSecond, StateThird> {
+      -> transitions<StateInitial, StateSecond, StateThird> {
     if (event.value_ == 1) {
-      return trans<StateFirst>();
+      return trans<StateInitial>();
     } else if (event.value_ == 2) {
       return trans<StateThird>();
-    } else {
-      return trans<StateSecond>();
-      // return not_handled()
     }
-
     // handled() does not work yet
-    //    return handled();
+    return trans<StateSecond>();
   }
 
   auto transitionTo(const event1 &) const { return handled(); }
@@ -106,12 +102,12 @@ struct StateCtre : state<StateCtre> {
   std::string num1;
 
   auto transitionTo(const number &num)
-      -> transitions<StateFirst, StateSecond> const {
+      -> transitions<StateInitial, StateSecond> const {
 
     auto m = num.match(std::string_view{"1.234"});
     if (m) {
       std::cout << "Transition:" << m.to_view() << std::endl;
-      return trans<StateFirst>();
+      return trans<StateInitial>();
     }
 
     return trans<StateSecond>();
@@ -120,7 +116,7 @@ struct StateCtre : state<StateCtre> {
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
 
-  StateFirst first;
+  StateInitial first;
   StateSecond second;
   StateThird third;
 
@@ -176,7 +172,7 @@ TEST_CASE("state_onEnterCTRE", "[new_fsm]") {
 
 TEST_CASE("state_transitionTo", "[new_fsm]") {
 
-  StateFirst first;
+  StateInitial first;
 
   auto result = first.transitionTo(event1{});
 
@@ -196,26 +192,29 @@ TEST_CASE("state_transitionTo", "[new_fsm]") {
   auto result3 = second.transition(event2(1));
   STATIC_REQUIRE(
       std::is_same_v<decltype(result3),
-                     transitions<StateFirst, StateSecond, StateThird>>);
+                     transitions<StateInitial, StateSecond, StateThird>>);
   REQUIRE(result3.is_transition());
+  REQUIRE(result3.idx == 0);
 
   auto result4 = second.transition(event2(2));
   STATIC_REQUIRE(
       std::is_same_v<decltype(result4),
-                     transitions<StateFirst, StateSecond, StateThird>>);
+                     transitions<StateInitial, StateSecond, StateThird>>);
   REQUIRE(result4.is_transition());
+  REQUIRE(result4.idx == 2);
 
   auto result5 = second.transition(event2(3));
   STATIC_REQUIRE(
       std::is_same_v<decltype(result5),
-                     transitions<StateFirst, StateSecond, StateThird>>);
+                     transitions<StateInitial, StateSecond, StateThird>>);
   REQUIRE(result5.is_transition());
+  REQUIRE(result5.idx == 1);
 
   StateCtre ctre;
 
   auto result6 = ctre.transition(number{});
-  STATIC_REQUIRE(
-      std::is_same_v<decltype(result6), transitions<StateFirst, StateSecond>>);
+  STATIC_REQUIRE(std::is_same_v<decltype(result6),
+                                transitions<StateInitial, StateSecond>>);
   REQUIRE(result6.is_transition());
 
   // REQUIRE(first.count1 == 1);
