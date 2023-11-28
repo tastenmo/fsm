@@ -32,7 +32,7 @@ struct StateThird;
 
 struct StateInitial : state<StateInitial> {
 
-  StateInitial() : count1(0), value2(0) {}
+  StateInitial(AContext &ctx) : ctx_(ctx), count1(0), value2(0) {}
 
   void onEnter(const event1 &) { count1++; }
 
@@ -48,8 +48,11 @@ struct StateInitial : state<StateInitial> {
   // template<>
   // auto transitionTo<StateSecond>(const event1 &);
 
+  AContext &ctx_;
+
   int count1;
   int value2;
+
 };
 
 struct StateSecond : state<StateSecond> {
@@ -97,7 +100,7 @@ struct StateThird : state<StateThird> {
   auto transitionTo(const event1 &) { return trans<StateSecond>(); }
 };
 
-using sm_states = std::variant<StateInitial, StateSecond, StateThird>;
+using sm_states = states<StateInitial, StateSecond, StateThird>;
 
 TEST_CASE("state_Manager", "[new_fsm]") {
 

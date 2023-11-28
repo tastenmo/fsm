@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <optional>
 #include <type_traits>
 
 #include "../base/type_traits.h"
@@ -20,16 +21,17 @@ namespace escad {
 namespace new_fsm {
 
 namespace details {
-  /**
-   * @brief Default case of helper for detecting if type Target has a onEnter() method.
-   * 
-   */
+/**
+ * @brief Default case of helper for detecting if type Target has a onEnter()
+ * method.
+ *
+ */
 template <typename Target, typename = void>
 struct has_onEnter : std::false_type {};
 
 /**
  * @brief Specialization for detecting if type Target has a onEnter() method.
- * 
+ *
  */
 template <typename Target>
 struct has_onEnter<Target,
@@ -38,20 +40,22 @@ struct has_onEnter<Target,
 
 /**
  * @brief Helper helper template to acces the value of has_onEnter.
- * 
+ *
  */
 template <class T> inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
 
-  /**
-   * @brief Default case of helper for detecting if type Target has a onEnter(const Event &) method.
-   * 
-   */
+/**
+ * @brief Default case of helper for detecting if type Target has a
+ * onEnter(const Event &) method.
+ *
+ */
 template <typename Target, typename Event, typename = void>
 struct has_onEnterWithEvent : std::false_type {};
 
 /**
- * @brief Specialization for detecting if type Target has a onEnter(const Event &) method.
- * 
+ * @brief Specialization for detecting if type Target has a onEnter(const Event
+ * &) method.
+ *
  */
 template <typename Target, typename Event>
 struct has_onEnterWithEvent<Target, Event,
@@ -66,15 +70,17 @@ inline constexpr bool has_onEnterWithEvent_v =
     has_onEnterWithEvent<T, E>::value;
 
 /**
- * @brief Default case of helper for detecting if type Target has a transitionTo(const Event &) method.
- * 
+ * @brief Default case of helper for detecting if type Target has a
+ * transitionTo(const Event &) method.
+ *
  */
 template <typename Target, typename Event, typename = void>
 struct has_transitionTo : std::false_type {};
 
 /**
- * @brief Specialization for detecting if type Target has a transitionTo(const Event &) method.
- * 
+ * @brief Specialization for detecting if type Target has a transitionTo(const
+ * Event &) method.
+ *
  */
 template <typename Target, typename Event>
 struct has_transitionTo<
@@ -84,7 +90,7 @@ struct has_transitionTo<
 
 /**
  * @brief Helper helper template to acces the value of has_transitionTo.
- * 
+ *
  */
 template <class T, class E>
 inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
@@ -146,14 +152,55 @@ template <typename Derived> struct state {
     }
   }
 
-/*  template <class S> auto trans() const {
-    return transitions<S>{detail::transition<S>{}};
+  template <class Event, class StateContainer>
+  bool dispatch(Event const &e, StateContainer &state) {
+
+    auto t = transition(e);
+
+    return handle_result(e, state, t);
   }
 
+  template <class Event, class StateContainer, class... T>
+  bool handle_result(Event const &e, StateContainer &state,
+                     transitions<T...> t) {
+    if (t.is_transition()) {
+      return handle_transition(e, t, state,
+                               std::make_index_sequence<sizeof...(T)>{});
+    }
 
-  auto not_handled() const { return transitions<>{detail::not_handled{}}; }
+    return t.is_handled();
+  }
 
-  auto handled() const { return transitions<>{detail::handled{}}; }*/
+  template <class Event, class Transition, class StateContainer,
+            std::size_t... I>
+  bool handle_transition(Event const &e, Transition trans,
+                         StateContainer &state,
+                         std::index_sequence<I...>) {
+    return (handle_transition_impl<I>(e, trans, state), ...);
+  }
+
+  template <std::size_t I, class StateContainer, class Event, class Transition>
+  bool handle_transition_impl(Event const &e, Transition trans,
+                              StateContainer &state) {
+    if (trans.idx == I) {
+      using transition_type_list = typename Transition::list;
+      using type_at_index = mpl::type_list_element_t<I, transition_type_list>;
+
+      state.template emplace<type_at_index>(e);
+
+      return true;
+    }
+    return false;
+  }
+
+  /*  template <class S> auto trans() const {
+      return transitions<S>{detail::transition<S>{}};
+    }
+
+
+    auto not_handled() const { return transitions<>{detail::not_handled{}}; }
+
+    auto handled() const { return transitions<>{detail::handled{}}; }*/
 };
 
 } // namespace new_fsm

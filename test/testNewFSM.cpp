@@ -8,6 +8,7 @@
 
 // #include <new_fsm/machine.h>
 #include <new_fsm/state.h>
+#include <new_fsm/state_variant.h>
 
 using namespace escad::new_fsm;
 
@@ -75,6 +76,11 @@ struct StateThird : state<StateThird> {
 
   int count1;
 };
+
+using StateContainer =
+    detail::state_variant<states<StateInitial, StateSecond, StateThird>>;
+
+auto myStates = StateContainer{};
 
 constexpr auto number_rx =
     ctll::fixed_string{"(-?[0-9]*\\.[0-9]*([eE]-?[0-9]+)?|-?[1-9][0-9]*)"};
@@ -183,6 +189,11 @@ TEST_CASE("state_transitionTo", "[new_fsm]") {
 
   STATIC_REQUIRE(std::is_same_v<decltype(result1), transitions<StateSecond>>);
   REQUIRE(result1.is_transition());
+
+  auto res = first.dispatch(event1{}, myStates);
+
+  REQUIRE(res);
+  REQUIRE(myStates.is_in<StateSecond>());
 
   StateSecond second;
 
