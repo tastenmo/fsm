@@ -35,7 +35,7 @@ jobs:
       - name: Configure CMake
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ steps.setup-clang.outputs.clangxx }} -DCMAKE_C_COMPILER=${{ steps.setup-clang.outputs.clang }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_EXTENSIONS=OFF -DCMAKE_CXX_FLAGS="-stdlib=${{ matrix.stdlib}}
+        run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{ steps.setup-clang.outputs.clangxx }} -DCMAKE_C_COMPILER=${{ steps.setup-clang.outputs.clang }} -DCMAKE_CXX_STANDARD=${{ matrix.standard }} -DCMAKE_CXX_STANDARD_REQUIRED=ON -DCMAKE_CXX_EXTENSIONS=OFF -DCMAKE_CXX_FLAGS="-stdlib=${{ matrix.stdlib}}"
   
       - name: Build
         # Build your program with the given configuration
