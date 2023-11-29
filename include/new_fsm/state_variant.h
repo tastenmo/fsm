@@ -12,7 +12,10 @@
 #pragma once
 
 #include "../base/type_traits.h"
+#include <iostream>
 #include <variant>
+
+#include "../base/utils.h"
 
 namespace escad::new_fsm::detail {
 
@@ -22,17 +25,41 @@ namespace escad::new_fsm::detail {
  * out in case we want to replace std::variant with something else.
  **/
 template <class States> class state_variant {
-private:
+public:
   using type_list = typename States::type_list;
 
-public:
-  template <class State, class Context, class Event>
-  void emplace(Context &ctx, Event const &e) {
-    states_.template emplace<State>(ctx);
+  state_variant() {
+    std::cout << "state_variant::state_variant()" << std::endl;
+  }
+
+  ~state_variant() {
+    std::cout << "state_variant::~state_variant()" << std::endl;
+  }
+
+  template <class State> void emplace() {
+    states_.template emplace<State>(*this);
+
+    std::visit(overloaded{[](auto &state) { state.enter(); },
+                          [](std::monostate) { ; }},
+               states_);
   }
 
   template <class State, class Event> void emplace(Event const &e) {
-    states_.template emplace<State>();
+    states_.template emplace<State>(*this);
+
+    std::visit(overloaded{[&e](auto &state) {
+                            state.enter();
+                            state.enter(e);
+                          },
+                          [](std::monostate) { ; }},
+               states_);
+  }
+
+  template <class Event> bool dispatch(Event const &e) {
+    return std::visit(
+        overloaded{[&e](auto &state) { return state.dispatch(e); },
+                   [](std::monostate) { return false; }},
+        states_);
   }
 
   template <class F> auto visit(F &&fun) {

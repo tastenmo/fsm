@@ -117,5 +117,17 @@ inline auto handled() {
 template <std::size_t Index, class Transition>
 using transition_t = mpl::type_list_element_t<Index, typename Transition::list>;
 
+
+template <class Transition, class Func, std::size_t ...Is>
+constexpr void for_each_transition_impl(Transition&& t, Func &&func, std::index_sequence<Is...>) {
+  (func(std::integral_constant<std::size_t, Is>{}, t), ...);
+}
+
+template <class ... T, class Func>
+constexpr void for_each_transition(transitions<T...> const &trans, Func &&func) {
+  for_each_transition_impl(trans, std::forward<Func>(func), std::make_index_sequence<sizeof...(T)>{});
+
+}
+
 } // namespace new_fsm
 } // namespace escad

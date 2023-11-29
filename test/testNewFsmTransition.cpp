@@ -126,3 +126,50 @@ TEST_CASE("multiple transition path", "[new_fsm]") {
 
   // REQUIRE(first.count1 == 1);
 }
+
+TEST_CASE("transition_for", "[new_fsm]") {
+
+  auto trans1 = transitionTo(event1{});
+
+  bool result1 = false;
+
+  for_each_transition(trans1, [&](auto i, auto t) {
+    std::cout << "i: " << i << " t: " << t.idx << std::endl;
+
+    if (i == t.idx) {
+      result1 = true;
+    }
+  });
+
+  REQUIRE(result1);
+
+  result1 = false;
+  auto trans2 = transitionTo(event4{1});
+
+  for_each_transition(trans2, [&](auto i, auto t) {
+    std::cout << "i: " << i << " t: " << t.idx;
+
+    if (i == t.idx) {
+      std::cout << " matched";
+      result1 = true;
+    }
+    std::cout << std::endl;
+  });
+
+  REQUIRE(result1);
+
+  result1 = false;
+  auto trans3 = transitionTo(event4{2});
+
+  for_each_transition(trans3, [&](auto i, auto t) {
+    std::cout << "i: " << i << " t: " << t.idx;
+
+    if (i == t.idx) {
+      std::cout << " matched";
+      result1 = true;
+    }
+    std::cout << std::endl;
+  });
+
+  REQUIRE(result1);
+}

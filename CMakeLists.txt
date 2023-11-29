@@ -34,7 +34,7 @@ cmake_dependent_option(FSM_BUILD_DOC "Build fsm Docs" ON
 #  "IS_TOPLEVEL_PROJECT" ON)
 option(FSM_OPT_BUILD_EXAMPLES "Build Examples" ON)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 #add_compile_options(-Wall -Wextra -pedantic -Werror)
 

@@ -111,7 +111,9 @@ template <class... S> struct states {
  * @tparam Derived
  */
 
-template <typename Derived> struct state {
+template <class Derived, class StateContainer> struct state {
+
+  state(StateContainer &state_container) : state_container_(state_container) {}
 
   /**
    * @brief Calls onEnter(const Event &event) ot Derived if it exists
@@ -122,7 +124,7 @@ template <typename Derived> struct state {
    * @return decltype(std::declval<Target>().onEnter(event), void())
    */
 
-  template <typename Target = Derived, typename Event>
+  template <class Target = Derived, class Event>
   auto enter(const Event &event) {
     if constexpr (details::has_onEnterWithEvent_v<Target, Event>) {
 
@@ -138,13 +140,13 @@ template <typename Derived> struct state {
    *
    * @see https://arne-mertz.de/2017/01/decltype-declval/
    */
-  template <typename Target = Derived> auto enter() {
+  template <class Target = Derived> auto enter() {
     if constexpr (details::has_onEnter_v<Target>) {
       static_cast<Target *>(this)->onEnter();
     }
   }
 
-  template <typename Target = Derived, typename Event>
+  template <class Target = Derived, class Event>
   auto transition(const Event &event)
       -> decltype(std::declval<Target>().transitionTo(event)) {
     if constexpr (details::has_transitionTo_v<Target, Event>) {
@@ -152,46 +154,72 @@ template <typename Derived> struct state {
     }
   }
 
-  template <class Event, class StateContainer>
-  bool dispatch(Event const &e, StateContainer &state) {
+  template <class Target = Derived>
+  auto transition(...) -> transitions<detail::not_handled> {
+    return detail::not_handled{};
+  }
+
+  template <class Event> bool dispatch(Event const &e) {
 
     auto t = transition(e);
 
-    return handle_result(e, state, t);
+    return handle_result(e, t);
   }
 
-  template <class Event, class StateContainer, class... T>
-  bool handle_result(Event const &e, StateContainer &state,
-                     transitions<T...> t) {
+  template <class Event, class Transition>
+  bool handle_result(Event const &e, Transition t) {
     if (t.is_transition()) {
-      return handle_transition(e, t, state,
-                               std::make_index_sequence<sizeof...(T)>{});
+      bool handled = false;
+      for_each_transition(t, [&](auto i, auto t) {
+        if (i == t.idx) {
+
+          using type_at_index = transition_t<i, Transition>;
+
+          if constexpr (mpl::type_list_contains_v<
+                            typename StateContainer::type_list,
+                            type_at_index>) {
+
+            state_container_.template emplace<type_at_index>(e);
+
+            handled = true;
+          }
+        }
+      });
+
+      return handled;
+      // return handle_transition(e, t,
+      // std::make_index_sequence<sizeof...(T)>{});
     }
 
     return t.is_handled();
   }
 
-  template <class Event, class Transition, class StateContainer,
-            std::size_t... I>
+  template <class Event, class Transition, std::size_t... I>
   bool handle_transition(Event const &e, Transition trans,
-                         StateContainer &state,
+
                          std::index_sequence<I...>) {
-    return (handle_transition_impl<I>(e, trans, state), ...);
+    return (handle_transition_impl<I>(e, trans), ...);
   }
 
-  template <std::size_t I, class StateContainer, class Event, class Transition>
-  bool handle_transition_impl(Event const &e, Transition trans,
-                              StateContainer &state) {
+  template <std::size_t I, class Event, class Transition>
+  bool handle_transition_impl(Event const &e, Transition trans) {
     if (trans.idx == I) {
       using transition_type_list = typename Transition::list;
       using type_at_index = mpl::type_list_element_t<I, transition_type_list>;
 
-      state.template emplace<type_at_index>(e);
+      if constexpr (mpl::type_list_contains_v<
+                        typename StateContainer::type_list, type_at_index>) {
 
-      return true;
+        state_container_.template emplace<type_at_index>(e);
+
+        return true;
+      }
     }
     return false;
   }
+
+private:
+  StateContainer &state_container_;
 
   /*  template <class S> auto trans() const {
       return transitions<S>{detail::transition<S>{}};
