@@ -14,6 +14,8 @@
 
 using namespace escad::new_fsm;
 
+struct Context {};
+
 struct event1 {};
 struct event2 {
 
@@ -29,8 +31,10 @@ struct StateInitial;
 struct StateSecond;
 struct StateThird;
 
+using States = states<StateInitial, StateSecond, StateThird>;
+
 using StateContainer =
-    detail::state_variant<states<StateInitial, StateSecond, StateThird>>;
+    detail::state_variant<States, Context>;
 
 struct StateInitial : state<StateInitial, StateContainer> {
 
@@ -50,7 +54,7 @@ struct StateInitial : state<StateInitial, StateContainer> {
    * @return auto
    */
   auto transitionTo(const event1 &) { return trans<StateSecond>(); }
-  //auto transitionTo(const event2 &) const { return not_handled(); }
+  // auto transitionTo(const event2 &) const { return not_handled(); }
 
   // template<>
   // auto transitionTo<StateSecond>(const event1 &);
@@ -92,8 +96,8 @@ struct StateThird : state<StateThird, StateContainer> {
   StateThird(StateContainer &state_container) noexcept;
   ~StateThird() { std::cout << "StateThird::~StateThird()" << std::endl; }
 
-  //auto transitionTo(const event2 &) const { return handled(); }
-  //auto transitionTo(const event1 &) const { return handled(); }
+  // auto transitionTo(const event2 &) const { return handled(); }
+  // auto transitionTo(const event1 &) const { return handled(); }
 
   // StateThird() : count1(0) {}
 
@@ -311,7 +315,6 @@ TEST_CASE("state_dispatch", "[new_fsm]") {
 
   std::cout << std::endl;
 
-  
   std::cout << "before dispatch event1: ";
 
   myStates.visit(myStatePrinter);
@@ -342,4 +345,6 @@ TEST_CASE("state_dispatch", "[new_fsm]") {
 
   auto state3 = myStates.state<StateInitial>();
   REQUIRE(state3.value2 == 1);
+
+  REQUIRE(myStates.is_in<StateInitial>());
 }

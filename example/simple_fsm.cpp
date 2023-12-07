@@ -9,6 +9,8 @@
 
 using namespace escad::new_fsm;
 
+struct NoContext {};
+
 struct start {};
 struct pause {
   pause(int val) : value_(val) {}
@@ -22,8 +24,10 @@ struct Running;
 struct Paused;
 struct Stopped;
 
+using States = states<Initial, Running, Paused, Stopped>;
+
 using StateContainer =
-    detail::state_variant<states<Initial, Running, Paused, Stopped>>;
+    detail::state_variant<States, NoContext>;
 
 struct Initial : state<Initial, StateContainer> {
 
@@ -111,7 +115,7 @@ int main() {
 
   std::cout << "A simple fsm..." << std::endl;
 
-  StateContainer sm;
+  StateContainer sm; // create a state machine
 
   sm.emplace<Initial>();
 

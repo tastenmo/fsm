@@ -128,7 +128,7 @@ install(
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
   DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME})
 install(DIRECTORY include/ DESTINATION include
-    FILES_MATCHING PATTERN *.hpp)
+    FILES_MATCHING PATTERN *.h PATTERN *.hpp)
 
 if(FSM_OPT_BUILD_EXAMPLES)
     add_subdirectory(example)

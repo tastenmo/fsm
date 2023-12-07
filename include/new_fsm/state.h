@@ -1,12 +1,19 @@
 /**
  * @file state.h
+ * @brief This file contains the definition of the state class and related
+ * helper templates. The state class is a CRTP (Curiously Recurring Template
+ * Pattern) base class for states in a finite state machine. It provides methods
+ * for handling state entry, event dispatching, and state transitions. The
+ * helper templates in this file are used for detecting if a state has specific
+ * methods, such as onEnter() and transitionTo(). This file is part of the FSM
+ * (Finite State Machine) library.
+ *
  * @author Martin Heubuch (martin.heubuch@escad.de)
- * @brief
  * @version 0.1
  * @date 2023-02-23
  *
- * @copyright Copyright (c) 2023
- *
+ * @namespace escad
+ * @namespace new_fsm
  */
 
 #pragma once
@@ -18,6 +25,34 @@
 #include "transition.h"
 
 namespace escad {
+/**
+ * @file state.h
+ * @brief Defines the state class and helper templates for state management in a
+ * finite state machine.
+ *
+ * This file contains the implementation of the state class, which is a CRTP
+ * (Curiously Recurring Template Pattern) base class for states in a finite
+ * state machine. It also includes helper templates for detecting the presence
+ * of certain methods in derived state classes.
+ *
+ * The state class provides methods for handling state entry, event dispatching,
+ * and state transitions. It uses SFINAE (Substitution Failure Is Not An Error)
+ * and type traits to conditionally call methods based on their existence in the
+ * derived state class.
+ *
+ * The helper templates in the details namespace are used to detect the presence
+ * of the following methods in the derived state class:
+ * - onEnter(): Called when entering the state without an event.
+ * - onEnter(const Event&): Called when entering the state with an event.
+ * - transitionTo(const Event&): Called to transition to another state based on
+ * an event.
+ *
+ * The state class also includes a handle_result() method for handling the
+ * result of state transitions and a dispatch() method for dispatching events to
+ * the state.
+ *
+ * This file is part of the new_fsm namespace.
+ */
 namespace new_fsm {
 
 namespace details {
@@ -25,6 +60,8 @@ namespace details {
  * @brief Default case of helper for detecting if type Target has a onEnter()
  * method.
  *
+ * @tparam Target The type to check for the presence of onEnter() method.
+ * @tparam void Empty type used for SFINAE.
  */
 template <typename Target, typename = void>
 struct has_onEnter : std::false_type {};
@@ -32,6 +69,7 @@ struct has_onEnter : std::false_type {};
 /**
  * @brief Specialization for detecting if type Target has a onEnter() method.
  *
+ * @tparam Target The type to check for the presence of onEnter() method.
  */
 template <typename Target>
 struct has_onEnter<Target,
@@ -39,8 +77,9 @@ struct has_onEnter<Target,
     : std::true_type {};
 
 /**
- * @brief Helper helper template to acces the value of has_onEnter.
+ * @brief Helper helper template to access the value of has_onEnter.
  *
+ * @tparam T The type to check for the presence of onEnter() method.
  */
 template <class T> inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
 
@@ -48,6 +87,10 @@ template <class T> inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
  * @brief Default case of helper for detecting if type Target has a
  * onEnter(const Event &) method.
  *
+ * @tparam Target The type to check for the presence of onEnter(const Event &)
+ * method.
+ * @tparam Event The event type.
+ * @tparam void Empty type used for SFINAE.
  */
 template <typename Target, typename Event, typename = void>
 struct has_onEnterWithEvent : std::false_type {};
@@ -56,6 +99,9 @@ struct has_onEnterWithEvent : std::false_type {};
  * @brief Specialization for detecting if type Target has a onEnter(const Event
  * &) method.
  *
+ * @tparam Target The type to check for the presence of onEnter(const Event &)
+ * method.
+ * @tparam Event The event type.
  */
 template <typename Target, typename Event>
 struct has_onEnterWithEvent<Target, Event,
@@ -63,7 +109,11 @@ struct has_onEnterWithEvent<Target, Event,
                                 std::declval<Event>()))>> : std::true_type {};
 
 /**
- * @brief Helper helper template to acces the value of has_onEnterWithEvent.
+ * @brief Helper helper template to access the value of has_onEnterWithEvent.
+ *
+ * @tparam T The type to check for the presence of onEnter(const Event &)
+ * method.
+ * @tparam E The event type.
  */
 template <class T, class E>
 inline constexpr bool has_onEnterWithEvent_v =
@@ -73,6 +123,10 @@ inline constexpr bool has_onEnterWithEvent_v =
  * @brief Default case of helper for detecting if type Target has a
  * transitionTo(const Event &) method.
  *
+ * @tparam Target The type to check for the presence of transitionTo(const Event
+ * &) method.
+ * @tparam Event The event type.
+ * @tparam void Empty type used for SFINAE.
  */
 template <typename Target, typename Event, typename = void>
 struct has_transitionTo : std::false_type {};
@@ -81,6 +135,9 @@ struct has_transitionTo : std::false_type {};
  * @brief Specialization for detecting if type Target has a transitionTo(const
  * Event &) method.
  *
+ * @tparam Target The type to check for the presence of transitionTo(const Event
+ * &) method.
+ * @tparam Event The event type.
  */
 template <typename Target, typename Event>
 struct has_transitionTo<
@@ -89,8 +146,11 @@ struct has_transitionTo<
         std::declval<Event>()))>> : std::true_type {};
 
 /**
- * @brief Helper helper template to acces the value of has_transitionTo.
+ * @brief Helper helper template to access the value of has_transitionTo.
  *
+ * @tparam T The type to check for the presence of transitionTo(const Event &)
+ * method.
+ * @tparam E The event type.
  */
 template <class T, class E>
 inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
@@ -98,7 +158,7 @@ inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
 } // namespace details
 
 /**
- * Defines a set of states. This is used as a parameter to a state_machine.
+ * Defines a set of states. This is used as a parameter to a StateContainer.
  **/
 template <class... S> struct states {
   using type_list = mpl::type_list<S...>;
@@ -106,36 +166,39 @@ template <class... S> struct states {
 };
 
 /**
- * @brief state base
+ * @brief state is a CRTP base class for states.
  *
  * @tparam Derived
+ * @tparam StateContainer
  */
-
 template <class Derived, class StateContainer> struct state {
 
+  /**
+   * @brief Construct a new state object.
+   *
+   * @param state_container The reference to the StateContainer.
+   */
   state(StateContainer &state_container) : state_container_(state_container) {}
 
   /**
-   * @brief Calls onEnter(const Event &event) ot Derived if it exists
+   * @brief Calls onEnter(const Event &event) of Derived if it exists.
    *
-   * @tparam Target The Derived type
-   * @tparam Event The Event
-   * @param event
+   * @tparam Target The Derived type.
+   * @tparam Event The Event type.
+   * @param event The event object.
    * @return decltype(std::declval<Target>().onEnter(event), void())
    */
-
   template <class Target = Derived, class Event>
   auto enter(const Event &event) {
     if constexpr (details::has_onEnterWithEvent_v<Target, Event>) {
-
       static_cast<Target *>(this)->onEnter(event);
     }
   }
 
   /**
-   * @brief Calls onEnter() ot Derived if it exists
+   * @brief Calls onEnter() of Derived if it exists.
    *
-   * @tparam Target The Derived type
+   * @tparam Target The Derived type.
    * @return decltype(std::declval<Target>().onEnter(), void())
    *
    * @see https://arne-mertz.de/2017/01/decltype-declval/
@@ -146,6 +209,14 @@ template <class Derived, class StateContainer> struct state {
     }
   }
 
+  /**
+   * @brief Calls transitionTo(const Event &event) of Derived if it exists.
+   *
+   * @tparam Target The Derived type.
+   * @tparam Event The Event type.
+   * @param event The event object.
+   * @return decltype(std::declval<Target>().transitionTo(event))
+   */
   template <class Target = Derived, class Event>
   auto transition(const Event &event)
       -> decltype(std::declval<Target>().transitionTo(event)) {
@@ -154,81 +225,71 @@ template <class Derived, class StateContainer> struct state {
     }
   }
 
+  /**
+   * @brief For non-existing transitionTo() methods.
+   *
+   * @tparam Target The Derived type.
+   * @param ...
+   * @return transitions<detail::not_handled>
+   */
   template <class Target = Derived>
   auto transition(...) -> transitions<detail::not_handled> {
     return detail::not_handled{};
   }
 
+  /**
+   * @brief Dispatches an event to the state.
+   *
+   * @tparam Event The Event type.
+   * @param e The event object.
+   * @return true if the event is handled, false otherwise.
+   */
   template <class Event> bool dispatch(Event const &e) {
-
     auto t = transition(e);
-
     return handle_result(e, t);
   }
 
+  /**
+   * @brief Handles the result of all transitions.
+   *
+   * @tparam Event The Event type.
+   * @tparam Transition The Transition type.
+   * @param e The event object.
+   * @param t The transition object.
+   * @return true if the event is handled, false otherwise.
+   */
   template <class Event, class Transition>
   bool handle_result(Event const &e, Transition t) {
     if (t.is_transition()) {
       bool handled = false;
       for_each_transition(t, [&](auto i, auto t) {
         if (i == t.idx) {
-
           using type_at_index = transition_t<i, Transition>;
-
           if constexpr (mpl::type_list_contains_v<
                             typename StateContainer::type_list,
                             type_at_index>) {
-
             state_container_.template emplace<type_at_index>(e);
-
             handled = true;
           }
         }
       });
-
       return handled;
-      // return handle_transition(e, t,
-      // std::make_index_sequence<sizeof...(T)>{});
     }
-
     return t.is_handled();
   }
 
-  template <class Event, class Transition, std::size_t... I>
-  bool handle_transition(Event const &e, Transition trans,
-
-                         std::index_sequence<I...>) {
-    return (handle_transition_impl<I>(e, trans), ...);
-  }
-
-  template <std::size_t I, class Event, class Transition>
-  bool handle_transition_impl(Event const &e, Transition trans) {
-    if (trans.idx == I) {
-      using transition_type_list = typename Transition::list;
-      using type_at_index = mpl::type_list_element_t<I, transition_type_list>;
-
-      if constexpr (mpl::type_list_contains_v<
-                        typename StateContainer::type_list, type_at_index>) {
-
-        state_container_.template emplace<type_at_index>(e);
-
-        return true;
-      }
+  template <class State> void emplace() {
+    if constexpr (mpl::type_list_contains_v<typename StateContainer::type_list,
+                                            State>) {
+      state_container_.template emplace<State>();
     }
-    return false;
   }
 
-private:
+protected:
+  /**
+   * @brief Reference to the StateContainer.
+   */
   StateContainer &state_container_;
-
-  /*  template <class S> auto trans() const {
-      return transitions<S>{detail::transition<S>{}};
-    }
-
-
-    auto not_handled() const { return transitions<>{detail::not_handled{}}; }
-
-    auto handled() const { return transitions<>{detail::handled{}}; }*/
 };
 
 } // namespace new_fsm

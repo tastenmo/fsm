@@ -26,63 +26,168 @@ template <typename... Ts> struct Overload : Ts... {
 };
 template <class... Ts> Overload(Ts...) -> Overload<Ts...>;
 
+/**
+ * @brief This file contains the implementation of the FSM (Finite State Machine) library.
+ * 
+ * The FSM library provides a set of templates and utilities for creating and managing finite state machines.
+ * It includes type traits to check if a class has certain member functions, such as onEnter, onEnterWithEvent,
+ * transitionTo, and handle. These traits are used to enable or disable certain functionality based on the
+ * presence of these member functions.
+ * 
+ * The details namespace contains internal implementation details of the FSM library.
+ */
 namespace details {
 
 /**
- *
+ * @brief Type trait to check if a class has the onEnter member function.
+ * 
+ * This trait is used to determine if a state class has an onEnter member function, which is called when the
+ * state is entered.
+ * 
+ * @tparam Target The class to check.
+ * @tparam void Dummy template parameter for SFINAE.
  */
 template <typename Target, typename = void>
 struct has_onEnter : std::false_type {};
 
+/**
+ * @brief Type trait specialization for checking if a class has the onEnter member function.
+ * 
+ * This specialization is enabled if the expression decltype(std::declval<Target>().onEnter()) is well-formed,
+ * which means the class has the onEnter member function.
+ * 
+ * @tparam Target The class to check.
+ */
 template <typename Target>
 struct has_onEnter<Target,
-                   std::void_t<decltype(std::declval<Target>().onEnter())>>
-    : std::true_type {};
-
-template <class T> inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
+           std::void_t<decltype(std::declval<Target>().onEnter())>>
+  : std::true_type {};
 
 /**
- *
+ * @brief Convenience variable template to check if a class has the onEnter member function.
+ * 
+ * This variable template is defined as the value of the has_onEnter trait for the given class.
+ * 
+ * @tparam T The class to check.
+ */
+template <class T>
+inline constexpr bool has_onEnter_v = has_onEnter<T>::value;
+
+/**
+ * @brief Type trait to check if a class has the onEnter member function with a specific event type.
+ * 
+ * This trait is used to determine if a state class has an onEnter member function that takes an event
+ * parameter of a specific type. This is useful for states that need to perform different actions based
+ * on the event that triggered the state transition.
+ * 
+ * @tparam Target The class to check.
+ * @tparam Event The event type to check.
+ * @tparam void Dummy template parameter for SFINAE.
  */
 template <typename Target, typename Event, typename = void>
 struct has_onEnterWithEvent : std::false_type {};
 
+/**
+ * @brief Type trait specialization for checking if a class has the onEnter member function with a specific event type.
+ * 
+ * This specialization is enabled if the expression decltype(std::declval<Target>().onEnter(std::declval<Event>())) is well-formed,
+ * which means the class has the onEnter member function with the specified event type.
+ * 
+ * @tparam Target The class to check.
+ * @tparam Event The event type to check.
+ */
 template <typename Target, typename Event>
 struct has_onEnterWithEvent<Target, Event,
-                            std::void_t<decltype(std::declval<Target>().onEnter(
-                                std::declval<Event>()))>> : std::true_type {};
-
-template <class T, class E>
-inline constexpr bool has_onEnterWithEvent_v =
-    has_onEnterWithEvent<T, E>::value;
+              std::void_t<decltype(std::declval<Target>().onEnter(
+                std::declval<Event>()))>> : std::true_type {};
 
 /**
- *
+ * @brief Convenience variable template to check if a class has the onEnter member function with a specific event type.
+ * 
+ * This variable template is defined as the value of the has_onEnterWithEvent trait for the given class and event type.
+ * 
+ * @tparam T The class to check.
+ * @tparam E The event type to check.
+ */
+template <class T, class E>
+inline constexpr bool has_onEnterWithEvent_v =
+  has_onEnterWithEvent<T, E>::value;
+
+/**
+ * @brief Type trait to check if a class has the transitionTo member function.
+ * 
+ * This trait is used to determine if a state class has a transitionTo member function, which is called to
+ * transition to a new state.
+ * 
+ * @tparam Target The class to check.
+ * @tparam Event The event type to check.
+ * @tparam void Dummy template parameter for SFINAE.
  */
 template <typename Target, typename Event, typename = void>
 struct has_transitionTo : std::false_type {};
 
+/**
+ * @brief Type trait specialization for checking if a class has the transitionTo member function.
+ * 
+ * This specialization is enabled if the expression decltype(std::declval<Target>().transitionTo(std::declval<Event>())) is well-formed,
+ * which means the class has the transitionTo member function.
+ * 
+ * @tparam Target The class to check.
+ * @tparam Event The event type to check.
+ */
 template <typename Target, typename Event>
 struct has_transitionTo<
-    Target, Event,
-    std::void_t<decltype(std::declval<Target>().transitionTo(
-        std::declval<Event>()))>> : std::true_type {};
+  Target, Event,
+  std::void_t<decltype(std::declval<Target>().transitionTo(
+    std::declval<Event>()))>> : std::true_type {};
 
+/**
+ * @brief Convenience variable template to check if a class has the transitionTo member function.
+ * 
+ * This variable template is defined as the value of the has_transitionTo trait for the given class and event type.
+ * 
+ * @tparam T The class to check.
+ * @tparam E The event type to check.
+ */
 template <class T, class E>
 inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
 
 /**
- *
+ * @brief Type trait to check if a class has the handle member function.
+ * 
+ * This trait is used to determine if a state class has a handle member function, which is called to handle
+ * an event.
+ * 
+ * @tparam Target The class to check.
+ * @tparam Event The event type to check.
+ * @tparam void Dummy template parameter for SFINAE.
  */
 template <typename Target, typename Event, typename = void>
 struct has_handle : std::false_type {};
 
+/**
+ * @brief Type trait specialization for checking if a class has the handle member function.
+ * 
+ * This specialization is enabled if the expression decltype(std::declval<Target>().handle(std::declval<Event>())) is well-formed,
+ * which means the class has the handle member function.
+ * 
+ * @tparam Target The class to check.
+ * @tparam Event The event type to check.
+ */
 template <typename Target, typename Event>
 struct has_handle<
-    Target, Event,
-    std::void_t<decltype(std::declval<Target>().handle(std::declval<Event>()))>>
-    : std::true_type {};
+  Target, Event,
+  std::void_t<decltype(std::declval<Target>().handle(std::declval<Event>()))>>
+  : std::true_type {};
 
+/**
+ * @brief Convenience variable template to check if a class has the handle member function.
+ * 
+ * This variable template is defined as the value of the has_handle trait for the given class and event type.
+ * 
+ * @tparam T The class to check.
+ * @tparam E The event type to check.
+ */
 template <class T, class E>
 inline constexpr bool has_handle_v = has_handle<T, E>::value;
 
