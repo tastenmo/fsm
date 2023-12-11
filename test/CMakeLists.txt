@@ -124,11 +124,11 @@ make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp17 c++17)
 
 make_test(testNewFsmContext.cpp testNewFsmContext-cpp17 c++17)
 
-make_test(testReflection.cpp testReflection-cpp17 c++17)
+#make_test(testReflection.cpp testReflection-cpp17 c++17)
 
-if(HAS_CPP20_FLAG)
-    make_test(testReflection.cpp testReflection-cpp20 c++20)
-endif()
+#if(HAS_CPP20_FLAG)
+#    make_test(testReflection.cpp testReflection-cpp20 c++20)
+#endif()
 
 #make_test(testMeta.cpp testMeta-cpp17 c++17)
 

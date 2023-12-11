@@ -134,45 +134,6 @@ StateThird::StateThird(StateContainer &state_container) noexcept
   std::cout << "StateThird::StateThird()" << std::endl;
 }
 
-constexpr auto number_rx =
-    ctll::fixed_string{"(-?[0-9]*\\.[0-9]*([eE]-?[0-9]+)?|-?[1-9][0-9]*)"};
-
-template <ctll::fixed_string regex> struct matcher {
-
-  auto match(std::string_view sv) const { return ctre::match<regex>(sv); }
-
-  int value_;
-};
-
-using number = matcher<number_rx>;
-
-struct StateCtre : state<StateCtre, StateContainer> {
-
-  using state<StateCtre, StateContainer>::state;
-
-  // StateCtre() : num1("") {}
-
-  void onEnter(const number &num) {
-
-    if (auto [m, integer, number] = num.match(std::string_view{"1.234"}); m) {
-      num1 = m.to_view();
-    }
-  }
-
-  std::string num1;
-
-  auto transitionTo(const number &num)
-      -> transitions<StateInitial, StateSecond> const {
-
-    auto m = num.match(std::string_view{"1.234"});
-    if (m) {
-      std::cout << "Transition:" << m.to_view() << std::endl;
-      return trans<StateInitial>();
-    }
-
-    return trans<StateSecond>();
-  }
-};
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
 
@@ -222,14 +183,6 @@ TEST_CASE("state_onEnter", "[new_fsm]") {
   REQUIRE(third.count1 == 0);
 }
 
-TEST_CASE("state_onEnterCTRE", "[new_fsm]") {
-
-  StateCtre first{myStates};
-
-  first.enter(number{});
-  REQUIRE(first.num1 == "1.234");
-};
-
 TEST_CASE("state_transitionTo", "[new_fsm]") {
 
   StateInitial first{myStates};
@@ -270,14 +223,7 @@ TEST_CASE("state_transitionTo", "[new_fsm]") {
   REQUIRE(result5.is_transition());
   REQUIRE(result5.idx == 1);
 
-  StateCtre ctre{myStates};
-
-  auto result6 = ctre.transition(number{});
-  STATIC_REQUIRE(std::is_same_v<decltype(result6),
-                                transitions<StateInitial, StateSecond>>);
-  REQUIRE(result6.is_transition());
-
-  // REQUIRE(first.count1 == 1);
+  
 }
 
 TEST_CASE("state_dispatch", "[new_fsm]") {

@@ -28,7 +28,7 @@ cmake_dependent_option(FSM_BUILD_PACKAGE_DEB
 cmake_dependent_option(FSM_BUILD_PACKAGE_RPM
   "Create RPM Package (${PROJECT_NAME})" ON
   "FSM_BUILD_PACKAGE;FSM_RPMBUILD_FOUND" OFF)
-cmake_dependent_option(FSM_BUILD_DOC "Build fsm Docs" ON
+cmake_dependent_option(FSM_BUILD_DOC "Build fsm Docs" OFF
   "BUILD_TESTING;CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR" OFF)
 #cmake_dependent_option(FSM_OPT_BUILD_EXAMPLES "Build Examples" OFF
 #  "IS_TOPLEVEL_PROJECT" ON)
