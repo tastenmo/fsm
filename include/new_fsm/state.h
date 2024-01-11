@@ -238,13 +238,15 @@ template <class Derived, class StateContainer> struct state {
   }
 
   /**
-   * @brief Dispatches an event to the state.
+   * @brief Handles an event.
+   *
+   *
    *
    * @tparam Event The Event type.
    * @param e The event object.
    * @return true if the event is handled, false otherwise.
    */
-  template <class Event> bool dispatch(Event const &e) {
+  template <class Event> bool handle(Event const &e) {
     auto t = transition(e);
     return handle_result(e, t);
   }

@@ -12,8 +12,8 @@ using namespace escad::new_fsm;
 struct NoContext {};
 
 struct start {};
-struct pause {
-  pause(int val) : value_(val) {}
+struct pausing {
+  pausing(int val) : value_(val) {}
 
   int value_;
 };
@@ -26,8 +26,7 @@ struct Stopped;
 
 using States = states<Initial, Running, Paused, Stopped>;
 
-using StateContainer =
-    detail::state_variant<States, NoContext>;
+using StateContainer = state_variant<States, NoContext>;
 
 struct Initial : state<Initial, StateContainer> {
 
@@ -61,7 +60,7 @@ struct Running : state<Running, StateContainer> {
    *
    * @return auto
    */
-  auto transitionTo(const pause &) const { return trans<Paused>(); }
+  auto transitionTo(const pausing &) const { return trans<Paused>(); }
 
   /**
    * @brief transition to Stopped
@@ -80,7 +79,7 @@ struct Paused : state<Paused, StateContainer> {
    *
    * @param start
    */
-  void onEnter(const pause &) {
+  void onEnter(const pausing &) {
     std::cout << "Paused::onEnter(cost pause &)" << std::endl;
   }
 
@@ -119,13 +118,13 @@ int main() {
 
   sm.emplace<Initial>();
 
-  sm.dispatch(start{});
+  sm.handle(start{});
 
-  sm.dispatch(pause{1});
+  sm.handle(pausing{1});
 
-  sm.dispatch(start{});
+  sm.handle(start{});
 
-  sm.dispatch(stop{});
+  sm.handle(stop{});
 
   // Color entries: RED = -10 BLUE = 0 GREEN = 10
 

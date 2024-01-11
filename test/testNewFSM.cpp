@@ -9,8 +9,10 @@
 #include "base/utils.h"
 
 // #include <new_fsm/machine.h>
-#include <new_fsm/state.h>
-#include <new_fsm/state_variant.h>
+// #include <new_fsm/state.h>
+// #include <new_fsm/state_variant.h>
+#include <new_fsm/initial_state.h>
+#include <variant>
 
 using namespace escad::new_fsm;
 
@@ -33,10 +35,9 @@ struct StateThird;
 
 using States = states<StateInitial, StateSecond, StateThird>;
 
-using StateContainer =
-    detail::state_variant<States, Context>;
+using StateContainer = state_variant<States, Context>;
 
-struct StateInitial : state<StateInitial, StateContainer> {
+struct StateInitial : initial_state<StateInitial, StateContainer> {
 
   // using state<StateInitial, StateContainer>::state;
 
@@ -117,7 +118,7 @@ auto myStatePrinter = escad::overloaded{
 };
 
 StateInitial::StateInitial(StateContainer &state_container) noexcept
-    : state(state_container), count1(0), value2(0) {
+    : initial_state(state_container), count1(0), value2(0) {
 
   std::cout << "StateInitial::StateInitial()" << std::endl;
 }
@@ -134,6 +135,34 @@ StateThird::StateThird(StateContainer &state_container) noexcept
   std::cout << "StateThird::StateThird()" << std::endl;
 }
 
+TEST_CASE("state_types", "[new_fsm]") {
+
+  STATIC_REQUIRE(std::is_copy_constructible_v<std::monostate>);
+  STATIC_REQUIRE(std::is_copy_constructible_v<StateInitial>);
+  STATIC_REQUIRE(std::is_copy_constructible_v<StateSecond>);
+  STATIC_REQUIRE(std::is_copy_constructible_v<StateThird>);
+
+  STATIC_REQUIRE(std::is_move_constructible_v<StateInitial>);
+  STATIC_REQUIRE(std::is_move_constructible_v<StateSecond>);
+  STATIC_REQUIRE(std::is_move_constructible_v<StateThird>);
+
+  STATIC_REQUIRE(std::is_copy_constructible_v<StateContainer::states_variant>);
+
+  STATIC_REQUIRE(std::is_move_constructible_v<StateContainer::states_variant>);
+
+  STATIC_REQUIRE(std::is_copy_constructible_v<StateContainer::ctx>);
+
+
+  auto myfsm=StateInitial::create();
+
+  STATIC_REQUIRE(std::is_same_v<decltype(myfsm), StateContainer>);
+
+  REQUIRE(myfsm.is_in<StateInitial>());
+
+  REQUIRE(myfsm.handle(event1{}));
+  REQUIRE(myfsm.is_in<StateSecond>());
+
+}
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
 
@@ -222,11 +251,9 @@ TEST_CASE("state_transitionTo", "[new_fsm]") {
                      transitions<StateInitial, StateSecond, StateThird>>);
   REQUIRE(result5.is_transition());
   REQUIRE(result5.idx == 1);
-
-  
 }
 
-TEST_CASE("state_dispatch", "[new_fsm]") {
+TEST_CASE("state_handle", "[new_fsm]") {
 
   std::cout << "before emplace: ";
 
@@ -244,46 +271,46 @@ TEST_CASE("state_dispatch", "[new_fsm]") {
 
   std::cout << std::endl;
 
-  std::cout << "before dispatch event1: ";
+  std::cout << "before handle event1: ";
 
   myStates.visit(myStatePrinter);
 
   std::cout << std::endl;
 
-  auto result = myStates.dispatch(event1{});
+  auto result = myStates.handle(event1{});
 
   REQUIRE(result);
   REQUIRE(myStates.is_in<StateSecond>());
 
-  std::cout << "after dispatch event1: ";
+  std::cout << "after handle event1: ";
 
   myStates.visit(myStatePrinter);
 
   std::cout << std::endl;
 
-  std::cout << "before dispatch event1: ";
+  std::cout << "before handle event1: ";
 
   myStates.visit(myStatePrinter);
 
   std::cout << std::endl;
 
-  auto result2 = myStates.dispatch(event1{});
+  auto result2 = myStates.handle(event1{});
   REQUIRE(result2);
   REQUIRE(myStates.is_in<StateSecond>());
 
-  std::cout << "before dispatch event2: ";
+  std::cout << "before handle event2: ";
 
   myStates.visit(myStatePrinter);
 
   std::cout << std::endl;
 
-  auto result3 = myStates.dispatch(event2{1});
-  // auto result3 = state2_1.dispatch(event2{1});
+  auto result3 = myStates.handle(event2{1});
+  // auto result3 = state2_1.handle(event2{1});
 
   REQUIRE(result3);
   REQUIRE(myStates.is_in<StateInitial>());
 
-  std::cout << "after dispatch event2: ";
+  std::cout << "after handle event2: ";
 
   myStates.visit(myStatePrinter);
 

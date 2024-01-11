@@ -9,8 +9,7 @@
 #include "base/utils.h"
 
 // #include <new_fsm/machine.h>
-#include <new_fsm/state.h>
-#include <new_fsm/state_variant.h>
+#include <new_fsm/initial_state.h>
 
 using namespace escad::new_fsm;
 
@@ -54,9 +53,9 @@ struct StateThird;
 
 using States = states<StateInitial, StateSecond, StateThird>;
 
-using StateContainer = detail::state_variant<States, Context>;
+using StateContainer = state_variant<States, Context>;
 
-struct StateInitial : state<StateInitial, StateContainer> {
+struct StateInitial : initial_state<StateInitial, StateContainer> {
 
   // using state<StateInitial, StateContainer>::state;
 
@@ -144,7 +143,7 @@ auto myStatePrinter = escad::overloaded{
 };
 
 StateInitial::StateInitial(StateContainer &state_container) noexcept
-    : state(state_container), count1(0), value2(0) {}
+    : initial_state(state_container), count1(0), value2(0) {}
 
 StateSecond::StateSecond(StateContainer &state_container, Context &ctx) noexcept
     : state(state_container), count1(0), ctx_(ctx) {}
@@ -156,7 +155,7 @@ TEST_CASE("with implicit Context", "[new_fsm]") {
 
   std::cout << "start" << std::endl;
 
-  auto myStates = StateContainer{};
+  auto myStates = StateInitial::create();
 
   std::cout << "myStates constructed" << std::endl;
   // Context is copied here!!!!
@@ -171,7 +170,7 @@ TEST_CASE("with implicit Context", "[new_fsm]") {
 
   REQUIRE(myStates.is_in<StateInitial>());
 
-  auto result = myStates.dispatch(event1{});
+  auto result = myStates.handle(event1{});
 
   REQUIRE(result);
   REQUIRE(myStates.is_in<StateSecond>());
@@ -186,7 +185,7 @@ TEST_CASE("with implicit Context", "[new_fsm]") {
   REQUIRE(state2.ctx_.is_valid == true);
   REQUIRE(state2.ctx_.value == 1);
 
-  state2.dispatch(event2{2});
+  state2.handle(event2{2});
 
   REQUIRE(myStates.is_in<StateInitial>());
   REQUIRE(myStates.context().is_valid == false);
@@ -199,9 +198,9 @@ struct StateCtxThird;
 
 using CtxStates = states<StateCtxInitial, StateCtxSecond, StateCtxThird>;
 
-using StateCtxContainer = detail::state_variant<CtxStates, Context &>;
+using StateCtxContainer = state_variant<CtxStates, Context &>;
 
-struct StateCtxInitial : state<StateCtxInitial, StateCtxContainer> {
+struct StateCtxInitial : initial_state<StateCtxInitial, StateCtxContainer> {
 
   // using state<StateInitial, StateContainer>::state;
 
@@ -289,7 +288,7 @@ auto myStateCtxPrinter = escad::overloaded{
 };
 
 StateCtxInitial::StateCtxInitial(StateCtxContainer &state_container) noexcept
-    : state(state_container), count1(0), value2(0) {}
+    : initial_state(state_container), count1(0), value2(0) {}
 
 StateCtxSecond::StateCtxSecond(StateCtxContainer &state_container,
                                Context &ctx) noexcept
@@ -307,7 +306,7 @@ TEST_CASE("with explicit Context", "[new_fsm]") {
 
   std::cout << "myContext constructed" << std::endl;
 
-  auto myStates = StateCtxContainer(myContext);
+  auto myStates = StateCtxInitial::create(myContext);
 
   std::cout << "myStates constructed" << std::endl;
   // Context is copied here!!!!
@@ -322,7 +321,7 @@ TEST_CASE("with explicit Context", "[new_fsm]") {
 
   REQUIRE(myStates.is_in<StateCtxInitial>());
 
-  auto result = myStates.dispatch(event1{});
+  auto result = myStates.handle(event1{});
 
   REQUIRE(result);
   REQUIRE(myStates.is_in<StateCtxSecond>());
@@ -344,9 +343,9 @@ struct StateCtx1Third;
 
 using Ctx1States = states<StateCtx1Initial, StateCtx1Second, StateCtx1Third>;
 
-using StateCtx1Container = detail::state_variant<Ctx1States, Context &&>;
+using StateCtx1Container = state_variant<Ctx1States, Context &&>;
 
-struct StateCtx1Initial : state<StateCtx1Initial, StateCtx1Container> {
+struct StateCtx1Initial : initial_state<StateCtx1Initial, StateCtx1Container> {
 
   // using state<StateInitial, StateContainer>::state;
 
@@ -434,14 +433,14 @@ auto myStateCtx1Printer = escad::overloaded{
 };
 
 StateCtx1Initial::StateCtx1Initial(StateCtx1Container &state_container) noexcept
-    : state(state_container), count1(0), value2(0) {}
+    : initial_state(state_container), count1(0), value2(0) {}
 
 StateCtx1Second::StateCtx1Second(StateCtx1Container &state_container,
-                               Context &ctx) noexcept
+                                 Context &ctx) noexcept
     : state(state_container), count1(0), ctx_(ctx) {}
 
 StateCtx1Third::StateCtx1Third(StateCtx1Container &state_container,
-                             Context &ctx) noexcept
+                               Context &ctx) noexcept
     : state(state_container), count1(0), ctx_(ctx) {}
 
 TEST_CASE("with explicit&& Context", "[new_fsm]") {
@@ -450,7 +449,7 @@ TEST_CASE("with explicit&& Context", "[new_fsm]") {
 
   std::cout << "myContext constructed" << std::endl;
 
-  auto myStates = StateCtx1Container(Context{30});
+  auto myStates = StateCtx1Initial::create(Context{30});
 
   std::cout << "myStates constructed" << std::endl;
   // Context is copied here!!!!
@@ -465,7 +464,7 @@ TEST_CASE("with explicit&& Context", "[new_fsm]") {
 
   REQUIRE(myStates.is_in<StateCtx1Initial>());
 
-  auto result = myStates.dispatch(event1{});
+  auto result = myStates.handle(event1{});
 
   REQUIRE(result);
   REQUIRE(myStates.is_in<StateCtx1Second>());

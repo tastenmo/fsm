@@ -25,8 +25,15 @@
 #include <variant>
 
 #include "../base/utils.h"
+#include "../signal/signal.h"
 
-namespace escad::new_fsm::detail {
+namespace escad::new_fsm {
+
+namespace detail {
+
+struct NoContext {};
+
+} // namespace detail
 
 /**
  * @brief A template class representing a variant of states.
@@ -37,14 +44,26 @@ namespace escad::new_fsm::detail {
  *
  * @tparam States The type representing the list of states in the FSM.
  */
-template <class States, class Context> class state_variant {
+template <class States, class Context = detail::NoContext> class state_variant {
 public:
   using type_list = typename States::type_list;
+
+  using ctx = Context;
+
+  using states_variant_list =
+      typename mpl::type_list_push_front<type_list, std::monostate>::result;
+
+  // transform a type list to a corresponding variant
+  using states_variant =
+      typename mpl::type_list_rename<states_variant_list, std::variant>::result;
+
+  // signal type for state changes
+  using NewStateType = escad::signal<void(const states_variant &)>;
 
   template <class T = Context,
             std::enable_if_t<std::is_constructible_v<T>, bool> = true>
   state_variant()
-      : context_{}
+      : context_{}, NewStateSignal_{}, NewState{NewStateSignal_}
 
   {}
   /**
@@ -53,15 +72,17 @@ public:
   template <class T = Context,
             // enable this constructor only if Context is an lvalue ref
             std::enable_if_t<std::is_lvalue_reference_v<T>, bool> = true>
-  state_variant(Context &context) : context_(context) {}
+  state_variant(Context &context)
+      : context_(context), NewStateSignal_{}, NewState{NewStateSignal_} {}
 
   template <class T = Context,
             // enable this constructor only if Context is an rvalue ref
             std::enable_if_t<!std::is_lvalue_reference_v<T>, bool> = true>
   state_variant(Context &&context)
-      : context_{std::move(context)}
+      : context_{std::move(context)}, NewStateSignal_{}, NewState{NewStateSignal_}
 
   {}
+
   /**
    * @brief Emplaces a state of type State into the variant.
    *
@@ -106,10 +127,13 @@ public:
                           },
                           [](std::monostate) { ; }},
                states_);
+
+    // emit State Changed
+      NewStateSignal_.publish(states_);
   }
 
   /**
-   * @brief Dispatches an event to the current state.
+   * @brief Handle an event.
    *
    * This method dispatches the given event to the current state in the variant.
    * It returns true if the event was handled by the state, and false otherwise.
@@ -118,11 +142,10 @@ public:
    * @param e The event to be dispatched.
    * @return true if the event was handled by the state, false otherwise.
    */
-  template <class Event> bool dispatch(Event const &e) {
-    return std::visit(
-        overloaded{[&e](auto &state) { return state.dispatch(e); },
-                   [](std::monostate) { return false; }},
-        states_);
+  template <class Event> bool handle(Event const &e) {
+    return std::visit(overloaded{[&e](auto &state) { return state.handle(e); },
+                                 [](std::monostate) { return false; }},
+                      states_);
   }
 
   /**
@@ -174,24 +197,15 @@ public:
     return states_.valueless_by_exception();
   };
 
-  Context& context() { return context_; }
+  Context &context() { return context_; }
 
 private:
-  // Prepend a list of states with std::monostate. We want to avoid a situation
-  // that State will be constructed by defaulted when created instance of this
-  // class.
-  // 1. maybe we want to defer creation of State object
-  // 2. first state does not necessarily have default constructor
-  using states_variant_list =
-      typename mpl::type_list_push_front<type_list, std::monostate>::result;
-
-  // transform a type list to a corresponding variant
-  using states_variant =
-      typename mpl::type_list_rename<states_variant_list, std::variant>::result;
-
   states_variant states_;
-
   Context context_;
+  NewStateType NewStateSignal_;
+
+public:
+  escad::slot<NewStateType> NewState;
 };
 
-} // namespace escad::new_fsm::detail
+} // namespace escad::new_fsm
