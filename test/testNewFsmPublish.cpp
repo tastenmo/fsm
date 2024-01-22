@@ -64,6 +64,8 @@ struct Initial : initial_state<Initial, StateContainer> {
 
   Initial(StateContainer &state_container) noexcept;
 
+  ~Initial() { std::cout << "Initial::~Initial()" << std::endl; }
+
   void onEnter();
 
   /**
@@ -87,8 +89,14 @@ struct StateSecond : state<StateSecond, StateContainer> {
 
   StateSecond(StateContainer &state_container, Context &ctx) noexcept;
 
-  void onEnter();
+  ~StateSecond() { std::cout << "StateSecond::~StateSecond()" << std::endl; }
 
+void onEnter() {
+
+    count1++;
+    ctx_.is_valid = true;
+    ctx_.value += 1;
+  }
   auto transitionTo(const event2 &event) const
       -> transitions<Initial, StateSecond, StateThird> {
     if (event.value_ == 1) {
@@ -110,6 +118,8 @@ struct StateSecond : state<StateSecond, StateContainer> {
 struct StateThird : state<StateThird, StateContainer> {
 
   StateThird(StateContainer &state_container, Context &ctx) noexcept;
+
+  ~StateThird() { std::cout << "StateThird::~StateThird()" << std::endl; }
 
   void onEnter(const event2 &ev) {
     count1++;
@@ -133,24 +143,24 @@ struct StateThird : state<StateThird, StateContainer> {
 
 
 Initial::Initial(StateContainer &state_container) noexcept
-    : initial_state(state_container), count1(0), value2(0) {}
+    : initial_state(state_container), count1(0), value2(0) {
+      std::cout << "Initial::Initial()" << std::endl;
+    }
 
 void Initial::onEnter() {
   ;
 }
 
 StateSecond::StateSecond(StateContainer &state_container, Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
+    : state(state_container), count1(0), ctx_(ctx) {
+      std::cout << "StateSecond::StateSecond()" << std::endl;
+    }
 
-void StateSecond::onEnter() {
-
-    count1++;
-    ctx_.is_valid = true;
-    ctx_.value += 1;
-  }
 
 StateThird::StateThird(StateContainer &state_container, Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
+    : state(state_container), count1(0), ctx_(ctx) {
+      std::cout << "StateThird::StateThird()" << std::endl;
+    }
 
 
 class StateHandler {

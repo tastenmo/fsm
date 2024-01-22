@@ -44,9 +44,10 @@ public:
     if (event.level <= max_) {
 
       std::cout << "[" << event.time_stamp << "] "
-                << "\033[32m " << event.level << "/"
-                << event.location.function_name() << " - "
-                << event.location.file_name() << ": line "
+                << "\033[32m " << event.level
+                << " line: "
+                //<< event.location.function_name() << " - "
+                //<< event.location.file_name() << ": line "
                 << event.location.line() << "\033[0m\t" << event.name << ": "
                 << event.msg << std::endl;
     }
