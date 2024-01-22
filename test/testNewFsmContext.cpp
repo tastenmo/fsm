@@ -59,7 +59,7 @@ struct StateInitial : initial_state<StateInitial, StateContainer> {
 
   // using state<StateInitial, StateContainer>::state;
 
-  StateInitial(StateContainer &state_container) noexcept;
+  StateInitial(StateContainer &state_container, Context &ctx) noexcept;
 
   void onEnter(const event1 &) { count1++; }
 
@@ -78,6 +78,8 @@ struct StateInitial : initial_state<StateInitial, StateContainer> {
 
   int count1;
   int value2;
+
+  Context &ctx_;
 };
 
 struct StateSecond : state<StateSecond, StateContainer> {
@@ -142,8 +144,9 @@ auto myStatePrinter = escad::overloaded{
     [](auto) { std::cout << "unknown" << std::endl; },
 };
 
-StateInitial::StateInitial(StateContainer &state_container) noexcept
-    : initial_state(state_container), count1(0), value2(0) {}
+StateInitial::StateInitial(StateContainer &state_container,
+                           Context &ctx) noexcept
+    : initial_state(state_container), count1(0), value2(0), ctx_(ctx) {}
 
 StateSecond::StateSecond(StateContainer &state_container, Context &ctx) noexcept
     : state(state_container), count1(0), ctx_(ctx) {}
