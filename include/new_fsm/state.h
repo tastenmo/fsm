@@ -287,6 +287,13 @@ template <class Derived, class StateContainer> struct state {
     }
   }
 
+  template <class State, class Event> void emplace(Event const &e) {
+    if constexpr (mpl::type_list_contains_v<typename StateContainer::type_list,
+                                            State>) {
+      state_container_.template emplace<State>(e);
+    }
+  }
+
 protected:
   /**
    * @brief Reference to the StateContainer.

@@ -79,7 +79,8 @@ public:
             // enable this constructor only if Context is an rvalue ref
             std::enable_if_t<!std::is_lvalue_reference_v<T>, bool> = true>
   state_variant(Context &&context)
-      : context_{std::move(context)}, NewStateSignal_{}, NewState{NewStateSignal_}
+      : context_{std::move(context)}, NewStateSignal_{},
+        NewState{NewStateSignal_}
 
   {}
 
@@ -122,14 +123,15 @@ public:
       states_.template emplace<State>(*this);
     }
     std::visit(overloaded{[&e](auto &state) {
-                            state.enter();
+                            // state.enter();
                             state.enter(e);
+                            state.enter();
                           },
                           [](std::monostate) { ; }},
                states_);
 
     // emit State Changed
-      NewStateSignal_.publish(states_);
+    NewStateSignal_.publish(states_);
   }
 
   /**
