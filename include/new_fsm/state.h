@@ -119,6 +119,15 @@ template <class T, class E>
 inline constexpr bool has_onEnterWithEvent_v =
     has_onEnterWithEvent<T, E>::value;
 
+template <typename Target, typename = void>
+struct has_doRun : std::false_type {};
+
+template <typename Target>
+struct has_doRun<Target, std::void_t<decltype(std::declval<Target>().doRun())>>
+    : std::true_type {};
+
+template <class T> inline constexpr bool has_doRun_v = has_doRun<T>::value;
+
 /**
  * @brief Default case of helper for detecting if type Target has a
  * transitionTo(const Event &) method.
@@ -189,10 +198,12 @@ template <class Derived, class StateContainer> struct state {
    * @return decltype(std::declval<Target>().onEnter(event), void())
    */
   template <class Target = Derived, class Event>
-  auto enter(const Event &event) {
+  bool enter(const Event &event) {
     if constexpr (details::has_onEnterWithEvent_v<Target, Event>) {
       static_cast<Target *>(this)->onEnter(event);
+      return true;
     }
+    return false;
   }
 
   /**
@@ -203,10 +214,20 @@ template <class Derived, class StateContainer> struct state {
    *
    * @see https://arne-mertz.de/2017/01/decltype-declval/
    */
-  template <class Target = Derived> auto enter() {
+  template <class Target = Derived> bool enter() {
     if constexpr (details::has_onEnter_v<Target>) {
       static_cast<Target *>(this)->onEnter();
+      return true;
     }
+    return false;
+  }
+
+  template <class Target = Derived> bool run() {
+    if constexpr (details::has_doRun_v<Target>) {
+      static_cast<Target *>(this)->doRun();
+      return true;
+    }
+    return false;
   }
 
   /**

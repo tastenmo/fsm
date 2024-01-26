@@ -102,6 +102,13 @@ public:
     std::visit(overloaded{[](auto &state) { state.enter(); },
                           [](std::monostate) { ; }},
                states_);
+
+    // emit State Changed
+    NewStateSignal_.publish(states_);
+
+    std::visit(
+        overloaded{[](auto &state) { state.run(); }, [](std::monostate) { ; }},
+        states_);
   }
 
   /**
@@ -124,14 +131,19 @@ public:
     }
     std::visit(overloaded{[&e](auto &state) {
                             // state.enter();
-                            state.enter(e);
-                            state.enter();
+                            if (!state.enter(e)) {
+                              state.enter();
+                            }
                           },
                           [](std::monostate) { ; }},
                states_);
 
     // emit State Changed
     NewStateSignal_.publish(states_);
+
+    std::visit(
+        overloaded{[](auto &state) { state.run(); }, [](std::monostate) { ; }},
+        states_);
   }
 
   /**
