@@ -20,9 +20,11 @@
 
 #include <optional>
 #include <type_traits>
+#include <concepts>
 
 #include "../base/type_traits.h"
 #include "transition.h"
+#include "symbol.h"
 
 namespace escad {
 /**
@@ -164,7 +166,21 @@ struct has_transitionTo<
 template <class T, class E>
 inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
 
+
+
 } // namespace details
+
+template <typename Target>
+concept has_onEnter = requires(Target target)
+{
+  { target.onEnter() } ;
+};
+
+template <typename Target, typename Symbols, typename Values>
+concept has_transitionToWithSymbols = requires(Target target, Symbols sym, Values values)
+{
+  { target.transitionTo<sym>(values) } ;
+};
 
 /**
  * Defines a set of states. This is used as a parameter to a StateContainer.
