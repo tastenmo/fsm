@@ -19,22 +19,27 @@ namespace new_fsm {
 namespace detail {
 
 /**
- * @brief Tag type indicating that an event has been handled.
+ * @brief Tag type indicating no transition.
  */
-struct handled {};
-
-/**
- * @brief Tag type indicating that an event has not been handled.
- */
-struct not_handled {};
+struct none {};
 
 /**
  * @brief Helper struct for defining a transition type.
  * @tparam T The state type.
  */
-template <class T> struct transition {
+template <class T> struct sibling {
   using type = T;
 };
+
+template <class T> struct inner {
+  using type = T;
+};
+
+template <class T> struct inner_entry {
+  using type = T;
+};
+
+enum class result { none, sibling, inner, inner_entry };
 
 } // namespace detail
 
@@ -43,8 +48,7 @@ template <class T> struct transition {
  * @tparam S The list of state types.
  */
 template <class... S> class transitions {
-private:
-  enum class result { not_handled, handled, transition };
+  using result = detail::result;
 
 public:
   /**
@@ -62,65 +66,61 @@ public:
    * @param t The detail::transition object.
    */
   template <class T>
-  transitions(detail::transition<T>) noexcept
-      : idx{mpl::type_list_index_v<T, list>}, outcome{result::transition} {}
+  transitions(detail::sibling<T>) noexcept
+      : idx{mpl::type_list_index_v<T, list>}, outcome{result::sibling} {}
+  
+    template <class T>
+  transitions(detail::inner<T>) noexcept
+      : idx{mpl::type_list_index_v<T, list>}, outcome{result::inner} {}
 
+      template <class T>
+  transitions(detail::inner_entry<T>) noexcept
+      : idx{mpl::type_list_index_v<T, list>}, outcome{result::inner_entry} {}
+  
   /**
    * @brief Constructs a new transitions object from another transitions object.
    * @tparam T The list of state types.
    * @param t The transitions object.
    */
   template <class T>
-  transitions(transitions<T>) noexcept
-      : idx{mpl::type_list_index_v<T, list>}, outcome{result::transition} {}
+  transitions(transitions<T> const &rhs) noexcept
+      : idx{mpl::type_list_index_v<T, list>}, outcome{rhs.outcome} {}
 
   /**
-   * @brief Constructs a new transitions object indicating that the event was
-   * handled.
+   * @brief Constructs a new transitions object with no transition
+
    * @param h The handled tag object.
    */
-  transitions(detail::handled) noexcept
-      : idx{mpl::type_list_index_v<detail::handled, list>},
-        outcome{result::handled} {}
+  transitions(detail::none) noexcept
+      : idx{mpl::type_list_index_v<detail::none, list>}, outcome{result::none} {
+  }
 
   /**
    * @brief Constructs a new transitions object indicating that the event was
    * handled.
    * @param t The transitions object.
    */
-  transitions(transitions<detail::handled>) noexcept
-      : idx{mpl::type_list_index_v<detail::handled, list>},
-        outcome{result::handled} {}
-
-  /**
-   * @brief Constructs a new transitions object indicating that the event was
-   * not handled.
-   * @param nh The not_handled tag object.
-   */
-  transitions(detail::not_handled) noexcept
-      : idx{mpl::type_list_index_v<detail::not_handled, list>},
-        outcome{result::not_handled} {}
-
-  /**
-   * @brief Constructs a new transitions object indicating that the event was
-   * not handled.
-   * @param t The transitions object.
-   */
-  transitions(transitions<detail::not_handled>) noexcept
-      : idx{mpl::type_list_index_v<detail::not_handled, list>},
-        outcome{result::not_handled} {}
+  transitions(transitions<detail::none>) noexcept
+      : idx{mpl::type_list_index_v<detail::none, list>}, outcome{result::none} {
+  }
 
   /**
    * @brief Checks if this object represents a transition.
    * @return true if the object represents a transition, false otherwise.
    */
-  bool is_transition() const { return outcome == result::transition; }
+  bool is_transition() const { return outcome == result::sibling; }
+
+  bool is_sibling() const { return outcome == result::sibling; }
+
+  bool is_inner() const { return outcome == result::inner; }
+
+  bool is_inner_entry() const { return outcome == result::inner_entry; }
 
   /**
    * @brief Checks if the event was handled.
    * @return true if the event was handled, false otherwise.
    */
-  bool is_handled() const { return outcome == result::handled; }
+  bool is_none() const { return outcome == result::none; }
 
   using list = mpl::type_list<S...>;
 
@@ -133,8 +133,16 @@ public:
  * @tparam S The state type.
  * @return A transitions object representing the transition.
  */
-template <class S> inline auto trans() {
-  return transitions<S>{detail::transition<S>{}};
+template <class S> inline auto sibling() {
+  return transitions<S>{detail::sibling<S>{}};
+}
+
+template <class S> inline auto inner() {
+  return transitions<S>{detail::inner<S>{}};
+}
+
+template <class S> inline auto inner_entry() {
+  return transitions<S>{detail::inner_entry<S>{}};
 }
 
 /**
@@ -142,18 +150,7 @@ template <class S> inline auto trans() {
  * event was not handled.
  * @return A transitions object indicating that the event was not handled.
  */
-inline auto not_handled() {
-  return transitions<detail::not_handled>{detail::not_handled{}};
-}
-
-/**
- * @brief Helper function for creating a transitions object indicating that the
- * event was handled.
- * @return A transitions object indicating that the event was handled.
- */
-inline auto handled() {
-  return transitions<detail::handled>{detail::handled{}};
-}
+inline auto none() { return transitions<detail::none>{detail::none{}}; }
 
 /**
  * @brief Type alias for the transition type at a specific index.
