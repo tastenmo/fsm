@@ -27,13 +27,12 @@
 #include "../base/utils.h"
 #include "../signal/signal.h"
 
+#include "new_fsm/transition.h"
+#include "state.h"
+
 namespace escad::new_fsm {
 
-namespace detail {
-
-struct NoContext {};
-
-} // namespace detail
+  
 
 /**
  * @brief A template class representing a variant of states.
@@ -93,10 +92,10 @@ public:
    * @tparam State The type of the state to be emplaced.
    */
   template <class State> void emplace() {
-    if constexpr (std::is_constructible_v<State, decltype(*this), Context &>) {
-      states_.template emplace<State>(*this, context_);
+    if constexpr (std::is_constructible_v<State, Context &>) {
+      states_.template emplace<State>(context_);
     } else {
-      states_.template emplace<State>(*this);
+      states_.template emplace<State>();
     }
 
     std::visit(overloaded{[](auto &state) { state.enter(); },
@@ -106,9 +105,9 @@ public:
     // emit State Changed
     NewStateSignal_.publish(states_);
 
-    std::visit(
-        overloaded{[](auto &state) { state.run(); }, [](std::monostate) { ; }},
-        states_);
+    //    std::visit(
+    //        overloaded{[](auto &state) { state.run(); }, [](std::monostate) {
+    //        ; }}, states_);
   }
 
   /**
@@ -124,10 +123,10 @@ public:
    * @param e The event to be passed to the state.
    */
   template <class State, class Event> void emplace(Event const &e) {
-    if constexpr (std::is_constructible_v<State, decltype(*this), Context &>) {
-      states_.template emplace<State>(*this, context_);
+    if constexpr (std::is_constructible_v<State, Context &>) {
+      states_.template emplace<State>(context_);
     } else {
-      states_.template emplace<State>(*this);
+      states_.template emplace<State>();
     }
     std::visit(overloaded{[&e](auto &state) {
                             // state.enter();
@@ -141,9 +140,26 @@ public:
     // emit State Changed
     NewStateSignal_.publish(states_);
 
-    std::visit(
-        overloaded{[](auto &state) { state.run(); }, [](std::monostate) { ; }},
-        states_);
+    // std::visit(
+    //     overloaded{[](auto &state) { state.run(); }, [](std::monostate) { ;
+    //     }}, states_);
+  }
+
+  template <class E> auto dispatch(E const &e) {
+
+    auto result = false;
+
+    visit(overloaded{[&](auto &state) { result = handle(state, e); },
+
+                     [](std::monostate) { ; }});
+
+    // Run internal transition handling
+
+    visit(overloaded{[&](auto &state) { result = handle(state); },
+
+                     [](std::monostate) { ; }});
+
+    return result;
   }
 
   /**
@@ -156,10 +172,71 @@ public:
    * @param e The event to be dispatched.
    * @return true if the event was handled by the state, false otherwise.
    */
-  template <class Event> bool handle(Event const &e) {
-    return std::visit(overloaded{[&e](auto &state) { return state.handle(e); },
-                                 [](std::monostate) { return false; }},
-                      states_);
+
+  template <class State, class Event>
+  bool handle(State &state, Event const &e) {
+
+    if (handle_result(state.transition(e), e)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  template <class State> bool handle(State &state) {
+
+    if constexpr (detail::has_transitionInternalTo_v<State>){
+      return handle_result(state.transitionInternal());
+    }
+    
+    return false;
+
+  }
+
+  /**
+   * @brief Handles the result of all transitions.
+   *
+   * @tparam Event The Event type.
+   * @tparam Transition The Transition type.
+   * @param e The event object.
+   * @param t The transition object.
+   * @return true if the event is handled, false otherwise.
+   */
+  template <class Transition, class Event>
+  bool handle_result(Transition t, Event const &e) {
+    if (t.is_transition()) {
+      bool handled = false;
+      for_each_transition(t, [&](auto i, auto t) {
+        if (i == t.idx) {
+          using type_at_index = transition_t<i, Transition>;
+          if constexpr (mpl::type_list_contains_v<states_variant_list,
+                                                  type_at_index>) {
+            emplace<type_at_index>(e);
+            handled = true;
+          }
+        }
+      });
+      return handled;
+    }
+    return t.is_none();
+  }
+
+  template <class Transition> bool handle_result(Transition t) {
+    if (t.is_transition()) {
+      bool handled = false;
+      for_each_transition(t, [&](auto i, auto t) {
+        if (i == t.idx) {
+          using type_at_index = transition_t<i, Transition>;
+          if constexpr (mpl::type_list_contains_v<states_variant_list,
+                                                  type_at_index>) {
+            emplace<type_at_index>();
+            handled = true;
+          }
+        }
+      });
+      return handled;
+    }
+    return t.is_none();
   }
 
   /**

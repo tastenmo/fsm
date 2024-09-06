@@ -6,12 +6,12 @@
 
 namespace escad::new_fsm {
 
-template <class Derived, class StateContainer>
-class initial_state : public state<Derived, StateContainer> {
+template <class Derived, class StateContainer, class Context = detail::NoContext>
+class initial_state : public state<Derived, Context> {
 public:
   // using Container = state_variant<States, Context>;
 
-  using state<Derived, StateContainer>::state;
+  using state<Derived, Context>::state;
 
   
 
@@ -26,7 +26,7 @@ public:
     return container;
   }
 
-  template <class Context>
+
   static StateContainer create(Context& context) {
 
     auto container = StateContainer(context);
@@ -36,7 +36,6 @@ public:
     return container;
   }
 
-  template <class Context>
   static StateContainer create(Context&& context) {
 
     auto container = StateContainer(std::move(context));

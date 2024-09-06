@@ -24,13 +24,9 @@ struct Running;
 struct Paused;
 struct Stopped;
 
-using States = states<Initial, Running, Paused, Stopped>;
+struct Initial : state<Initial, NoContext> {
 
-using StateContainer = state_variant<States, NoContext>;
-
-struct Initial : state<Initial, StateContainer> {
-
-  using state<Initial, StateContainer>::state;
+  using state<Initial, NoContext>::state;
 
   void onEnter() { std::cout << "Initial::onEnter()" << std::endl; }
 
@@ -39,12 +35,12 @@ struct Initial : state<Initial, StateContainer> {
    *
    * @return auto
    */
-  auto transitionTo(const start &) { return trans<Running>(); }
+  auto transitionTo(const start &) { return sibling<Running>(); }
 };
 
-struct Running : state<Running, StateContainer> {
+struct Running : state<Running, NoContext> {
 
-  using state<Running, StateContainer>::state;
+  using state<Running, NoContext>::state;
 
   /**
    * @brief onEnter
@@ -60,19 +56,19 @@ struct Running : state<Running, StateContainer> {
    *
    * @return auto
    */
-  auto transitionTo(const pausing &) const { return trans<Paused>(); }
+  auto transitionTo(const pausing &) const { return sibling<Paused>(); }
 
   /**
    * @brief transition to Stopped
    *
    * @return auto
    */
-  auto transitionTo(const stop &) const { return trans<Stopped>(); }
+  auto transitionTo(const stop &) const { return sibling<Stopped>(); }
 };
 
-struct Paused : state<Paused, StateContainer> {
+struct Paused : state<Paused, NoContext> {
 
-  using state<Paused, StateContainer>::state;
+  using state<Paused, NoContext>::state;
 
   /**
    * @brief onEnter
@@ -88,19 +84,19 @@ struct Paused : state<Paused, StateContainer> {
    *
    * @return auto
    */
-  auto transitionTo(const start &) const { return trans<Running>(); }
+  auto transitionTo(const start &) const { return sibling<Running>(); }
 
   /**
    * @brief transition to Stopped
    *
    * @return auto
    */
-  auto transitionTo(const stop &) const { return trans<Stopped>(); }
+  auto transitionTo(const stop &) const { return sibling<Stopped>(); }
 };
 
-struct Stopped : state<Stopped, StateContainer> {
+struct Stopped : state<Stopped, NoContext> {
 
-  using state<Stopped, StateContainer>::state;
+  using state<Stopped, NoContext>::state;
 
   /**
    * @brief onEnter
@@ -110,21 +106,27 @@ struct Stopped : state<Stopped, StateContainer> {
   void onEnter() { std::cout << "Stopped::onEnter()" << std::endl; }
 };
 
+using States = states<Initial, Running, Paused, Stopped>;
+
+using StateContainer = state_variant<States, NoContext &>;
+
 int main() {
 
   std::cout << "A simple fsm..." << std::endl;
 
-  StateContainer sm; // create a state machine
+  NoContext ctx;
+
+  StateContainer sm(ctx); // create a state machine
 
   sm.emplace<Initial>();
 
-  sm.handle(start{});
+  sm.dispatch(start{});
 
-  sm.handle(pausing{1});
+  sm.dispatch(pausing{1});
 
-  sm.handle(start{});
+  sm.dispatch(start{});
 
-  sm.handle(stop{});
+  sm.dispatch(stop{});
 
   // Color entries: RED = -10 BLUE = 0 GREEN = 10
 

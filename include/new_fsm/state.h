@@ -55,7 +55,12 @@ namespace escad {
  */
 namespace new_fsm {
 
-namespace details {
+namespace detail {
+
+struct NoContext {};
+
+struct InternalEvent {};
+
 /**
  * @brief Default case of helper for detecting if type Target has a onEnter()
  * method.
@@ -120,13 +125,14 @@ inline constexpr bool has_onEnterWithEvent_v =
     has_onEnterWithEvent<T, E>::value;
 
 template <typename Target, typename = void>
-struct has_doRun : std::false_type {};
+struct has_onExit : std::false_type {};
 
 template <typename Target>
-struct has_doRun<Target, std::void_t<decltype(std::declval<Target>().doRun())>>
+struct has_onExit<Target,
+                  std::void_t<decltype(std::declval<Target>().onExit())>>
     : std::true_type {};
 
-template <class T> inline constexpr bool has_doRun_v = has_doRun<T>::value;
+template <class T> inline constexpr bool has_onExit_v = has_onExit<T>::value;
 
 /**
  * @brief Default case of helper for detecting if type Target has a
@@ -164,7 +170,20 @@ struct has_transitionTo<
 template <class T, class E>
 inline constexpr bool has_transitionTo_v = has_transitionTo<T, E>::value;
 
-} // namespace details
+template <typename Target, typename = void>
+struct has_transitionInternalTo : std::false_type {};
+
+template <typename Target>
+struct has_transitionInternalTo<
+    Target,
+    std::void_t<decltype(std::declval<Target>().transitionInternalTo())>>
+    : std::true_type {};
+
+template <class T>
+inline constexpr bool has_transitionInternalTo_v =
+    has_transitionInternalTo<T>::value;
+
+} // namespace detail
 
 /**
  * Defines a set of states. This is used as a parameter to a StateContainer.
@@ -180,14 +199,11 @@ template <class... S> struct states {
  * @tparam Derived
  * @tparam StateContainer
  */
-template <class Derived, class StateContainer> struct state {
+template <class Derived, class Context = detail::NoContext> struct state {
+  using ctx = Context;
 
-  /**
-   * @brief Construct a new state object.
-   *
-   * @param state_container The reference to the StateContainer.
-   */
-  state(StateContainer &state_container) : state_container_(state_container) {}
+  //state() : context_{} {}
+  state(Context &context) : context_(context) {}
 
   /**
    * @brief Calls onEnter(const Event &event) of Derived if it exists.
@@ -199,7 +215,7 @@ template <class Derived, class StateContainer> struct state {
    */
   template <class Target = Derived, class Event>
   bool enter(const Event &event) {
-    if constexpr (details::has_onEnterWithEvent_v<Target, Event>) {
+    if constexpr (detail::has_onEnterWithEvent_v<Target, Event>) {
       static_cast<Target *>(this)->onEnter(event);
       return true;
     }
@@ -215,15 +231,15 @@ template <class Derived, class StateContainer> struct state {
    * @see https://arne-mertz.de/2017/01/decltype-declval/
    */
   template <class Target = Derived> bool enter() {
-    if constexpr (details::has_onEnter_v<Target>) {
+    if constexpr (detail::has_onEnter_v<Target>) {
       static_cast<Target *>(this)->onEnter();
       return true;
     }
     return false;
   }
 
-  template <class Target = Derived> bool run() {
-    if constexpr (details::has_doRun_v<Target>) {
+  template <class Target = Derived> bool exit() {
+    if constexpr (detail::has_onExit_v<Target>) {
       static_cast<Target *>(this)->doRun();
       return true;
     }
@@ -241,7 +257,7 @@ template <class Derived, class StateContainer> struct state {
   template <class Target = Derived, class Event>
   auto transition(const Event &event)
       -> decltype(std::declval<Target>().transitionTo(event)) {
-    if constexpr (details::has_transitionTo_v<Target, Event>) {
+    if constexpr (detail::has_transitionTo_v<Target, Event>) {
       return static_cast<Target *>(this)->transitionTo(event);
     }
   }
@@ -254,72 +270,35 @@ template <class Derived, class StateContainer> struct state {
    * @return transitions<detail::not_handled>
    */
   template <class Target = Derived>
-  auto transition(...) -> transitions<detail::not_handled> {
-    return detail::not_handled{};
+  auto transition(...) -> transitions<detail::none> {
+    return detail::none{};
   }
 
   /**
-   * @brief Handles an event.
+   * @brief Calls transitionInternalTo() of Derived if it exists.
    *
-   *
-   *
-   * @tparam Event The Event type.
-   * @param e The event object.
-   * @return true if the event is handled, false otherwise.
+   * @tparam Target The Derived type.
+   * @return decltype(std::declval<Target>().transitionTo())
    */
-  template <class Event> bool handle(Event const &e) {
-    auto t = transition(e);
-    return handle_result(e, t);
+  template <class Target = Derived>
+  auto transitionInternal()
+      -> decltype(std::declval<Target>().transitionInternalTo()) {
+    if constexpr (detail::has_transitionInternalTo_v<Target>) {
+      return static_cast<Target *>(this)->transitionInternalTo();
+    }
+    //return detail::none{};
   }
 
-  /**
-   * @brief Handles the result of all transitions.
-   *
-   * @tparam Event The Event type.
-   * @tparam Transition The Transition type.
-   * @param e The event object.
-   * @param t The transition object.
-   * @return true if the event is handled, false otherwise.
-   */
-  template <class Event, class Transition>
-  bool handle_result(Event const &e, Transition t) {
-    if (t.is_transition()) {
-      bool handled = false;
-      for_each_transition(t, [&](auto i, auto t) {
-        if (i == t.idx) {
-          using type_at_index = transition_t<i, Transition>;
-          if constexpr (mpl::type_list_contains_v<
-                            typename StateContainer::type_list,
-                            type_at_index>) {
-            state_container_.template emplace<type_at_index>(e);
-            handled = true;
-          }
-        }
-      });
-      return handled;
-    }
-    return t.is_handled();
-  }
-
-  template <class State> void emplace() {
-    if constexpr (mpl::type_list_contains_v<typename StateContainer::type_list,
-                                            State>) {
-      state_container_.template emplace<State>();
-    }
-  }
-
-  template <class State, class Event> void emplace(Event const &e) {
-    if constexpr (mpl::type_list_contains_v<typename StateContainer::type_list,
-                                            State>) {
-      state_container_.template emplace<State>(e);
-    }
-  }
+  // template <class Target = Derived>
+  //  auto transitionInternal(...) -> transitions<detail::none> {
+  //    return detail::none{};
+  //  }
 
 protected:
   /**
    * @brief Reference to the StateContainer.
    */
-  StateContainer &state_container_;
+  Context& context_;
 };
 
 } // namespace new_fsm

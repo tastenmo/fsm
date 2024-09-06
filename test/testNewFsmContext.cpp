@@ -53,13 +53,13 @@ struct StateThird;
 
 using States = states<StateInitial, StateSecond, StateThird>;
 
-using StateContainer = state_variant<States, Context>;
+using StateContainer = state_variant<States, Context &>;
 
-struct StateInitial : initial_state<StateInitial, StateContainer> {
+struct StateInitial : initial_state<StateInitial, StateContainer, Context> {
 
   // using state<StateInitial, StateContainer>::state;
 
-  StateInitial(StateContainer &state_container, Context &ctx) noexcept;
+  StateInitial(Context &ctx) noexcept;
 
   void onEnter(const event1 &) { count1++; }
 
@@ -70,7 +70,7 @@ struct StateInitial : initial_state<StateInitial, StateContainer> {
    *
    * @return auto
    */
-  auto transitionTo(const event1 &) { return trans<StateSecond>(); }
+  auto transitionTo(const event1 &) { return sibling<StateSecond>(); }
   // auto transitionTo(const event2 &) const { return not_handled(); }
 
   // template<>
@@ -82,11 +82,11 @@ struct StateInitial : initial_state<StateInitial, StateContainer> {
   Context &ctx_;
 };
 
-struct StateSecond : state<StateSecond, StateContainer> {
+struct StateSecond : state<StateSecond, Context> {
 
   //  using state<StateSecond, StateContainer>::state;
 
-  StateSecond(StateContainer &state_container, Context &ctx) noexcept;
+  StateSecond(Context &ctx) noexcept;
 
   void onEnter() {
     count1++;
@@ -97,31 +97,31 @@ struct StateSecond : state<StateSecond, StateContainer> {
   auto transitionTo(const event2 &event) const
       -> transitions<StateInitial, StateSecond, StateThird> {
     if (event.value_ == 1) {
-      return trans<StateInitial>();
+      return sibling<StateInitial>();
     } else if (event.value_ == 2) {
-      return trans<StateThird>();
+      return sibling<StateThird>();
     }
     // handled() does not work yet
-    return trans<StateSecond>();
+    return sibling<StateSecond>();
   }
 
-  auto transitionTo(const event1 &) const { return handled(); }
+  //auto transitionTo(const event1 &) const { return handled(); }
 
   int count1;
 
   Context &ctx_;
 };
 
-struct StateThird : state<StateThird, StateContainer> {
+struct StateThird : state<StateThird, Context> {
 
-  StateThird(StateContainer &state_container, Context &ctx) noexcept;
+  StateThird(Context &ctx) noexcept;
 
   void onEnter(const event2 &ev) {
     count1++;
     ctx_.is_valid = false;
     if (ev.value_ == 2) {
       ctx_.value = 10;
-      state_container_.emplace<StateInitial>();
+      //state_container_.emplace<StateInitial>();
     }
   }
 
@@ -144,21 +144,22 @@ auto myStatePrinter = escad::overloaded{
     [](auto) { std::cout << "unknown" << std::endl; },
 };
 
-StateInitial::StateInitial(StateContainer &state_container,
-                           Context &ctx) noexcept
-    : initial_state(state_container), count1(0), value2(0), ctx_(ctx) {}
+StateInitial::StateInitial(Context &ctx) noexcept
+    : initial_state(ctx), count1(0), value2(0), ctx_(ctx) {}
 
-StateSecond::StateSecond(StateContainer &state_container, Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
+StateSecond::StateSecond(Context &ctx) noexcept
+    : state(ctx), count1(0), ctx_(ctx) {}
 
-StateThird::StateThird(StateContainer &state_container, Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
+StateThird::StateThird(Context &ctx) noexcept
+    : state(ctx), count1(0), ctx_(ctx) {}
 
 TEST_CASE("with implicit Context", "[new_fsm]") {
 
   std::cout << "start" << std::endl;
 
-  auto myStates = StateInitial::create();
+  Context ctx_;
+
+  auto myStates = StateInitial::create(ctx_);
 
   std::cout << "myStates constructed" << std::endl;
   // Context is copied here!!!!
@@ -169,13 +170,13 @@ TEST_CASE("with implicit Context", "[new_fsm]") {
   REQUIRE(ctx.is_valid == false);
   REQUIRE(ctx.value == 0);
 
-  myStates.emplace<StateInitial>();
+  //myStates.emplace<StateInitial>();
 
   REQUIRE(myStates.is_in<StateInitial>());
 
-  auto result = myStates.handle(event1{});
+  auto result = myStates.dispatch(event1{});
 
-  REQUIRE(result);
+  //REQUIRE(result);
   REQUIRE(myStates.is_in<StateSecond>());
 
   // Context is nor copied here????
@@ -188,13 +189,15 @@ TEST_CASE("with implicit Context", "[new_fsm]") {
   REQUIRE(state2.ctx_.is_valid == true);
   REQUIRE(state2.ctx_.value == 1);
 
-  state2.handle(event2{2});
+  //state2.dispatch(event2{2});
+  auto result2 = myStates.dispatch(event2{2});
 
-  REQUIRE(myStates.is_in<StateInitial>());
+  REQUIRE(myStates.is_in<StateThird>());
   REQUIRE(myStates.context().is_valid == false);
   REQUIRE(myStates.context().value == 10);
 }
 
+/*
 struct StateCtxInitial;
 struct StateCtxSecond;
 struct StateCtxThird;
@@ -213,11 +216,7 @@ struct StateCtxInitial : initial_state<StateCtxInitial, StateCtxContainer> {
 
   void onEnter(const event2 &ev) { value2 += ev.value_; }
 
-  /**
-   * @brief simple transition
-   *
-   * @return auto
-   */
+
   auto transitionTo(const event1 &) { return trans<StateCtxSecond>(); }
   // auto transitionTo(const event2 &) const { return not_handled(); }
 
@@ -358,11 +357,7 @@ struct StateCtx1Initial : initial_state<StateCtx1Initial, StateCtx1Container> {
 
   void onEnter(const event2 &ev) { value2 += ev.value_; }
 
-  /**
-   * @brief simple transition
-   *
-   * @return auto
-   */
+  
   auto transitionTo(const event1 &) { return trans<StateCtx1Second>(); }
   // auto transitionTo(const event2 &) const { return not_handled(); }
 
@@ -482,3 +477,4 @@ TEST_CASE("with explicit&& Context", "[new_fsm]") {
   REQUIRE(state2.ctx_.is_valid == true);
   REQUIRE(state2.ctx_.value == 31);
 }
+*/

@@ -1,6 +1,7 @@
 #include <chrono>
 #include <functional>
 #include <iostream>
+#include <type_traits>
 #include <utility>
 
 #include <catch2/catch_test_macros.hpp>
@@ -10,13 +11,37 @@
 
 // #include <new_fsm/machine.h>
 // #include <new_fsm/state.h>
-// #include <new_fsm/state_variant.h>
-#include <new_fsm/initial_state.h>
+#include <new_fsm/state_variant.h>
+
 #include <variant>
 
 using namespace escad::new_fsm;
 
-struct Context {};
+class theContext {
+
+public:
+  theContext() : PlaySequence_(false), value_(0), msg_(""){
+
+    std::cout << "theContext()" << std::endl;
+
+  };
+
+  ~theContext() { std::cout << "~theContext()" << std::endl; }
+
+  void PlaySequence() { PlaySequence_ = true; }
+
+  bool GetPlaySequence() const { return PlaySequence_; }
+
+  void Value(int val) { value_ = val; }
+
+  int Value() const { return value_; }
+
+private:
+  bool PlaySequence_;
+  int value_;
+
+  std::string msg_;
+};
 
 struct event1 {};
 struct event2 {
@@ -29,295 +54,126 @@ struct event3 {
   std::string msg;
 };
 
-struct StateInitial;
-struct StateSecond;
-struct StateThird;
+struct myStates {
 
-using States = states<StateInitial, StateSecond, StateThird>;
+  struct Initial : state<Initial, theContext> {
 
-using StateContainer = state_variant<States, Context>;
+    using state<Initial, theContext>::state;
 
-struct StateInitial : initial_state<StateInitial, StateContainer> {
+    void onEnter(const event1 &) { count1++; }
 
-  // using state<StateInitial, StateContainer>::state;
+    void onEnter(const event2 &ev) { value2 += ev.value_; }
 
-  StateInitial(StateContainer &state_container) noexcept;
-  // count1(0), value2(0) {}
-  ~StateInitial() { std::cout << "StateInitial::~StateInitial()" << std::endl; }
+    /**
+     * @brief simple transition
+     *
+     * @return auto
+     */
+    auto transitionTo(const event1 &) { return sibling<Second>(); }
+    // auto transitionTo(const event2 &) const { return not_handled(); }
 
-  void onEnter(const event1 &) { count1++; }
+    // template<>
+    // auto transitionTo<StateSecond>(const event1 &);
 
-  void onEnter(const event2 &ev) { value2 += ev.value_; }
+    int count1;
+    int value2;
+  };
 
-  /**
-   * @brief simple transition
-   *
-   * @return auto
-   */
-  auto transitionTo(const event1 &) { return trans<StateSecond>(); }
-  // auto transitionTo(const event2 &) const { return not_handled(); }
+  struct Third : state<Third, theContext> {
 
-  // template<>
-  // auto transitionTo<StateSecond>(const event1 &);
+    using state<Third, theContext>::state;
 
-  int count1;
-  int value2;
-};
+    // auto transitionTo(const event2 &) const { return handled(); }
+    // auto transitionTo(const event1 &) const { return handled(); }
 
-struct StateSecond : state<StateSecond, StateContainer> {
+    // StateThird() : count1(0) {}
 
-  //  using state<StateSecond, StateContainer>::state;
+    int count1;
+  };
 
-  StateSecond(StateContainer &state_container) noexcept;
+  struct Second : state<Second, theContext> {
 
-  ~StateSecond() { std::cout << "StateSecond::~StateSecond()" << std::endl; }
+    using state<Second, theContext>::state;
 
-  void onEnter() { count1++; }
+    void onEnter() { count1++; }
 
-  auto transitionTo(const event2 &event) const
-      -> transitions<StateInitial, StateSecond, StateThird> {
-    if (event.value_ == 1) {
-      return trans<StateInitial>();
-    } else if (event.value_ == 2) {
-      return trans<StateThird>();
+    auto transitionTo(const event2 &event) const
+        -> transitions<detail::none, Initial, Second, Third> {
+      if (event.value_ == 1) {
+        return sibling<Initial>();
+      } else if (event.value_ == 2) {
+        return sibling<Third>();
+      }
+      // handled() does not work yet
+      return none();
     }
-    // handled() does not work yet
-    return trans<StateSecond>();
-  }
 
-  auto transitionTo(const event1 &) const { return handled(); }
+    auto transitionTo(const event1 &) const { return none(); }
 
-  int count1;
+    auto transitionInternalTo() -> transitions<detail::none, Third> const {
+
+      if (context_.GetPlaySequence()) {
+        return sibling<Third>();
+      }
+      return none();
+    }
+
+    int count1;
+  };
 };
 
-struct StateThird : state<StateThird, StateContainer> {
+using States = states<myStates::Initial, myStates::Second, myStates::Third>;
 
-  using state<StateThird, StateContainer>::state;
-
-  StateThird(StateContainer &state_container) noexcept;
-  ~StateThird() { std::cout << "StateThird::~StateThird()" << std::endl; }
-
-  // auto transitionTo(const event2 &) const { return handled(); }
-  // auto transitionTo(const event1 &) const { return handled(); }
-
-  // StateThird() : count1(0) {}
-
-  int count1;
-};
+using StateContainer = state_variant<States, theContext &>;
 
 // State Constructors
 
-auto myStates = StateContainer{};
-
 auto myStatePrinter = escad::overloaded{
-    [](StateInitial &) { std::cout << "StateInitial" << std::endl; },
-    [](StateSecond &) { std::cout << "StateSecond" << std::endl; },
-    [](StateThird &) { std::cout << "StateThird" << std::endl; },
+    [](myStates::Initial &) { std::cout << "Initial" << std::endl; },
+    [](myStates::Second &) { std::cout << "Second" << std::endl; },
+    [](myStates::Third &) { std::cout << "Third" << std::endl; },
     [](std::monostate) { std::cout << "std::monostate" << std::endl; },
     [](auto) { std::cout << "unknown" << std::endl; },
 };
 
-StateInitial::StateInitial(StateContainer &state_container) noexcept
-    : initial_state(state_container), count1(0), value2(0) {
-
-  std::cout << "StateInitial::StateInitial()" << std::endl;
-}
-
-StateSecond::StateSecond(StateContainer &state_container) noexcept
-    : state(state_container), count1(0) {
-
-  std::cout << "StateSecond::StateSecond()" << std::endl;
-}
-
-StateThird::StateThird(StateContainer &state_container) noexcept
-    : state(state_container), count1(0) {
-
-  std::cout << "StateThird::StateThird()" << std::endl;
-}
-
 TEST_CASE("state_types", "[new_fsm]") {
 
   STATIC_REQUIRE(std::is_copy_constructible_v<std::monostate>);
-  STATIC_REQUIRE(std::is_copy_constructible_v<StateInitial>);
-  STATIC_REQUIRE(std::is_copy_constructible_v<StateSecond>);
-  STATIC_REQUIRE(std::is_copy_constructible_v<StateThird>);
+  STATIC_REQUIRE(std::is_copy_constructible_v<myStates::Initial>);
+  STATIC_REQUIRE(std::is_copy_constructible_v<myStates::Second>);
+  STATIC_REQUIRE(std::is_copy_constructible_v<myStates::Third>);
 
-  STATIC_REQUIRE(std::is_move_constructible_v<StateInitial>);
-  STATIC_REQUIRE(std::is_move_constructible_v<StateSecond>);
-  STATIC_REQUIRE(std::is_move_constructible_v<StateThird>);
+  STATIC_REQUIRE(std::is_move_constructible_v<myStates::Initial>);
+  STATIC_REQUIRE(std::is_move_constructible_v<myStates::Second>);
+  STATIC_REQUIRE(std::is_move_constructible_v<myStates::Third>);
 
   STATIC_REQUIRE(std::is_copy_constructible_v<StateContainer::states_variant>);
 
   STATIC_REQUIRE(std::is_move_constructible_v<StateContainer::states_variant>);
 
   STATIC_REQUIRE(std::is_copy_constructible_v<StateContainer::ctx>);
-
-
-  auto myfsm=StateInitial::create();
-
-  STATIC_REQUIRE(std::is_same_v<decltype(myfsm), StateContainer>);
-
-  REQUIRE(myfsm.is_in<StateInitial>());
-
-  REQUIRE(myfsm.handle(event1{}));
-  REQUIRE(myfsm.is_in<StateSecond>());
-
+  STATIC_REQUIRE(std::is_lvalue_reference_v<StateContainer::ctx>);
 }
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
 
-  StateInitial first{myStates};
-  StateSecond second{myStates};
-  StateThird third{myStates};
+  theContext ctx;
 
-  REQUIRE(first.count1 == 0);
-  REQUIRE(first.value2 == 0);
-  REQUIRE(second.count1 == 0);
-  REQUIRE(third.count1 == 0);
+  STATIC_REQUIRE(std::is_lvalue_reference_v<theContext &>);
 
-  first.enter();
-  second.enter();
-  third.enter();
+  StateContainer fsm(ctx);
 
-  REQUIRE(first.count1 == 0);
-  REQUIRE(first.value2 == 0);
-  REQUIRE(second.count1 == 1);
-  REQUIRE(third.count1 == 0);
+  fsm.emplace<myStates::Initial>();
 
-  first.enter(event3{"test"});
-  second.enter(event3{"test"});
-  third.enter(event3{"test"});
+  REQUIRE(fsm.is_in<myStates::Initial>());
 
-  REQUIRE(first.count1 == 0);
-  REQUIRE(first.value2 == 0);
-  REQUIRE(second.count1 == 1);
-  REQUIRE(third.count1 == 0);
+  fsm.dispatch(event1{});
 
-  first.enter(event1{});
-  second.enter(event1{});
-  third.enter(event1{});
+  REQUIRE(fsm.is_in<myStates::Second>());
 
-  REQUIRE(first.count1 == 1);
-  REQUIRE(first.value2 == 0);
-  REQUIRE(second.count1 == 1);
-  REQUIRE(third.count1 == 0);
+  fsm.context().PlaySequence();
 
-  first.enter(event2{42});
-  second.enter(event2{42});
-  third.enter(event2{42});
+  fsm.dispatch(event1{});
 
-  REQUIRE(first.count1 == 1);
-  REQUIRE(first.value2 == 42);
-  REQUIRE(second.count1 == 1);
-  REQUIRE(third.count1 == 0);
-}
-
-TEST_CASE("state_transitionTo", "[new_fsm]") {
-
-  StateInitial first{myStates};
-
-  auto result = first.transitionTo(event1{});
-
-  STATIC_REQUIRE(std::is_same_v<decltype(result), transitions<StateSecond>>);
-  REQUIRE(result.is_transition());
-
-  auto result1 = first.transition(event1{});
-
-  STATIC_REQUIRE(std::is_same_v<decltype(result1), transitions<StateSecond>>);
-  REQUIRE(result1.is_transition());
-
-  StateSecond second{myStates};
-
-  auto result2 = second.transition(event1{});
-  CHECK(result2.is_handled());
-
-  auto result3 = second.transition(event2(1));
-  STATIC_REQUIRE(
-      std::is_same_v<decltype(result3),
-                     transitions<StateInitial, StateSecond, StateThird>>);
-  REQUIRE(result3.is_transition());
-  REQUIRE(result3.idx == 0);
-
-  auto result4 = second.transition(event2(2));
-  STATIC_REQUIRE(
-      std::is_same_v<decltype(result4),
-                     transitions<StateInitial, StateSecond, StateThird>>);
-  REQUIRE(result4.is_transition());
-  REQUIRE(result4.idx == 2);
-
-  auto result5 = second.transition(event2(3));
-  STATIC_REQUIRE(
-      std::is_same_v<decltype(result5),
-                     transitions<StateInitial, StateSecond, StateThird>>);
-  REQUIRE(result5.is_transition());
-  REQUIRE(result5.idx == 1);
-}
-
-TEST_CASE("state_handle", "[new_fsm]") {
-
-  std::cout << "before emplace: ";
-
-  myStates.visit(myStatePrinter);
-
-  std::cout << std::endl;
-
-  myStates.emplace<StateInitial>();
-
-  REQUIRE(myStates.is_in<StateInitial>());
-
-  std::cout << "after emplace: ";
-
-  myStates.visit(myStatePrinter);
-
-  std::cout << std::endl;
-
-  std::cout << "before handle event1: ";
-
-  myStates.visit(myStatePrinter);
-
-  std::cout << std::endl;
-
-  auto result = myStates.handle(event1{});
-
-  REQUIRE(result);
-  REQUIRE(myStates.is_in<StateSecond>());
-
-  std::cout << "after handle event1: ";
-
-  myStates.visit(myStatePrinter);
-
-  std::cout << std::endl;
-
-  std::cout << "before handle event1: ";
-
-  myStates.visit(myStatePrinter);
-
-  std::cout << std::endl;
-
-  auto result2 = myStates.handle(event1{});
-  REQUIRE(result2);
-  REQUIRE(myStates.is_in<StateSecond>());
-
-  std::cout << "before handle event2: ";
-
-  myStates.visit(myStatePrinter);
-
-  std::cout << std::endl;
-
-  auto result3 = myStates.handle(event2{1});
-  // auto result3 = state2_1.handle(event2{1});
-
-  REQUIRE(result3);
-  REQUIRE(myStates.is_in<StateInitial>());
-
-  std::cout << "after handle event2: ";
-
-  myStates.visit(myStatePrinter);
-
-  std::cout << std::endl;
-
-  auto state3 = myStates.state<StateInitial>();
-  REQUIRE(state3.value2 == 1);
-
-  REQUIRE(myStates.is_in<StateInitial>());
+  REQUIRE(fsm.is_in<myStates::Third>());
 }
