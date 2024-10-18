@@ -294,6 +294,11 @@ template <class Derived, class Context = detail::NoContext> struct state {
   //    return detail::none{};
   //  }
 
+  template <class Event>
+  bool dispatch(const Event &) {
+    return false;
+  }
+
 protected:
   /**
    * @brief Reference to the StateContainer.

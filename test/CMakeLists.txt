@@ -68,6 +68,23 @@ function(make_test_with_libs src target std libs)
     catch_discover_tests(${target} TEST_SUFFIX ${std})
 endfunction()
 
+function(make_test_with_includes src target std include_dirs)
+    add_executable(${target} ${src})
+    target_compile_options(${target} PRIVATE ${OPTIONS})
+    target_include_directories(${target} PRIVATE ${include_dirs})
+    target_link_libraries(${target} PRIVATE ${CMAKE_PROJECT_NAME} Catch2::Catch2WithMain)
+    set_target_properties(${target} PROPERTIES CXX_EXTENSIONS OFF)
+    if(std)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+            target_compile_options(${target} PRIVATE /std:${std})
+        else()
+            target_compile_options(${target} PRIVATE -std=${std})
+        endif()
+    endif()
+    #add_test(NAME ${target} COMMAND ${target})
+    catch_discover_tests(${target} TEST_SUFFIX ${std})
+endfunction()
+
 make_test(testFirst.cpp testFirst-cpp17 c++17)
 
 if(HAS_CPP20_FLAG)
@@ -125,6 +142,8 @@ make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp17 c++17)
 make_test(testNewFsmTransTable.cpp testNewFsmTransTable-cpp17 c++17)
 
 make_test(testNewFsmContext.cpp testNewFsmContext-cpp17 c++17)
+
+make_test_with_includes(testNewFsmComposite.cpp testNewFsmComposite-cpp17 c++17 ./NewFSM)
 
 #make_test(testNewFsmPublish.cpp testNewFsmPublish-cpp17 c++17)
 

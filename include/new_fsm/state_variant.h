@@ -32,8 +32,6 @@
 
 namespace escad::new_fsm {
 
-  
-
 /**
  * @brief A template class representing a variant of states.
  *
@@ -149,9 +147,21 @@ public:
 
     auto result = false;
 
+    visit(overloaded{[&](auto &state) { result = state.dispatch(e); },
+
+                     [](std::monostate) { ; }});
+
+    if (result) {
+      return true;
+    }
+
     visit(overloaded{[&](auto &state) { result = handle(state, e); },
 
                      [](std::monostate) { ; }});
+
+    if (result) {
+      return true;
+    }
 
     // Run internal transition handling
 
@@ -185,12 +195,11 @@ public:
 
   template <class State> bool handle(State &state) {
 
-    if constexpr (detail::has_transitionInternalTo_v<State>){
+    if constexpr (detail::has_transitionInternalTo_v<State>) {
       return handle_result(state.transitionInternal());
     }
-    
-    return false;
 
+    return false;
   }
 
   /**
