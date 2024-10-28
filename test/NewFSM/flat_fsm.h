@@ -1,5 +1,5 @@
 
-#include <new_fsm/composite_state.h>
+#include <new_fsm/initial_state.h>
 
 using namespace escad::new_fsm;
 

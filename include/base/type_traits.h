@@ -800,6 +800,23 @@ public:
 template <std::size_t Index, auto Candidate>
 using nth_argument_t = typename nth_argument<Index, Candidate>::type;
 
+
+
+template<std::size_t N, typename Seq> struct offset_sequence;
+
+template<std::size_t N, std::size_t... Ints>
+struct offset_sequence<N, std::index_sequence<Ints...>>
+{
+ using type = std::index_sequence<Ints + N...>;
+};
+/**
+ * @brief Alias template to facilitate the creation of an offset sequence.
+ * @tparam N The offset to apply.
+ * @tparam Seq The input sequence.
+ */
+template<std::size_t N, typename Seq>
+using offset_sequence_t = typename offset_sequence<N, Seq>::type;
+
 /**
  * @brief for loop over a sequence of type T with a lambada
  *
@@ -814,6 +831,7 @@ constexpr void for_sequence(std::integer_sequence<T, S...>, F &&f) {
   (void)unpack_t{(static_cast<void>(f(std::integral_constant<T, S>{})), 0)...,
                  0};
 }
+
 
 /**
  * @brief Default detection pattern template for std::from_chars

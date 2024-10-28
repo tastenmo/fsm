@@ -103,6 +103,11 @@ public:
     // emit State Changed
     NewStateSignal_.publish(states_);
 
+    // run internal transition handling
+    visit(overloaded{[&](auto &state) { handle(state); },
+
+                     [](std::monostate) { ; }});
+
     //    std::visit(
     //        overloaded{[](auto &state) { state.run(); }, [](std::monostate) {
     //        ; }}, states_);
