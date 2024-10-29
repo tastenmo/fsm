@@ -14,9 +14,9 @@ using namespace std::literals;
 
 struct start {};
 
-TEST_CASE("simple strings", "[json]") {
+TEST_CASE("Json_simple strings", "[json]") {
 
-  tokenizer t("\"This is a simple string.\" this should be ignored."sv);
+  stringTokenizer t("\"This is a simple string.\" this should be ignored."sv);
 
   string::Context ctx(t);
 
@@ -27,4 +27,25 @@ TEST_CASE("simple strings", "[json]") {
   REQUIRE(ctx.value() == "This is a simple string."sv);
 
   REQUIRE(ctx.size() == 24);
+}
+
+TEST_CASE("Json_strings with special characters", "[json]") {
+
+  stringTokenizer t(
+      "\"This is a more complicated string:\\n"
+      "\\tIt contains special character,\\n"
+      "\\tcompiles in 10 \\u00B5s,\\n"
+      "\\tand only needs \\u00BD the time.\" this should be ignored."sv);
+
+  string::Context ctx(t);
+
+  auto fsm = string::Initial::create(ctx);
+
+  REQUIRE(fsm.is_in<string::Finished>());
+
+  //  REQUIRE(ctx.value() == "This is a simple string."sv);
+
+  REQUIRE(ctx.size() == 130);
+  auto value = ctx.value();
+  CAPTURE(value);
 }

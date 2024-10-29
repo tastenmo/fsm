@@ -12,15 +12,101 @@
 
 #include "base/type_traits.h"
 
+using namespace std::literals;
+
 namespace escad::json {
 
+template <class TokenType, ctll::fixed_string Regex> class tokenizer {
+
+public:
+  using Token = TokenType;
+
+  static constexpr auto TokenTypeSize = magic_enum::enum_count<TokenType>();
+
+  tokenizer(std::string_view input, std::size_t pos = 0)
+      : input_(input), pos_(pos) {}
+
+  // Get the next token
+  std::optional<TokenType> next() {
+
+    bool found = false;
+    TokenType result;
+    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
+
+      mpl::for_sequence(std::make_index_sequence<TokenTypeSize>{}, [&](auto i) {
+        if (match.template get<i + 1>()) {
+          result = magic_enum::enum_value<TokenType>(i);
+          found = true;
+        }
+      });
+    }
+    if (found) {
+      return result;
+    }
+    return std::nullopt;
+  }
+
+  bool isToken(TokenType type) {
+    bool found = false;
+    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
+      auto type_integer = magic_enum::enum_integer(type);
+      mpl::for_sequence(std::make_index_sequence<TokenTypeSize>{}, [&](auto i) {
+        if (i == type_integer) {
+          if (match.template get<i + 1>()) {
+            found = true;
+          }
+        }
+      });
+    }
+    return found;
+  }
+
+  [[deprecated("Don't use this function anymore")]] std::string_view consume() {
+    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
+      pos_ += match.size();
+      return match.to_view();
+    }
+    return {};
+  }
+
+  std::optional<std::string_view> consume(TokenType type) {
+
+    bool found = false;
+    std::string_view str = ""sv;
+
+    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
+
+      auto type_integer = magic_enum::enum_integer(type);
+
+      mpl::for_sequence(std::make_index_sequence<TokenTypeSize>{}, [&](auto i) {
+        if (i == type_integer) {
+          if (auto capture = match.template get<i + 1>()) {
+            pos_ += capture.size();
+            str = capture.to_view();
+            found = true;
+          }
+        }
+      });
+    }
+    if (found) {
+      return str;
+    }
+    return std::nullopt;
+  }
+
+protected:
+  std::string_view input_;
+
+  std::size_t pos_ = 0;
+};
+
 // Regex for JSON tokens
-constexpr auto tokenRegEx = ctll::fixed_string{
+constexpr auto jsonTokenRegex = ctll::fixed_string{
     "(\\s+)|(\\u007b)|(\\u007d)|(\\u005b)|(\\u005d)|(:)|(,)|(\")|"
     "(true)|(false)|(null)|(\\u005Cu[0-9a-fA-F]{4})|([^\"\\u005C\\u0000-"
     "\\u001f\\u007F])"};
 
-enum class tokenType {
+enum class jsonTokenType {
   WS,
   OPEN_BRACE,
   CLOSE_BRACE,
@@ -36,47 +122,17 @@ enum class tokenType {
   STRING
 };
 
-constexpr auto tokenTypeSize = magic_enum::enum_count<tokenType>();
+using jsonTokenizer = tokenizer<jsonTokenType, jsonTokenRegex>;
 
-class tokenizer {
+// Regex for JSON tokens
+constexpr auto stringTokenRegex =
+    ctll::fixed_string{"(\")"
+                       "|(\\u005Cu[0-9a-fA-F]{4})"
+                       "|([^\"\\u005C\\u0000-\\u001f\\u007F]+)"
+                       "|(\\u005C[bfnrt/\\\"])"};
 
-public:
-  tokenizer(std::string_view input) : input_(input), pos_(0) {}
+enum class stringTokenType { DOUBLE_QUOTE, HEX, CHARS, ESCAPE };
 
-  // Get the next token
-  std::optional<tokenType> next() {
-
-    if (auto match =
-            ctre::multiline_starts_with<tokenRegEx>(input_.substr(pos_))) {
-
-      tokenType result;
-
-      mpl::for_sequence(std::make_index_sequence<tokenTypeSize>{}, [&](auto i) {
-        if (match.template get<i + 1>()) {
-          result = magic_enum::enum_value<tokenType>(i);
-        }
-      });
-
-      return result;
-    }
-    return std::nullopt;
-  }
-
-  bool isToken(tokenType type) { return next() == type; }
-
-  std::string_view consume() {
-    if (auto match =
-            ctre::multiline_starts_with<tokenRegEx>(input_.substr(pos_))) {
-      pos_ += match.size();
-      return match.to_view();
-    }
-    return {};
-  }
-
-protected:
-  std::string_view input_;
-
-  std::size_t pos_ = 0;
-};
+using stringTokenizer = tokenizer<stringTokenType, stringTokenRegex>;
 
 } // namespace escad::json

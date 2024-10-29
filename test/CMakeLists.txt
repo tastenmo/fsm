@@ -147,13 +147,9 @@ make_test_with_includes(testNewFsmComposite.cpp testNewFsmComposite-cpp17 c++17 
 
 
 
-make_test(testJsonTokenizer.cpp testJsonTokenizer-cpp17 c++17)
+make_test(testJsonTokenizer.cpp testJsonTokenizer-cpp20 c++20)
 
-if(HAS_CPP20_FLAG)
-    make_test(testJsonTokenizer.cpp testJsonTokenizer-cpp20 c++20)
-endif()
-
-make_test(testJsonString.cpp testJsonString-cpp17 c++17)
+make_test(testJsonString.cpp testJsonString-cpp20 c++20)
 
 
 #make_test(testNewFsmPublish.cpp testNewFsmPublish-cpp17 c++17)

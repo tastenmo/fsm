@@ -1,0 +1,20 @@
+{
+    "intro": "Hello, World!",
+    "description": "This is a test \"JSON file\" for testing.\nThis is a new line.",
+    "array": [
+        "Hello",
+        "World",
+        "!"
+    ],
+    "numbers": {
+        "uint": 123,
+        "int": -123,
+        "float": 123.456,
+        "scientific": 1.23e4
+    },
+    "boolean": {
+        "true": true,
+        "false": false
+    },
+    "null": null
+}

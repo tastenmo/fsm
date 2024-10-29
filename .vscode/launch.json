@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Launch",
-            "program": "${workspaceFolder}/build/test/testJsonString-cpp17",
+            "program": "${workspaceFolder}/build/test/testJsonTokenizer-cpp20",
             "args": [],
             "stopOnEntry": true,
             "cwd": "${workspaceFolder}"
