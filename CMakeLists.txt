@@ -37,6 +37,8 @@ option(FSM_OPT_BUILD_EXAMPLES "Build Examples" ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS True)
+
 #add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 
