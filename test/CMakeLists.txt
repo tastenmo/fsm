@@ -151,6 +151,8 @@ make_test(testJsonTokenizer.cpp testJsonTokenizer-cpp20 c++20)
 
 make_test(testJsonString.cpp testJsonString-cpp20 c++20)
 
+make_test(testJsonNumber.cpp testJsonNumber-cpp20 c++20)
+
 
 #make_test(testNewFsmPublish.cpp testNewFsmPublish-cpp17 c++17)
 

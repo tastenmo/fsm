@@ -103,8 +103,7 @@ protected:
 // Regex for JSON tokens
 constexpr auto jsonTokenRegex = ctll::fixed_string{
     "(\\s+)|(\\u007b)|(\\u007d)|(\\u005b)|(\\u005d)|(:)|(,)|(\")|"
-    "(true)|(false)|(null)|(\\u005Cu[0-9a-fA-F]{4})|([^\"\\u005C\\u0000-"
-    "\\u001f\\u007F])"};
+    "(true)|(false)|(null)"};
 
 enum class jsonTokenType {
   WS,
@@ -117,14 +116,12 @@ enum class jsonTokenType {
   DOUBLE_QUOTE,
   TRUE,
   FALSE,
-  NULL_,
-  HEX,
-  STRING
+  NULL_
 };
 
 using jsonTokenizer = tokenizer<jsonTokenType, jsonTokenRegex>;
 
-// Regex for JSON tokens
+// Regex for String tokens
 constexpr auto stringTokenRegex =
     ctll::fixed_string{"(\")"
                        "|(\\u005Cu[0-9a-fA-F]{4})"
@@ -134,5 +131,14 @@ constexpr auto stringTokenRegex =
 enum class stringTokenType { DOUBLE_QUOTE, HEX, CHARS, ESCAPE };
 
 using stringTokenizer = tokenizer<stringTokenType, stringTokenRegex>;
+
+constexpr auto numberTokenRegex = ctll::fixed_string{"([+\\-])"
+                                                     "|([0-9])"
+                                                     "|(\\.)"
+                                                     "|([eE])"};
+
+enum class numberTokenType { SIGN, DIGIT, DOT, EXP };
+
+using numberTokenizer = tokenizer<numberTokenType, numberTokenRegex>;
 
 } // namespace escad::json
