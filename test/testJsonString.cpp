@@ -16,9 +16,9 @@ struct start {};
 
 TEST_CASE("Json_simple strings", "[json]") {
 
-  stringTokenizer t("\"This is a simple string.\" this should be ignored."sv);
+  view v{"\"This is a simple string.\" this should be ignored."sv};
 
-  string::Context ctx(t);
+  string::Context ctx(v);
 
   auto fsm = string::Initial::create(ctx);
 
@@ -31,13 +31,12 @@ TEST_CASE("Json_simple strings", "[json]") {
 
 TEST_CASE("Json_strings with special characters", "[json]") {
 
-  stringTokenizer t(
+
+  string::Context ctx(view{
       "\"This is a more complicated string:\\n"
       "\\tIt contains special character,\\n"
       "\\tcompiles in 10 \\u00B5s,\\n"
-      "\\tand only needs \\u00BD the time.\" this should be ignored."sv);
-
-  string::Context ctx(t);
+      "\\tand only needs \\u00BD the time.\" this should be ignored."sv});
 
   auto fsm = string::Initial::create(ctx);
 

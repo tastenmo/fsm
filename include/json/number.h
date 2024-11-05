@@ -85,10 +85,11 @@ private:
 class Context : public numberTokenizer {
 
 public:
-  Context(numberTokenizer &tok) : numberTokenizer(tok) {}
+  Context(view &input) : numberTokenizer(input) {}
+  Context(view &&input) : numberTokenizer(input) {}
 
   std::string_view value() const {
-    return input_.substr(start_, end_ - start_);
+    return getView().substr(start_, end_ - start_);
   }
 
   /**
@@ -98,12 +99,13 @@ public:
   std::size_t size() const { return end_ - start_; }
 
   std::size_t start() {
-    start_ = end_ = pos_;
+    start_ = end_ = getView().pos_;
     return start_;
   }
 
   std::size_t add() {
-    end_ = pos_;
+    end_ = getView().pos_;
+    ;
     return end_ - start_;
   }
 

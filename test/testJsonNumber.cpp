@@ -14,9 +14,7 @@ using namespace std::literals;
 
 TEST_CASE("Json_number unsigned", "[json]") {
 
-  numberTokenizer t("123"sv);
-
-  number::Context ctx(t);
+  number::Context ctx(view{"123"sv});
 
   auto fsm = number::Initial::create(ctx);
 
@@ -35,9 +33,9 @@ TEST_CASE("Json_number unsigned", "[json]") {
 
 TEST_CASE("Json_number negative integer", "[json]") {
 
-  numberTokenizer t("-54321"sv);
+  view v("-54321"sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 
@@ -56,9 +54,9 @@ TEST_CASE("Json_number negative integer", "[json]") {
 
 TEST_CASE("Json_number positive integer", "[json]") {
 
-  numberTokenizer t("+54321"sv);
+  view v("+54321"sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 
@@ -81,9 +79,9 @@ TEST_CASE("Json_number very large unsigned", "[json]") {
             << std::endl;
 
   // max of unsigned is 4294967295
-  numberTokenizer t("5294967295"sv);
+  view v("5294967295"sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 
@@ -105,9 +103,9 @@ TEST_CASE("Json_number very large signed", "[json]") {
   std::cout << "int min: " << std::numeric_limits<int>::min() << std::endl;
 
   // min of int is -2147483648
-  numberTokenizer t("-3147483648"sv);
+  view v("-3147483648"sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 
@@ -126,9 +124,9 @@ TEST_CASE("Json_number very large signed", "[json]") {
 
 TEST_CASE("Json_number double", "[json]") {
 
-  numberTokenizer t("123.3756"sv);
+  view v("123.3756"sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 
@@ -147,9 +145,9 @@ TEST_CASE("Json_number double", "[json]") {
 
 TEST_CASE("Json_number scientific1", "[json]") {
 
-  numberTokenizer t("-1.234e06"sv);
+  view v("-1.234e06"sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 
@@ -168,9 +166,9 @@ TEST_CASE("Json_number scientific1", "[json]") {
 
 TEST_CASE("Json_number scientific2", "[json]") {
 
-  numberTokenizer t("-1.234e-06"sv);
+  view v("-1.234e-06"sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 
@@ -189,9 +187,9 @@ TEST_CASE("Json_number scientific2", "[json]") {
 
 TEST_CASE("Json_number 1.", "[json]") {
 
-  numberTokenizer t("1."sv);
+  view v("1."sv);
 
-  number::Context ctx(t);
+  number::Context ctx(v);
 
   auto fsm = number::Initial::create(ctx);
 

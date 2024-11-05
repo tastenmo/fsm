@@ -16,6 +16,12 @@ public:
 
   {}
 
+  composite_state(Context &context, NestedContext &&nested_context)
+      : state<Derived, Context>{context},
+        nested_(NestedState::create(nested_context))
+
+  {}
+
   template <class Event> bool dispatch(const Event &event) {
     return nested_.dispatch(event);
   }

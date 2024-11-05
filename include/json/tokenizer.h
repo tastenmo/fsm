@@ -16,6 +16,30 @@ using namespace std::literals;
 
 namespace escad::json {
 
+struct view {
+
+  view(std::string_view input) : input_(input) {}
+
+  std::string_view substr() const { return input_.substr(pos_); }
+
+  std::string_view substr(std::size_t len) const {
+    return input_.substr(pos_, len);
+  }
+
+  std::string_view substr(std::size_t start, std::size_t len) const {
+    return input_.substr(start, len);
+  }
+
+  std::string_view consume(std::size_t len) {
+    auto result = input_.substr(pos_, len);
+    pos_ += len;
+    return result;
+  }
+
+  std::string_view input_;
+  std::size_t pos_ = 0;
+};
+
 template <class TokenType, ctll::fixed_string Regex> class tokenizer {
 
 public:
@@ -23,15 +47,16 @@ public:
 
   static constexpr auto TokenTypeSize = magic_enum::enum_count<TokenType>();
 
-  tokenizer(std::string_view input, std::size_t pos = 0)
-      : input_(input), pos_(pos) {}
+  tokenizer(view &input) : view_(input) {}
+
+  tokenizer(view &&input) : view_(input) {}
 
   // Get the next token
   std::optional<TokenType> next() {
 
     bool found = false;
     TokenType result;
-    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
+    if (auto match = ctre::multiline_starts_with<Regex>(view_.substr())) {
 
       mpl::for_sequence(std::make_index_sequence<TokenTypeSize>{}, [&](auto i) {
         if (match.template get<i + 1>()) {
@@ -48,7 +73,7 @@ public:
 
   bool isToken(TokenType type) {
     bool found = false;
-    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
+    if (auto match = ctre::multiline_starts_with<Regex>(view_.substr())) {
       auto type_integer = magic_enum::enum_integer(type);
       mpl::for_sequence(std::make_index_sequence<TokenTypeSize>{}, [&](auto i) {
         if (i == type_integer) {
@@ -62,9 +87,9 @@ public:
   }
 
   [[deprecated("Don't use this function anymore")]] std::string_view consume() {
-    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
-      pos_ += match.size();
-      return match.to_view();
+    if (auto match = ctre::multiline_starts_with<Regex>(view_.substr())) {
+      view_.consume(match.size());
+      return view_.consume(match.size());
     }
     return {};
   }
@@ -74,15 +99,14 @@ public:
     bool found = false;
     std::string_view str = ""sv;
 
-    if (auto match = ctre::multiline_starts_with<Regex>(input_.substr(pos_))) {
+    if (auto match = ctre::multiline_starts_with<Regex>(view_.substr())) {
 
       auto type_integer = magic_enum::enum_integer(type);
 
       mpl::for_sequence(std::make_index_sequence<TokenTypeSize>{}, [&](auto i) {
         if (i == type_integer) {
           if (auto capture = match.template get<i + 1>()) {
-            pos_ += capture.size();
-            str = capture.to_view();
+            str = view_.consume(capture.size());
             found = true;
           }
         }
@@ -94,10 +118,10 @@ public:
     return std::nullopt;
   }
 
-protected:
-  std::string_view input_;
+  const view &getView() const { return view_; }
 
-  std::size_t pos_ = 0;
+//protected:
+  view &view_;
 };
 
 // Regex for JSON tokens
