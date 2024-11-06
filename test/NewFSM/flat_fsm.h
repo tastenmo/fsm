@@ -36,7 +36,7 @@ public:
   void is_valid(bool val) { is_valid_ = val; }
 
 private:
-  bool is_valid_;
+  bool is_valid_ = false;
 
   int value_;
 };
@@ -52,19 +52,20 @@ struct event3 {
   std::string msg;
 };
 
-struct StateInitial;
-struct StateSecond;
-struct StateThird;
+struct Initial;
+struct Second;
+struct Third;
 
-using States = states<StateInitial, StateSecond, StateThird>;
+using States = states<Initial, Second, Third>;
 
 using StateContainer = state_variant<States, Context &>;
 
-struct StateInitial : initial_state<StateInitial, StateContainer, Context> {
+struct Initial : initial_state<Initial, StateContainer, Context> {
 
   // using state<StateInitial, StateContainer>::state;
 
-  StateInitial(Context &ctx) noexcept;
+  Initial(Context &ctx) noexcept
+      : initial_state(ctx), count1(0), value2(0), ctx_(ctx) {}
 
   void onEnter(const event1 &) { count1++; }
 
@@ -75,7 +76,7 @@ struct StateInitial : initial_state<StateInitial, StateContainer, Context> {
    *
    * @return auto
    */
-  auto transitionTo(const event1 &) { return sibling<StateSecond>(); }
+  auto transitionTo(const event1 &) { return sibling<Second>(); }
   // auto transitionTo(const event2 &) const { return not_handled(); }
 
   // template<>
@@ -87,11 +88,11 @@ struct StateInitial : initial_state<StateInitial, StateContainer, Context> {
   Context &ctx_;
 };
 
-struct StateSecond : state<StateSecond, Context> {
+struct Second : state<Second, Context> {
 
   //  using state<StateSecond, StateContainer>::state;
 
-  StateSecond(Context &ctx) noexcept;
+  Second(Context &ctx) noexcept : state(ctx), count1(0), ctx_(ctx) {}
 
   void onEnter() {
     count1++;
@@ -100,14 +101,14 @@ struct StateSecond : state<StateSecond, Context> {
   }
 
   auto transitionTo(const event2 &event) const
-      -> transitions<StateInitial, StateSecond, StateThird> {
+      -> transitions<Initial, Second, Third> {
     if (event.value_ == 1) {
-      return sibling<StateInitial>();
+      return sibling<Initial>();
     } else if (event.value_ == 2) {
-      return sibling<StateThird>();
+      return sibling<Third>();
     }
     // handled() does not work yet
-    return sibling<StateSecond>();
+    return sibling<Second>();
   }
 
   // auto transitionTo(const event1 &) const { return handled(); }
@@ -117,9 +118,9 @@ struct StateSecond : state<StateSecond, Context> {
   Context &ctx_;
 };
 
-struct StateThird : state<StateThird, Context> {
+struct Third : state<Third, Context> {
 
-  StateThird(Context &ctx) noexcept;
+  Third(Context &ctx) noexcept : state(ctx), count1(0), ctx_(ctx) {}
 
   void onEnter(const event2 &ev) {
     count1++;
@@ -138,14 +139,5 @@ struct StateThird : state<StateThird, Context> {
   int count1;
   Context &ctx_;
 };
-
-StateInitial::StateInitial(Context &ctx) noexcept
-    : initial_state(ctx), count1(0), value2(0), ctx_(ctx) {}
-
-StateSecond::StateSecond(Context &ctx) noexcept
-    : state(ctx), count1(0), ctx_(ctx) {}
-
-StateThird::StateThird(Context &ctx) noexcept
-    : state(ctx), count1(0), ctx_(ctx) {}
 
 } // namespace flat

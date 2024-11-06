@@ -37,7 +37,7 @@ public:
 
   static StateContainer create(Context &&context) {
 
-    auto container = StateContainer(std::move(context));
+    auto container = StateContainer(context);
 
     container.template emplace<Derived>();
 

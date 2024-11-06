@@ -102,7 +102,9 @@ struct Key : composite_state<Key, string::Initial, Context> {
 
   auto transitionInternalTo() -> transitions<Colon, Error> const {
     if (nested_in<string::Finished>()) {
-      std::cout << "key found: " << std::endl;
+      std::cout << "key: " << nested_state<string::Finished>().ctx_.value() << std::endl;
+
+      ctx_.consume(jsonTokenType::WS);
 
       if (ctx_.consume(jsonTokenType::COLON)) {
         return sibling<Colon>();
@@ -122,10 +124,9 @@ struct Colon : state<Colon, Context> {
   Colon(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
 
   auto transitionInternalTo()
-      -> transitions<Colon, String, Number, Boolean, Null, Error> const {
-    if (ctx_.consume(jsonTokenType::WS)) {
-      return sibling<Colon>();
-    }
+      -> transitions<String, Number, Boolean, Null, Error> const {
+
+    ctx_.consume(jsonTokenType::WS);
 
     if (ctx_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
       return sibling<String>();
@@ -146,15 +147,16 @@ struct Colon : state<Colon, Context> {
   Context &ctx_;
 };
 
-struct String : composite_state<Key, string::Initial, Context> {
+struct String : composite_state<String, string::Initial, Context> {
 
   String(Context &ctx) noexcept
-      : composite_state(ctx, string::Context(ctx.view_)), ctx_(ctx) {
-  }
+      : composite_state(ctx, string::Context(ctx.view_)), ctx_(ctx) {}
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
     if (nested_in<string::Finished>()) {
-      std::cout << "string value found: " << std::endl;
+      std::cout << "string value: " << nested_context().value() << std::endl;
+
+      ctx_.consume(jsonTokenType::WS);
 
       if (ctx_.consume(jsonTokenType::COMMA)) {
         return sibling<Comma>();
@@ -175,15 +177,17 @@ struct String : composite_state<Key, string::Initial, Context> {
   Context &ctx_;
 };
 
-struct Number : composite_state<Key, number::Initial, Context> {
+struct Number : composite_state<Number, number::Initial, Context> {
 
   Number(Context &ctx) noexcept
-      : composite_state(ctx, number::Context(ctx.view_)), ctx_(ctx) {
-  }
+      : composite_state(ctx, number::Context(ctx.view_)), ctx_(ctx) {}
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
     if (nested_in<number::Finished>()) {
-      std::cout << "number value found: " << std::endl;
+      std::cout << "number value found: " << nested_context().value()
+                << std::endl;
+
+      ctx_.consume(jsonTokenType::WS);
 
       if (ctx_.consume(jsonTokenType::COMMA)) {
         return sibling<Comma>();
@@ -217,6 +221,9 @@ struct Boolean : state<Boolean, Context> {
   }
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
+
+    ctx_.consume(jsonTokenType::WS);
+
     if (ctx_.consume(jsonTokenType::COMMA)) {
       return sibling<Comma>();
     };
@@ -242,6 +249,9 @@ struct Null : state<Null, Context> {
   }
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
+
+    ctx_.consume(jsonTokenType::WS);
+
     if (ctx_.consume(jsonTokenType::COMMA)) {
       return sibling<Comma>();
     };
@@ -261,7 +271,10 @@ struct Comma : state<Comma, Context> {
   Comma(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
 
   auto transitionInternalTo() -> transitions<Key, Error> const {
-    if (ctx_.consume(jsonTokenType::DOUBLE_QUOTE)) {
+
+    ctx_.consume(jsonTokenType::WS);
+
+    if (ctx_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
       return sibling<Key>();
     }
 

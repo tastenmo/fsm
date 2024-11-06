@@ -10,8 +10,16 @@ namespace escad::json::string {
 class Context : public stringTokenizer {
 
 public:
-  Context(view &input) : stringTokenizer(input) {}
-  Context(view &&input) : stringTokenizer(input) {}
+  Context(view &input) : stringTokenizer(input) {
+    std::cout << "string::Context(view &input)" << std::endl;
+    std::cout << "string::Context.getView(): " << &getView() << std::endl;
+  }
+  Context(view &&input) : stringTokenizer(std::move(input)) {
+    std::cout << "string::Context(view &&input)" << std::endl;
+    std::cout << "string::Context.getView(): " << &getView() << std::endl;
+  }
+
+  ~Context() { std::cout << "string::~Context()" << std::endl; }
 
   std::string_view value() const {
     return getView().substr(start_, end_ - start_);

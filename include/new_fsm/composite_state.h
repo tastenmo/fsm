@@ -16,9 +16,16 @@ public:
 
   {}
 
-  composite_state(Context &context, NestedContext &&nested_context)
+  composite_state(Context &context, NestedContext &nested_context)
       : state<Derived, Context>{context},
         nested_(NestedState::create(nested_context))
+
+  {}
+
+  composite_state(Context &context, NestedContext &&nested_context)
+      : state<Derived, Context>{context},
+        nested_(
+            NestedState::create(std::forward<NestedContext>(nested_context)))
 
   {}
 
@@ -33,6 +40,8 @@ public:
   template <class State> auto &nested_state() {
     return nested_.template state<State>();
   }
+
+  NestedContext &nested_context() { return nested_.context(); }
 
 private:
   NestedContainer nested_;

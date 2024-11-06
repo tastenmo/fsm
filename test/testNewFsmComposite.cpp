@@ -117,7 +117,7 @@ struct Second : state<Second, Context> {
   Context &ctx_;
 };
 
-struct Composite : composite_state<Composite, flat::StateInitial, Context> {
+struct Composite : composite_state<Composite, flat::Initial, Context> {
 
   Composite(Context &ctx) noexcept
       : composite_state(ctx), count1(0), ctx_(ctx) {
@@ -224,7 +224,7 @@ TEST_CASE("basic composite", "[new_fsm]") {
 
   // auto comp1 = myStates.state<Composite>();
 
-  REQUIRE(myStates.state<Composite>().nested_in<flat::StateInitial>());
+  REQUIRE(myStates.state<Composite>().nested_in<flat::Initial>());
 
   auto result3 = myStates.dispatch(flat::event1{});
 
@@ -236,7 +236,7 @@ TEST_CASE("basic composite", "[new_fsm]") {
 
   // auto comp2 = myStates.state<Composite>();
 
-  REQUIRE(myStates.state<Composite>().nested_in<flat::StateSecond>());
+  REQUIRE(myStates.state<Composite>().nested_in<flat::Second>());
 }
 
 /*

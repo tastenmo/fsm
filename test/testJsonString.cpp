@@ -1,4 +1,4 @@
-#include "json/tokenizer.h"
+
 #include <chrono>
 #include <functional>
 #include <iostream>
@@ -6,6 +6,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <json/tokenizer.h>
 #include <json/string.h>
 
 using namespace escad::json;

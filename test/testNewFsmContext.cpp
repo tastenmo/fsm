@@ -8,473 +8,157 @@
 
 #include "base/utils.h"
 
-// #include <new_fsm/machine.h>
 #include <new_fsm/initial_state.h>
 
+#include "flat_fsm.h"
+
 using namespace escad::new_fsm;
-
-struct Context {
-  bool is_valid = false;
-
-  int value = 0;
-
-  Context() { std::cout << "Context::Context()" << std::endl; }
-
-  Context(int val) : value(val) {
-    std::cout << "Context::Context(int val)" << std::endl;
-  }
-
-  Context(const Context &other) : is_valid(other.is_valid), value(other.value) {
-    std::cout << "Context::Context(const Context &other)" << std::endl;
-  }
-
-  Context(Context &&other) noexcept
-      : is_valid(std::move(other.is_valid)), value(std::move(other.value)) {
-    std::cout << "Context::Context(Context &&other)" << std::endl;
-  }
-
-  ~Context() { std::cout << "Context::~Context()" << std::endl; }
-};
-
-struct event1 {};
-struct event2 {
-
-  event2(int val) : value_(val) {}
-
-  int value_;
-};
-struct event3 {
-  std::string msg;
-};
-
-struct StateInitial;
-struct StateSecond;
-struct StateThird;
-
-using States = states<StateInitial, StateSecond, StateThird>;
-
-using StateContainer = state_variant<States, Context &>;
-
-struct StateInitial : initial_state<StateInitial, StateContainer, Context> {
-
-  // using state<StateInitial, StateContainer>::state;
-
-  StateInitial(Context &ctx) noexcept;
-
-  void onEnter(const event1 &) { count1++; }
-
-  void onEnter(const event2 &ev) { value2 += ev.value_; }
-
-  /**
-   * @brief simple transition
-   *
-   * @return auto
-   */
-  auto transitionTo(const event1 &) { return sibling<StateSecond>(); }
-  // auto transitionTo(const event2 &) const { return not_handled(); }
-
-  // template<>
-  // auto transitionTo<StateSecond>(const event1 &);
-
-  int count1;
-  int value2;
-
-  Context &ctx_;
-};
-
-struct StateSecond : state<StateSecond, Context> {
-
-  //  using state<StateSecond, StateContainer>::state;
-
-  StateSecond(Context &ctx) noexcept;
-
-  void onEnter() {
-    count1++;
-    ctx_.is_valid = true;
-    ctx_.value += 1;
-  }
-
-  auto transitionTo(const event2 &event) const
-      -> transitions<StateInitial, StateSecond, StateThird> {
-    if (event.value_ == 1) {
-      return sibling<StateInitial>();
-    } else if (event.value_ == 2) {
-      return sibling<StateThird>();
-    }
-    // handled() does not work yet
-    return sibling<StateSecond>();
-  }
-
-  //auto transitionTo(const event1 &) const { return handled(); }
-
-  int count1;
-
-  Context &ctx_;
-};
-
-struct StateThird : state<StateThird, Context> {
-
-  StateThird(Context &ctx) noexcept;
-
-  void onEnter(const event2 &ev) {
-    count1++;
-    ctx_.is_valid = false;
-    if (ev.value_ == 2) {
-      ctx_.value = 10;
-      //state_container_.emplace<StateInitial>();
-    }
-  }
-
-  // auto transitionTo(const event2 &) const { return handled(); }
-  // auto transitionTo(const event1 &) const { return handled(); }
-
-  // StateThird() : count1(0) {}
-
-  int count1;
-  Context &ctx_;
-};
 
 // State Constructors
 
 auto myStatePrinter = escad::overloaded{
-    [](StateInitial &) { std::cout << "StateInitial" << std::endl; },
-    [](StateSecond &) { std::cout << "StateSecond" << std::endl; },
-    [](StateThird &) { std::cout << "StateThird" << std::endl; },
+    [](flat::Initial &) { std::cout << "flat::Initial" << std::endl; },
+    [](flat::Second &) { std::cout << "flat::Second" << std::endl; },
+    [](flat::Third &) { std::cout << "flat::Third" << std::endl; },
     [](std::monostate) { std::cout << "std::monostate" << std::endl; },
     [](auto) { std::cout << "unknown" << std::endl; },
 };
 
-StateInitial::StateInitial(Context &ctx) noexcept
-    : initial_state(ctx), count1(0), value2(0), ctx_(ctx) {}
-
-StateSecond::StateSecond(Context &ctx) noexcept
-    : state(ctx), count1(0), ctx_(ctx) {}
-
-StateThird::StateThird(Context &ctx) noexcept
-    : state(ctx), count1(0), ctx_(ctx) {}
-
-TEST_CASE("with implicit Context", "[new_fsm]") {
+TEST_CASE("Context reference", "[new_fsm]") {
 
   std::cout << "start" << std::endl;
 
-  Context ctx_;
+  flat::Context ctx_;
 
-  auto myStates = StateInitial::create(ctx_);
+  auto fsm = flat::Initial::create(ctx_);
 
-  std::cout << "myStates constructed" << std::endl;
+  REQUIRE(&ctx_ == &fsm.context());
+
+  std::cout << "fsm constructed" << std::endl;
   // Context is copied here!!!!
-  auto ctx = myStates.context();
+  auto ctx1 = fsm.context();
 
-  std::cout << "after myStates.context()" << std::endl;
+  REQUIRE(&ctx_ != &ctx1);
 
-  REQUIRE(ctx.is_valid == false);
-  REQUIRE(ctx.value == 0);
+  flat::Context &ctx2 = fsm.context();
+  REQUIRE(&ctx_ == &ctx2);
 
-  //myStates.emplace<StateInitial>();
+  auto &ctx = fsm.context();
 
-  REQUIRE(myStates.is_in<StateInitial>());
+  REQUIRE(&ctx == &ctx_);
 
-  auto result = myStates.dispatch(event1{});
+  std::cout << "after fsm.context()" << std::endl;
 
-  //REQUIRE(result);
-  REQUIRE(myStates.is_in<StateSecond>());
+  REQUIRE_FALSE(ctx.is_valid());
+  REQUIRE(ctx.value() == 0);
+
+  REQUIRE(fsm.is_in<flat::Initial>());
+
+  REQUIRE(&ctx == &fsm.state<flat::Initial>().ctx_);
+  REQUIRE_FALSE(fsm.state<flat::Initial>().ctx_.is_valid());
+  REQUIRE(fsm.state<flat::Initial>().ctx_.value() == 0);
+
+  auto result = fsm.dispatch(flat::event1{});
+
+  // REQUIRE(result);
+  REQUIRE(fsm.is_in<flat::Second>());
 
   // Context is nor copied here????
-  REQUIRE(myStates.context().is_valid == true);
-  REQUIRE(myStates.context().value == 1);
+  REQUIRE(fsm.context().is_valid());
+  REQUIRE(fsm.context().value() == 1);
 
-  auto state2 = myStates.state<StateSecond>();
+  auto state2 = fsm.state<flat::Second>();
 
   REQUIRE(state2.count1 == 1);
-  REQUIRE(state2.ctx_.is_valid == true);
-  REQUIRE(state2.ctx_.value == 1);
+  REQUIRE(state2.ctx_.is_valid());
+  REQUIRE(state2.ctx_.value() == 1);
 
-  //state2.dispatch(event2{2});
-  auto result2 = myStates.dispatch(event2{2});
+  // state2.dispatch(event2{2});
+  auto result2 = fsm.dispatch(flat::event2{2});
 
-  REQUIRE(myStates.is_in<StateThird>());
-  REQUIRE(myStates.context().is_valid == false);
-  REQUIRE(myStates.context().value == 10);
+  REQUIRE(fsm.is_in<flat::Third>());
+  REQUIRE_FALSE(fsm.context().is_valid());
+  REQUIRE(fsm.context().value() == 10);
 }
 
-/*
-struct StateCtxInitial;
-struct StateCtxSecond;
-struct StateCtxThird;
+TEST_CASE("Context instantiated reference", "[new_fsm]") {
 
-using CtxStates = states<StateCtxInitial, StateCtxSecond, StateCtxThird>;
+  flat::Context ctx_(42);
 
-using StateCtxContainer = state_variant<CtxStates, Context &>;
+  auto fsm = flat::Initial::create(ctx_);
 
-struct StateCtxInitial : initial_state<StateCtxInitial, StateCtxContainer> {
+  REQUIRE(&ctx_ == &fsm.context());
 
-  // using state<StateInitial, StateContainer>::state;
+  auto &ctx = fsm.context();
 
-  StateCtxInitial(StateCtxContainer &state_container) noexcept;
+  REQUIRE(&ctx == &ctx_);
 
-  void onEnter(const event1 &) { count1++; }
+  REQUIRE_FALSE(ctx.is_valid());
+  REQUIRE(ctx.value() == 42);
 
-  void onEnter(const event2 &ev) { value2 += ev.value_; }
+  REQUIRE(fsm.is_in<flat::Initial>());
 
+  REQUIRE(&ctx == &fsm.state<flat::Initial>().ctx_);
+  REQUIRE_FALSE(fsm.state<flat::Initial>().ctx_.is_valid());
+  REQUIRE(fsm.state<flat::Initial>().ctx_.value() == 42);
 
-  auto transitionTo(const event1 &) { return trans<StateCtxSecond>(); }
-  // auto transitionTo(const event2 &) const { return not_handled(); }
+  auto result = fsm.dispatch(flat::event1{});
 
-  // template<>
-  // auto transitionTo<StateSecond>(const event1 &);
-
-  int count1;
-  int value2;
-};
-
-struct StateCtxSecond : state<StateCtxSecond, StateCtxContainer> {
-
-  //  using state<StateSecond, StateContainer>::state;
-
-  StateCtxSecond(StateCtxContainer &state_container, Context &ctx) noexcept;
-
-  void onEnter() {
-    count1++;
-    ctx_.is_valid = true;
-    ctx_.value += 1;
-  }
-
-  auto transitionTo(const event2 &event) const
-      -> transitions<StateCtxInitial, StateCtxSecond, StateCtxThird> {
-    if (event.value_ == 1) {
-      return trans<StateCtxInitial>();
-    } else if (event.value_ == 2) {
-      return trans<StateCtxThird>();
-    }
-    // handled() does not work yet
-    return trans<StateCtxSecond>();
-  }
-
-  auto transitionTo(const event1 &) const { return handled(); }
-
-  int count1;
-
-  Context &ctx_;
-};
-
-struct StateCtxThird : state<StateCtxThird, StateCtxContainer> {
-
-  StateCtxThird(StateCtxContainer &state_container, Context &ctx) noexcept;
-
-  void onEnter(const event2 &ev) {
-    count1++;
-    ctx_.is_valid = false;
-    if (ev.value_ == 2) {
-      ctx_.value = 10;
-      state_container_.emplace<StateCtxInitial>();
-    }
-  }
-
-  // auto transitionTo(const event2 &) const { return handled(); }
-  // auto transitionTo(const event1 &) const { return handled(); }
-
-  // StateThird() : count1(0) {}
-
-  int count1;
-  Context &ctx_;
-};
-
-// State Constructors
-
-auto myStateCtxPrinter = escad::overloaded{
-    [](StateCtxInitial &) { std::cout << "StateCtxInitial" << std::endl; },
-    [](StateCtxSecond &) { std::cout << "StateCtxSecond" << std::endl; },
-    [](StateCtxThird &) { std::cout << "StateCtxThird" << std::endl; },
-    [](std::monostate) { std::cout << "std::monostate" << std::endl; },
-    [](auto) { std::cout << "unknown" << std::endl; },
-};
-
-StateCtxInitial::StateCtxInitial(StateCtxContainer &state_container) noexcept
-    : initial_state(state_container), count1(0), value2(0) {}
-
-StateCtxSecond::StateCtxSecond(StateCtxContainer &state_container,
-                               Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
-
-StateCtxThird::StateCtxThird(StateCtxContainer &state_container,
-                             Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
-
-TEST_CASE("with explicit Context", "[new_fsm]") {
-
-  std::cout << "start" << std::endl;
-
-  Context myContext(20);
-
-  std::cout << "myContext constructed" << std::endl;
-
-  auto myStates = StateCtxInitial::create(myContext);
-
-  std::cout << "myStates constructed" << std::endl;
-  // Context is copied here!!!!
-  auto ctx = myStates.context();
-
-  std::cout << "after myStates.context()" << std::endl;
-
-  REQUIRE(ctx.is_valid == false);
-  REQUIRE(ctx.value == 20);
-
-  myStates.emplace<StateCtxInitial>();
-
-  REQUIRE(myStates.is_in<StateCtxInitial>());
-
-  auto result = myStates.handle(event1{});
-
-  REQUIRE(result);
-  REQUIRE(myStates.is_in<StateCtxSecond>());
+  // REQUIRE(result);
+  REQUIRE(fsm.is_in<flat::Second>());
 
   // Context is nor copied here????
-  REQUIRE(myStates.context().is_valid == true);
-  REQUIRE(myStates.context().value == 21);
+  REQUIRE(fsm.context().is_valid());
+  REQUIRE(fsm.context().value() == 43);
 
-  auto state2 = myStates.state<StateCtxSecond>();
+  auto state2 = fsm.state<flat::Second>();
 
   REQUIRE(state2.count1 == 1);
-  REQUIRE(state2.ctx_.is_valid == true);
-  REQUIRE(state2.ctx_.value == 21);
+  REQUIRE(state2.ctx_.is_valid());
+  REQUIRE(state2.ctx_.value() == 43);
+
+  // state2.dispatch(event2{2});
+  auto result2 = fsm.dispatch(flat::event2{2});
+
+  REQUIRE(fsm.is_in<flat::Third>());
+  REQUIRE_FALSE(fsm.context().is_valid());
+  REQUIRE(fsm.context().value() == 10);
 }
 
-struct StateCtx1Initial;
-struct StateCtx1Second;
-struct StateCtx1Third;
+TEST_CASE("Context implicit", "[new_fsm]") {
 
-using Ctx1States = states<StateCtx1Initial, StateCtx1Second, StateCtx1Third>;
+  auto fsm = flat::Initial::create(flat::Context{42});
 
-using StateCtx1Container = state_variant<Ctx1States, Context &&>;
+  auto &ctx = fsm.context();
 
-struct StateCtx1Initial : initial_state<StateCtx1Initial, StateCtx1Container> {
+  REQUIRE_FALSE(ctx.is_valid());
+  REQUIRE(ctx.value() == 42);
 
-  // using state<StateInitial, StateContainer>::state;
+  REQUIRE(fsm.is_in<flat::Initial>());
 
-  StateCtx1Initial(StateCtx1Container &state_container) noexcept;
+  REQUIRE(&ctx == &fsm.state<flat::Initial>().ctx_);
+  REQUIRE_FALSE(fsm.state<flat::Initial>().ctx_.is_valid());
+  REQUIRE(fsm.state<flat::Initial>().ctx_.value() == 42);
 
-  void onEnter(const event1 &) { count1++; }
+  auto result = fsm.dispatch(flat::event1{});
 
-  void onEnter(const event2 &ev) { value2 += ev.value_; }
-
-  
-  auto transitionTo(const event1 &) { return trans<StateCtx1Second>(); }
-  // auto transitionTo(const event2 &) const { return not_handled(); }
-
-  // template<>
-  // auto transitionTo<StateSecond>(const event1 &);
-
-  int count1;
-  int value2;
-};
-
-struct StateCtx1Second : state<StateCtx1Second, StateCtx1Container> {
-
-  //  using state<StateSecond, StateContainer>::state;
-
-  StateCtx1Second(StateCtx1Container &state_container, Context &ctx) noexcept;
-
-  void onEnter() {
-    count1++;
-    ctx_.is_valid = true;
-    ctx_.value += 1;
-  }
-
-  auto transitionTo(const event2 &event) const
-      -> transitions<StateCtx1Initial, StateCtx1Second, StateCtx1Third> {
-    if (event.value_ == 1) {
-      return trans<StateCtx1Initial>();
-    } else if (event.value_ == 2) {
-      return trans<StateCtx1Third>();
-    }
-    // handled() does not work yet
-    return trans<StateCtx1Second>();
-  }
-
-  auto transitionTo(const event1 &) const { return handled(); }
-
-  int count1;
-
-  Context &ctx_;
-};
-
-struct StateCtx1Third : state<StateCtx1Third, StateCtx1Container> {
-
-  StateCtx1Third(StateCtx1Container &state_container, Context &ctx) noexcept;
-
-  void onEnter(const event2 &ev) {
-    count1++;
-    ctx_.is_valid = false;
-    if (ev.value_ == 2) {
-      ctx_.value = 10;
-      state_container_.emplace<StateCtx1Initial>();
-    }
-  }
-
-  // auto transitionTo(const event2 &) const { return handled(); }
-  // auto transitionTo(const event1 &) const { return handled(); }
-
-  // StateThird() : count1(0) {}
-
-  int count1;
-  Context &ctx_;
-};
-
-// State Constructors
-
-auto myStateCtx1Printer = escad::overloaded{
-    [](StateCtx1Initial &) { std::cout << "StateCtx1Initial" << std::endl; },
-    [](StateCtx1Second &) { std::cout << "StateCtx1Second" << std::endl; },
-    [](StateCtx1Third &) { std::cout << "StateCtx1Third" << std::endl; },
-    [](std::monostate) { std::cout << "std::monostate" << std::endl; },
-    [](auto) { std::cout << "unknown" << std::endl; },
-};
-
-StateCtx1Initial::StateCtx1Initial(StateCtx1Container &state_container) noexcept
-    : initial_state(state_container), count1(0), value2(0) {}
-
-StateCtx1Second::StateCtx1Second(StateCtx1Container &state_container,
-                                 Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
-
-StateCtx1Third::StateCtx1Third(StateCtx1Container &state_container,
-                               Context &ctx) noexcept
-    : state(state_container), count1(0), ctx_(ctx) {}
-
-TEST_CASE("with explicit&& Context", "[new_fsm]") {
-
-  std::cout << "start" << std::endl;
-
-  std::cout << "myContext constructed" << std::endl;
-
-  auto myStates = StateCtx1Initial::create(Context{30});
-
-  std::cout << "myStates constructed" << std::endl;
-  // Context is copied here!!!!
-  auto ctx = myStates.context();
-
-  std::cout << "after myStates.context()" << std::endl;
-
-  REQUIRE(ctx.is_valid == false);
-  REQUIRE(ctx.value == 30);
-
-  myStates.emplace<StateCtx1Initial>();
-
-  REQUIRE(myStates.is_in<StateCtx1Initial>());
-
-  auto result = myStates.handle(event1{});
-
-  REQUIRE(result);
-  REQUIRE(myStates.is_in<StateCtx1Second>());
+  // REQUIRE(result);
+  REQUIRE(fsm.is_in<flat::Second>());
 
   // Context is nor copied here????
-  REQUIRE(myStates.context().is_valid == true);
-  REQUIRE(myStates.context().value == 31);
+  REQUIRE(fsm.context().is_valid());
+  REQUIRE(fsm.context().value() == 43);
 
-  auto state2 = myStates.state<StateCtx1Second>();
+  auto state2 = fsm.state<flat::Second>();
 
   REQUIRE(state2.count1 == 1);
-  REQUIRE(state2.ctx_.is_valid == true);
-  REQUIRE(state2.ctx_.value == 31);
+  REQUIRE(state2.ctx_.is_valid());
+  REQUIRE(state2.ctx_.value() == 43);
+
+  // state2.dispatch(event2{2});
+  auto result2 = fsm.dispatch(flat::event2{2});
+
+  REQUIRE(fsm.is_in<flat::Third>());
+  REQUIRE_FALSE(fsm.context().is_valid());
+  REQUIRE(fsm.context().value() == 10);
 }
-*/
