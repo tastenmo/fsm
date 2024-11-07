@@ -58,7 +58,7 @@ struct Third;
 
 using States = states<Initial, Second, Third>;
 
-using StateContainer = state_variant<States, Context &>;
+using StateContainer = state_variant<States, Context>;
 
 struct Initial : initial_state<Initial, StateContainer, Context> {
 

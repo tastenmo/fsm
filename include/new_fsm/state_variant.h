@@ -25,10 +25,9 @@
 #include <variant>
 
 #include "../base/utils.h"
-#include "../signal/signal.h"
 
-#include "new_fsm/transition.h"
 #include "state.h"
+#include "transition.h"
 
 namespace escad::new_fsm {
 
@@ -54,32 +53,22 @@ public:
   using states_variant =
       typename mpl::type_list_rename<states_variant_list, std::variant>::result;
 
-  // signal type for state changes
-  using NewStateType = escad::signal<void(const states_variant &)>;
-
-  template <class T = Context,
-            std::enable_if_t<std::is_constructible_v<T>, bool> = true>
-  state_variant()
-      : context_{}, NewStateSignal_{}, NewState{NewStateSignal_}
-
-  {}
   /**
    * @brief Default constructor for the state_variant class.
+   *
+   * This constructor creates a state_variant object with an States variant.
+   * The mpl::type_identity is used to pass the States type to the constructor
+   * and to enable class template argument deduction (CTAD).
+   * Partial CTAD is not supported.
+   * If context is a l-value, a reference to it is stored in content_.
+   * If context is a r-value, it is moved into the content_.
+   *
+   * @param identity The type_identity object used to pass the States type to
+   * the constructor.
+   * @param context The context object.
    */
-  template <class T = Context,
-            // enable this constructor only if Context is an lvalue ref
-            std::enable_if_t<std::is_lvalue_reference_v<T>, bool> = true>
-  state_variant(Context &context)
-      : context_(context), NewStateSignal_{}, NewState{NewStateSignal_} {}
-
-  template <class T = Context,
-            // enable this constructor only if Context is an rvalue ref
-            std::enable_if_t<!std::is_lvalue_reference_v<T>, bool> = true>
-  state_variant(Context &&context)
-      : context_{std::move(context)}, NewStateSignal_{},
-        NewState{NewStateSignal_}
-
-  {}
+  explicit state_variant(mpl::type_identity<States>, Context &&context)
+      : context_(std::forward<Context>(context)) {}
 
   /**
    * @brief Emplaces a state of type State into the variant.
@@ -100,17 +89,10 @@ public:
                           [](std::monostate) { ; }},
                states_);
 
-    // emit State Changed
-    NewStateSignal_.publish(states_);
-
     // run internal transition handling
     visit(overloaded{[&](auto &state) { handle(state); },
 
                      [](std::monostate) { ; }});
-
-    //    std::visit(
-    //        overloaded{[](auto &state) { state.run(); }, [](std::monostate) {
-    //        ; }}, states_);
   }
 
   /**
@@ -139,13 +121,6 @@ public:
                           },
                           [](std::monostate) { ; }},
                states_);
-
-    // emit State Changed
-    NewStateSignal_.publish(states_);
-
-    // std::visit(
-    //     overloaded{[](auto &state) { state.run(); }, [](std::monostate) { ;
-    //     }}, states_);
   }
 
   template <class E> auto dispatch(E const &e) {
@@ -302,15 +277,34 @@ public:
     return states_.valueless_by_exception();
   };
 
-  Context &context() { return context_; }
+  /**
+   * @brief Returns a const reference to the context object.
+   *
+   * mpl::const_reference_t alway gives a const reference to a type (be it a reference or not)
+   *
+   * @return A const reference to the context object.
+   */
+  mpl::const_reference_t<Context> context() { return context_; }
 
 private:
   states_variant states_;
   Context context_;
-  NewStateType NewStateSignal_;
-
-public:
-  escad::slot<NewStateType> NewState;
 };
+
+/**
+ * @brief Deduction guide for the state_variant class.
+ *
+ * This deduction guide enables class template argument deduction (CTAD) for the
+ * state_variant class.
+ *
+ * @tparam States The type representing the list of states in the FSM.
+ * @tparam Context The type of the context object.
+ * @param identity The type_identity object used to pass the States type to the
+ * constructor.
+ * @param context The context object.
+ */
+template <class States, class Context>
+explicit state_variant(mpl::type_identity<States>,
+                       Context &&) -> state_variant<States, Context>;
 
 } // namespace escad::new_fsm

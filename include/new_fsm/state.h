@@ -202,7 +202,7 @@ template <class... S> struct states {
 template <class Derived, class Context = detail::NoContext> struct state {
   using ctx = Context;
 
-  //state() : context_{} {}
+  // state() : context_{} {}
   state(Context &context) : context_(context) {}
 
   /**
@@ -286,7 +286,7 @@ template <class Derived, class Context = detail::NoContext> struct state {
     if constexpr (detail::has_transitionInternalTo_v<Target>) {
       return static_cast<Target *>(this)->transitionInternalTo();
     }
-    //return detail::none{};
+    // return detail::none{};
   }
 
   // template <class Target = Derived>
@@ -294,16 +294,15 @@ template <class Derived, class Context = detail::NoContext> struct state {
   //    return detail::none{};
   //  }
 
-  template <class Event>
-  bool dispatch(const Event &) {
-    return false;
-  }
+  template <class Event> bool dispatch(const Event &) { return false; }
+
+  const Context &context() { return context_; }
 
 protected:
   /**
-   * @brief Reference to the StateContainer.
+   * @brief Reference to the Context.
    */
-  Context& context_;
+  Context &context_;
 };
 
 } // namespace new_fsm

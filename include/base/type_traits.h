@@ -57,6 +57,34 @@ template <typename Type> struct type_identity {
 template <typename Type>
 using type_identity_t = typename type_identity<Type>::type;
 
+
+/**
+ * @brief A type trait that provides a const reference type for a given type.
+ * @tparam T The type to transform.
+ */
+template <class T>
+struct const_reference
+{
+   using type = const std::remove_reference_t<T>&;
+};
+
+/**
+ * @brief Alias template to get a const reference type for a given type.
+ * @tparam T The type to transform.
+ */
+template <class T>
+using const_reference_t =  typename const_reference<T>::type;
+
+template <class T>
+struct add_const_to_value
+{
+   using type =  std::conditional_t<std::is_lvalue_reference_v<T>, const_reference_t<T>, const T>;
+};
+
+template <class T>
+using add_const_to_value_t =  typename add_const_to_value<T>::type;
+
+
 /**
  * @brief A type-only `sizeof` wrapper that returns 0 where `sizeof` complains.
  * @tparam Type The type of which to return the size.
