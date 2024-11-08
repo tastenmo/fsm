@@ -1,16 +1,15 @@
 #pragma once
 
-#include "number.h"
-#include "tokenizer.h"
 #include <cmath>
 #include <cstdint>
 #include <map>
 #include <sys/types.h>
 
+#include <magic_enum.hpp>
+
 #include "number.h"
 #include "string.h"
 #include <new_fsm/composite_state.h>
-#include <new_fsm/initial_state.h>
 
 #include <magic_enum.hpp>
 
@@ -76,231 +75,208 @@ struct Error;
 using States = states<Initial, Key, Colon, String, Number, Boolean, Null, Comma,
                       Finished, Error>;
 
-using StateContainer = StateMachine<States, Context &>;
+using StateContainer = StateMachine<States, Context>;
 
-struct Initial : initial_state<Initial, StateContainer, Context> {
-
-  Initial(Context &ctx) noexcept : initial_state(ctx), ctx_(ctx) {}
+struct Initial : state<Initial, Context> {
 
   auto transitionInternalTo() -> transitions<Key, Error> const {
-    if (ctx_.isToken(jsonTokenType::OPEN_BRACE)) {
-      ctx_.start();
-      ctx_.consume(jsonTokenType::OPEN_BRACE);
+    if (context_.isToken(jsonTokenType::OPEN_BRACE)) {
+      context_.start();
+      context_.consume(jsonTokenType::OPEN_BRACE);
       return sibling<Key>();
     }
 
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
-struct Key : composite_state<Key, string::Initial, Context> {
+struct Key : composite_state<Key, string::StateContainer, Context> {
 
   Key(Context &ctx) noexcept
-      : composite_state(ctx, string::Context(ctx.view_)), ctx_(ctx) {}
+      : composite_state(
+            ctx, string::StateContainer(mpl::type_identity<string::States>{},
+                                        string::Context(ctx.view_))) {
+    nested_emplace<string::Initial>();
+  }
 
   auto transitionInternalTo() -> transitions<Colon, Error> const {
     if (nested_in<string::Finished>()) {
-      std::cout << "key: " << nested_state<string::Finished>().ctx_.value()
-                << std::endl;
+      std::cout << "key: " << nested().context().value() << std::endl;
 
-      ctx_.consume(jsonTokenType::WS);
+      context_.consume(jsonTokenType::WS);
 
-      if (ctx_.consume(jsonTokenType::COLON)) {
+      if (context_.consume(jsonTokenType::COLON)) {
         return sibling<Colon>();
       };
     }
 
-    //   ctx_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
+    //   context_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
 
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
 struct Colon : state<Colon, Context> {
 
-  Colon(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   auto transitionInternalTo()
       -> transitions<String, Number, Boolean, Null, Error> const {
 
-    ctx_.consume(jsonTokenType::WS);
+    context_.consume(jsonTokenType::WS);
 
-    if (ctx_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
+    if (context_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
       return sibling<String>();
     }
 
-    if (ctx_.isToken(jsonTokenType::TRUE) ||
-        ctx_.isToken(jsonTokenType::FALSE)) {
+    if (context_.isToken(jsonTokenType::TRUE) ||
+        context_.isToken(jsonTokenType::FALSE)) {
       return sibling<Boolean>();
     }
 
-    if (ctx_.isToken(jsonTokenType::NULL_)) {
+    if (context_.isToken(jsonTokenType::NULL_)) {
       return sibling<Null>();
     }
 
     return sibling<Number>();
   }
-
-  Context &ctx_;
 };
 
-struct String : composite_state<String, string::Initial, Context> {
+struct String : composite_state<String, string::StateContainer, Context> {
 
   String(Context &ctx) noexcept
-      : composite_state(ctx, string::Context(ctx.view_)), ctx_(ctx) {}
+      : composite_state(
+            ctx, string::StateContainer(mpl::type_identity<string::States>{},
+                                        string::Context(ctx.view_))) {
+    nested_emplace<string::Initial>();
+  }
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
     if (nested_in<string::Finished>()) {
-      std::cout << "string value: " << nested_context().value() << std::endl;
+      std::cout << "string value: " << nested().context().value() << std::endl;
 
-      ctx_.consume(jsonTokenType::WS);
+      context_.consume(jsonTokenType::WS);
 
-      if (ctx_.consume(jsonTokenType::COMMA)) {
+      if (context_.consume(jsonTokenType::COMMA)) {
         return sibling<Comma>();
       };
 
-      if (ctx_.consume(jsonTokenType::CLOSE_BRACE)) {
+      if (context_.consume(jsonTokenType::CLOSE_BRACE)) {
         return sibling<Finished>();
       };
 
       return sibling<Error>();
     }
 
-    //   ctx_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
+    //   context_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
 
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
-struct Number : composite_state<Number, number::Initial, Context> {
+struct Number : composite_state<Number, number::StateContainer, Context> {
 
   Number(Context &ctx) noexcept
-      : composite_state(ctx, number::Context(ctx.view_)), ctx_(ctx) {}
+      : composite_state(
+            ctx, number::StateContainer(mpl::type_identity<number::States>{},
+                                        number::Context(ctx.view_))) {
+    nested_emplace<number::Initial>();
+  }
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
     if (nested_in<number::Finished>()) {
-      std::cout << "number value found: " << nested_context().value()
+      std::cout << "number value found: " << nested().context().value()
                 << std::endl;
 
-      ctx_.consume(jsonTokenType::WS);
+      context_.consume(jsonTokenType::WS);
 
-      if (ctx_.consume(jsonTokenType::COMMA)) {
+      if (context_.consume(jsonTokenType::COMMA)) {
         return sibling<Comma>();
       };
 
-      if (ctx_.consume(jsonTokenType::CLOSE_BRACE)) {
+      if (context_.consume(jsonTokenType::CLOSE_BRACE)) {
         return sibling<Finished>();
       };
 
       return sibling<Error>();
     }
 
-    //   ctx_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
+    //   context_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
 
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
 struct Boolean : state<Boolean, Context> {
 
-  Boolean(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   void onEnter() {
-    if (ctx_.consume(jsonTokenType::TRUE)) {
+    if (context_.consume(jsonTokenType::TRUE)) {
       std::cout << "boolean value True found: " << std::endl;
-    } else if (ctx_.consume(jsonTokenType::FALSE)) {
+    } else if (context_.consume(jsonTokenType::FALSE)) {
       std::cout << "boolean value False found: " << std::endl;
     }
   }
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
 
-    ctx_.consume(jsonTokenType::WS);
+    context_.consume(jsonTokenType::WS);
 
-    if (ctx_.consume(jsonTokenType::COMMA)) {
+    if (context_.consume(jsonTokenType::COMMA)) {
       return sibling<Comma>();
     };
 
-    if (ctx_.consume(jsonTokenType::CLOSE_BRACE)) {
+    if (context_.consume(jsonTokenType::CLOSE_BRACE)) {
       return sibling<Finished>();
     };
 
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
 struct Null : state<Null, Context> {
 
-  Null(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   void onEnter() {
-    if (ctx_.consume(jsonTokenType::NULL_)) {
+    if (context_.consume(jsonTokenType::NULL_)) {
       std::cout << "null value found: " << std::endl;
     }
   }
 
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
 
-    ctx_.consume(jsonTokenType::WS);
+    context_.consume(jsonTokenType::WS);
 
-    if (ctx_.consume(jsonTokenType::COMMA)) {
+    if (context_.consume(jsonTokenType::COMMA)) {
       return sibling<Comma>();
     };
 
-    if (ctx_.consume(jsonTokenType::CLOSE_BRACE)) {
+    if (context_.consume(jsonTokenType::CLOSE_BRACE)) {
       return sibling<Finished>();
     };
 
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
 struct Comma : state<Comma, Context> {
 
-  Comma(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   auto transitionInternalTo() -> transitions<Key, Error> const {
 
-    ctx_.consume(jsonTokenType::WS);
+    context_.consume(jsonTokenType::WS);
 
-    if (ctx_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
+    if (context_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
       return sibling<Key>();
     }
 
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
 struct Finished : state<Finished, Context> {
 
-  Finished(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   void onEnter() { std::cout << "Finished" << std::endl; }
-
-  Context &ctx_;
 };
 
 struct Error : state<Error, Context> {
 
-  Error(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   void onEnter() { std::cout << "Error" << std::endl; }
-
-  Context &ctx_;
 };
 
 } // namespace escad::json::object

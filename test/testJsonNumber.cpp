@@ -14,21 +14,22 @@ using namespace std::literals;
 
 TEST_CASE("Json_number unsigned", "[json]") {
 
-  number::Context ctx(view{"123"sv});
+  auto fsm = StateMachine(mpl::type_identity<number::States>{},
+                          number::Context(view{"123"sv}));
 
-  auto fsm = number::Initial::create(ctx);
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
-  REQUIRE(ctx.value() == "123"sv);
+  REQUIRE(fsm.context().value() == "123"sv);
 
-  REQUIRE(ctx.size() == 3);
+  REQUIRE(fsm.context().size() == 3);
 
-  auto number = ctx.number.get<unsigned>();
+  auto number = fsm.context().number.get<unsigned>();
   REQUIRE(number);
   REQUIRE(*number == 123u);
 
-  REQUIRE_FALSE(ctx.number.get<int>());
+  REQUIRE_FALSE(fsm.context().number.get<int>());
 }
 
 TEST_CASE("Json_number negative integer", "[json]") {
@@ -37,7 +38,9 @@ TEST_CASE("Json_number negative integer", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
@@ -58,7 +61,9 @@ TEST_CASE("Json_number positive integer", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
@@ -83,7 +88,9 @@ TEST_CASE("Json_number very large unsigned", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
@@ -107,7 +114,9 @@ TEST_CASE("Json_number very large signed", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
@@ -128,7 +137,9 @@ TEST_CASE("Json_number double", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
@@ -149,7 +160,9 @@ TEST_CASE("Json_number scientific1", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
@@ -170,7 +183,9 @@ TEST_CASE("Json_number scientific2", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 
@@ -191,7 +206,9 @@ TEST_CASE("Json_number 1.", "[json]") {
 
   number::Context ctx(v);
 
-  auto fsm = number::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<number::States>{}, ctx);
+
+  fsm.emplace<number::Initial>();
 
   REQUIRE(fsm.is_in<number::Finished>());
 

@@ -6,7 +6,7 @@
 
 // #include <new_fsm/machine.h>
 #include <new_fsm/state.h>
-#include <new_fsm/state_variant.h>
+#include <new_fsm/state_machine.h>
 
 using namespace escad::new_fsm;
 

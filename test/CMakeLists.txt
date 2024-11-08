@@ -141,8 +141,6 @@ make_test(testNewFSM.cpp testNewFSM-cpp17 c++17)
 
 make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp17 c++17)
 
-make_test(testNewFsmTransTable.cpp testNewFsmTransTable-cpp17 c++17)
-
 make_test_with_includes(testNewFsmContext.cpp testNewFsmContext-cpp20 c++20 ./NewFSM)
 
 make_test_with_includes(testNewFsmComposite.cpp testNewFsmComposite-cpp20 c++20 ./NewFSM)

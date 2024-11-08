@@ -18,7 +18,9 @@ TEST_CASE("Json_object", "[json]") {
 
   object::Context ctx(v);
 
-  auto fsm = object::Initial::create(ctx);
+  auto fsm = StateMachine(mpl::type_identity<object::States>{}, ctx);
+
+  fsm.emplace<object::Initial>();
 
   REQUIRE(fsm.is_in<object::Finished>());
 }

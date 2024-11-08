@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../new_fsm/initial_state.h"
+#include "../new_fsm/state_machine.h"
 #include "tokenizer.h"
 
 using namespace escad::new_fsm;
@@ -53,44 +53,38 @@ struct Error;
 
 using States = states<Initial, Content, Finished, Error>;
 
-using StateContainer = StateMachine<States, Context &>;
+using StateContainer = StateMachine<States, Context>;
 
-struct Initial : initial_state<Initial, StateContainer, Context> {
-
-  Initial(Context &ctx) noexcept : initial_state(ctx), ctx_(ctx) {}
+struct Initial : state<Initial, Context> {
 
   auto transitionInternalTo() -> transitions<Content, Error> const {
-    if (ctx_.consume(stringTokenType::DOUBLE_QUOTE)) {
-      ctx_.start();
+    if (context_.consume(stringTokenType::DOUBLE_QUOTE)) {
+      context_.start();
       return sibling<Content>();
     }
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
 struct Content : state<Content, Context> {
 
-  Content(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   auto transitionInternalTo() -> transitions<Content, Finished> const {
-    if (ctx_.isToken(stringTokenType::DOUBLE_QUOTE)) {
+    if (context_.isToken(stringTokenType::DOUBLE_QUOTE)) {
       return sibling<Finished>();
     }
 
-    if (ctx_.consume(stringTokenType::HEX)) {
-      ctx_.add();
+    if (context_.consume(stringTokenType::HEX)) {
+      context_.add();
       return sibling<Content>();
     }
 
-    if (ctx_.consume(stringTokenType::CHARS)) {
-      ctx_.add();
+    if (context_.consume(stringTokenType::CHARS)) {
+      context_.add();
       return sibling<Content>();
     }
 
-    if (ctx_.consume(stringTokenType::ESCAPE)) {
-      ctx_.add();
+    if (context_.consume(stringTokenType::ESCAPE)) {
+      context_.add();
       return sibling<Content>();
     }
 
@@ -98,29 +92,19 @@ struct Content : state<Content, Context> {
     //    ctx_.add();
     return sibling<Error>();
   }
-
-  Context &ctx_;
 };
 
 struct Finished : state<Finished, Context> {
 
-  Finished(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   void onEnter() {
-    ctx_.consume(stringTokenType::DOUBLE_QUOTE);
+    context_.consume(stringTokenType::DOUBLE_QUOTE);
     // ctx_.consume();
   }
-
-  Context &ctx_;
 };
 
 struct Error : state<Error, Context> {
 
-  Error(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   void onEnter() { ; }
-
-  Context &ctx_;
 };
 
 } // namespace escad::json::string

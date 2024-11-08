@@ -57,34 +57,25 @@ using States = states<Initial, String, Number, Finished>;
 
 using StateContainer = StateMachine<States, Context &>;
 
-struct Initial : initial_state<Initial, StateContainer, Context> {
-
-  Initial(Context &ctx) noexcept : initial_state(ctx), ctx_(ctx) {}
+struct Initial : state<Initial, Context> {
 
   auto transitionTo(start) const { return sibling<String>(); }
-
-  Context &ctx_;
 };
 
-struct String : composite_state<String, string::Initial, Context> {
+struct String : composite_state<String, string::StateContainer, Context> {
 
   String(Context &ctx) noexcept
-      : composite_state(ctx, string::Context{ctx.view_}), ctx_(ctx) {
-    std::cout << "String &ctx_: " << &ctx_ << std::endl;
-
-    std::cout << "String &ctx_.getView(): " << &ctx_.getView() << std::endl;
-
-    std::cout << "String &nested_context(): " << &nested_context() << std::endl;
-
-    std::cout << "String &nested_context().getView(): "
-              << &nested_context().getView() << std::endl;
+      : composite_state(
+            ctx, string::StateContainer(mpl::type_identity<string::States>{},
+                                        string::Context(ctx.view_))) {
+    nested_emplace<string::Initial>();
   }
 
   auto transitionTo(start) -> transitions<detail::none(), Number> const {
     if (nested_in<string::Finished>()) {
-      std::cout << "string value: " << nested_context().value() << std::endl;
+      std::cout << "string value: " << nested().context().value() << std::endl;
 
-      ctx_.consume(jsonTokenType::WS);
+      context_.consume(jsonTokenType::WS);
 
       return sibling<Number>();
     }
@@ -93,20 +84,22 @@ struct String : composite_state<String, string::Initial, Context> {
 
     return detail::none();
   }
-
-  Context &ctx_;
 };
 
-struct Number : composite_state<Number, number::Initial, Context> {
+struct Number : composite_state<Number, number::StateContainer, Context> {
 
   Number(Context &ctx) noexcept
-      : composite_state(ctx, number::Context{ctx.view_}), ctx_(ctx) {}
+      : composite_state(
+            ctx, number::StateContainer(mpl::type_identity<number::States>{},
+                                        number::Context(ctx.view_))) {
+    nested_emplace<number::Initial>();
+  }
 
   auto transitionTo(start) -> transitions<detail::none(), Number> const {
     if (nested_in<number::Finished>()) {
-      std::cout << "number value: " << nested_context().value() << std::endl;
+      std::cout << "number value: " << nested().context().value() << std::endl;
 
-      ctx_.consume(jsonTokenType::WS);
+      context_.consume(jsonTokenType::WS);
 
       return sibling<Number>();
     }
@@ -115,39 +108,43 @@ struct Number : composite_state<Number, number::Initial, Context> {
 
     return detail::none();
   }
-
-  Context &ctx_;
 };
 
 struct Finished : state<Finished, Context> {
 
-  Finished(Context &ctx) noexcept : state(ctx), ctx_(ctx) {}
-
   void onEnter() { std::cout << "Finished" << std::endl; }
-
-  Context &ctx_;
 };
 
 TEST_CASE("Json Context reference", "[new_fsm]") {
 
   Context ctx_{view{"\"simple string.\" 1234"sv}};
 
-  auto fsm = Initial::create(ctx_);
+  auto fsm = StateMachine(mpl::type_identity<States>{}, ctx_);
 
   REQUIRE(&ctx_ == &fsm.context());
 
   REQUIRE(fsm.is_in<Initial>());
-  REQUIRE(&ctx_ == &fsm.state<Initial>().ctx_);
-  REQUIRE(&ctx_.getView() == &fsm.state<Initial>().ctx_.getView());
+  //  REQUIRE(&ctx_ == &fsm.state<Initial>().ctx_);
+  REQUIRE(&ctx_.getView() == &fsm.state<Initial>().context().getView());
 
   auto result = fsm.dispatch(start{});
   REQUIRE(result);
   REQUIRE(fsm.is_in<String>());
 
-  REQUIRE(&ctx_ == &fsm.state<String>().ctx_);
-
   auto ststring = fsm.state<String>();
   auto comp_state = ststring.nested_state<string::Finished>();
 
-  REQUIRE(&ctx_.getView() == &fsm.state<String>().nested_context().getView());
+  REQUIRE(ststring.nested().context().value() == "simple string."sv);
+  REQUIRE(comp_state.context().value() == "simple string."sv);
+
+  REQUIRE(&ctx_.getView() == &fsm.state<String>().nested().context().getView());
+
+  REQUIRE(ctx_.getView().pos_ == 15);
+
+  result = fsm.dispatch(start{});
+  REQUIRE(result);
+
+  REQUIRE(fsm.is_in<Number>());
+
+  
 }
