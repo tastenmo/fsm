@@ -7,11 +7,12 @@
 #include <catch2/catch_test_macros.hpp>
 #include <ctre.hpp>
 
+#include "base/type_traits.h"
 #include "base/utils.h"
 
 // #include <new_fsm/machine.h>
 // #include <new_fsm/state.h>
-#include <new_fsm/state_variant.h>
+#include <new_fsm/state_machine.h>
 
 #include <variant>
 
@@ -20,10 +21,9 @@ using namespace escad::new_fsm;
 class theContext {
 
 public:
-  theContext() : PlaySequence_(false), value_(0), msg_(""){
+  theContext() : PlaySequence_(false), value_(0), msg_("") {
 
     std::cout << "theContext()" << std::endl;
-
   };
 
   ~theContext() { std::cout << "~theContext()" << std::endl; }
@@ -124,8 +124,6 @@ struct myStates {
 
 using States = states<myStates::Initial, myStates::Second, myStates::Third>;
 
-using StateContainer = state_variant<States, theContext &>;
-
 // State Constructors
 
 auto myStatePrinter = escad::overloaded{
@@ -146,13 +144,6 @@ TEST_CASE("state_types", "[new_fsm]") {
   STATIC_REQUIRE(std::is_move_constructible_v<myStates::Initial>);
   STATIC_REQUIRE(std::is_move_constructible_v<myStates::Second>);
   STATIC_REQUIRE(std::is_move_constructible_v<myStates::Third>);
-
-  STATIC_REQUIRE(std::is_copy_constructible_v<StateContainer::states_variant>);
-
-  STATIC_REQUIRE(std::is_move_constructible_v<StateContainer::states_variant>);
-
-  STATIC_REQUIRE(std::is_copy_constructible_v<StateContainer::ctx>);
-  STATIC_REQUIRE(std::is_lvalue_reference_v<StateContainer::ctx>);
 }
 
 TEST_CASE("state_onEnter", "[new_fsm]") {
@@ -161,7 +152,7 @@ TEST_CASE("state_onEnter", "[new_fsm]") {
 
   STATIC_REQUIRE(std::is_lvalue_reference_v<theContext &>);
 
-  StateContainer fsm(ctx);
+  StateMachine fsm(mpl::type_identity<States>{}, ctx);
 
   fsm.emplace<myStates::Initial>();
 
@@ -171,7 +162,7 @@ TEST_CASE("state_onEnter", "[new_fsm]") {
 
   REQUIRE(fsm.is_in<myStates::Second>());
 
-  fsm.context().PlaySequence();
+  fsm.context().GetPlaySequence();
 
   fsm.dispatch(event1{});
 

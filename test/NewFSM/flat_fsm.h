@@ -1,5 +1,6 @@
 
-#include <new_fsm/initial_state.h>
+#include <new_fsm/state.h>
+#include <new_fsm/state_machine.h>
 
 using namespace escad::new_fsm;
 
@@ -56,16 +57,12 @@ struct Initial;
 struct Second;
 struct Third;
 
-using States = states<Initial, Second, Third>;
-
-using StateContainer = state_variant<States, Context>;
-
-struct Initial : initial_state<Initial, StateContainer, Context> {
+struct Initial : state<Initial, Context> {
 
   // using state<StateInitial, StateContainer>::state;
 
   Initial(Context &ctx) noexcept
-      : initial_state(ctx), count1(0), value2(0), ctx_(ctx) {}
+      : state(ctx), count1(0), value2(0), ctx_(ctx) {}
 
   void onEnter(const event1 &) { count1++; }
 
@@ -139,5 +136,11 @@ struct Third : state<Third, Context> {
   int count1;
   Context &ctx_;
 };
+
+using States = states<Initial, Second, Third>;
+
+using MachineWithReferenceContext = StateMachine<States, Context &>;
+
+using MachineWithOwnContext = StateMachine<States, Context>;
 
 } // namespace flat

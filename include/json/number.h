@@ -129,7 +129,7 @@ struct Error;
 using States =
     states<Initial, Sign, Integer, Decimal, Exponent, Finished, Error>;
 
-using StateContainer = state_variant<States, Context &>;
+using StateContainer = StateMachine<States, Context &>;
 
 struct Initial : initial_state<Initial, StateContainer, Context> {
 

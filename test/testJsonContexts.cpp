@@ -55,7 +55,7 @@ struct Finished;
 
 using States = states<Initial, String, Number, Finished>;
 
-using StateContainer = state_variant<States, Context &>;
+using StateContainer = StateMachine<States, Context &>;
 
 struct Initial : initial_state<Initial, StateContainer, Context> {
 

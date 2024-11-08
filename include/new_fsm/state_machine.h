@@ -40,7 +40,7 @@ namespace escad::new_fsm {
  *
  * @tparam States The type representing the list of states in the FSM.
  */
-template <class States, class Context = detail::NoContext> class state_variant {
+template <class States, class Context = detail::NoContext> class StateMachine {
 public:
   using type_list = typename States::type_list;
 
@@ -67,7 +67,7 @@ public:
    * the constructor.
    * @param context The context object.
    */
-  explicit state_variant(mpl::type_identity<States>, Context &&context)
+  explicit StateMachine(mpl::type_identity<States>, Context &&context)
       : context_(std::forward<Context>(context)) {}
 
   /**
@@ -207,7 +207,8 @@ public:
       });
       return handled;
     }
-    return t.is_none();
+    // return t.is_none();
+    return false;
   }
 
   template <class Transition> bool handle_result(Transition t) {
@@ -225,7 +226,8 @@ public:
       });
       return handled;
     }
-    return t.is_none();
+    // return t.is_none();
+    return false;
   }
 
   /**
@@ -280,11 +282,12 @@ public:
   /**
    * @brief Returns a const reference to the context object.
    *
-   * mpl::const_reference_t alway gives a const reference to a type (be it a reference or not)
+   * mpl::const_reference_t alway gives a const reference to a type (be it a
+   * reference or not)
    *
    * @return A const reference to the context object.
    */
-  mpl::const_reference_t<Context> context() { return context_; }
+  mpl::const_reference_t<Context> context() const { return context_; }
 
 private:
   states_variant states_;
@@ -304,7 +307,7 @@ private:
  * @param context The context object.
  */
 template <class States, class Context>
-explicit state_variant(mpl::type_identity<States>,
-                       Context &&) -> state_variant<States, Context>;
+explicit StateMachine(mpl::type_identity<States>,
+                      Context &&) -> StateMachine<States, Context>;
 
 } // namespace escad::new_fsm

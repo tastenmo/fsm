@@ -1,6 +1,7 @@
 #include <chrono>
 #include <functional>
 #include <iostream>
+#include <type_traits>
 #include <utility>
 
 #include <catch2/catch_test_macros.hpp>
@@ -8,7 +9,7 @@
 
 #include "base/utils.h"
 
-#include <new_fsm/initial_state.h>
+#include <new_fsm/state_machine.h>
 
 #include "flat_fsm.h"
 
@@ -30,7 +31,7 @@ TEST_CASE("Context reference", "[new_fsm]") {
 
   flat::Context ctx_;
 
-  auto fsm = flat::Initial::create(ctx_);
+  auto fsm = StateMachine(mpl::type_identity<flat::States>{}, ctx_);
 
   REQUIRE(&ctx_ == &fsm.context());
 
@@ -40,7 +41,7 @@ TEST_CASE("Context reference", "[new_fsm]") {
 
   REQUIRE(&ctx_ != &ctx1);
 
-  flat::Context &ctx2 = fsm.context();
+  const flat::Context &ctx2 = fsm.context();
   REQUIRE(&ctx_ == &ctx2);
 
   auto &ctx = fsm.context();
@@ -85,7 +86,7 @@ TEST_CASE("Context instantiated reference", "[new_fsm]") {
 
   flat::Context ctx_(42);
 
-  auto fsm = flat::Initial::create(ctx_);
+  auto fsm = StateMachine(mpl::type_identity<flat::States>{}, ctx_);
 
   REQUIRE(&ctx_ == &fsm.context());
 
@@ -127,7 +128,8 @@ TEST_CASE("Context instantiated reference", "[new_fsm]") {
 
 TEST_CASE("Context implicit", "[new_fsm]") {
 
-  auto fsm = flat::Initial::create(flat::Context{42});
+  auto fsm =
+      StateMachine(mpl::type_identity<flat::States>{}, flat::Context{42});
 
   auto &ctx = fsm.context();
 

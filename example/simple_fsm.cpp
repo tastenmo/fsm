@@ -1,3 +1,4 @@
+#include "base/type_traits.h"
 #include <chrono>
 #include <functional>
 #include <iostream>
@@ -108,15 +109,13 @@ struct Stopped : state<Stopped, NoContext> {
 
 using States = states<Initial, Running, Paused, Stopped>;
 
-using StateContainer = state_variant<States, NoContext &>;
-
 int main() {
 
   std::cout << "A simple fsm..." << std::endl;
 
   NoContext ctx;
 
-  StateContainer sm(ctx); // create a state machine
+  StateMachine sm(mpl::type_identity<States>{}, ctx); // create a state machine
 
   sm.emplace<Initial>();
 

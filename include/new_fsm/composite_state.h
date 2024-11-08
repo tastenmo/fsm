@@ -1,33 +1,16 @@
 #pragma once
 
-#include "initial_state.h"
+#include "state.h"
+#include "state_machine.h"
 
 namespace escad::new_fsm {
 
-template <class Derived, class NestedState, class Context = detail::NoContext>
+template <class Derived, class NestedMachine, class Context = detail::NoContext>
 class composite_state : public state<Derived, Context> {
 
-  using NestedContext = typename NestedState::ctx;
-  using NestedContainer = typename NestedState::states;
-
 public:
-  composite_state(Context &context)
-      : state<Derived, Context>{context}, nested_(NestedState::create(context))
-
-  {}
-
-  composite_state(Context &context, NestedContext &nested_context)
-      : state<Derived, Context>{context},
-        nested_(NestedState::create(nested_context))
-
-  {}
-
-  composite_state(Context &context, NestedContext &&nested_context)
-      : state<Derived, Context>{context},
-        nested_(
-            NestedState::create(std::forward<NestedContext>(nested_context)))
-
-  {}
+  composite_state(Context &context, NestedMachine &&nested)
+      : state<Derived, Context>{context}, nested_(nested) {}
 
   template <class Event> bool dispatch(const Event &event) {
     return nested_.dispatch(event);
@@ -41,10 +24,14 @@ public:
     return nested_.template state<State>();
   }
 
-  NestedContext &nested_context() { return nested_.context(); }
+  template <class State> void nested_emplace() {
+    nested_.template emplace<State>();
+  }
+
+  mpl::const_reference_t<NestedMachine> nested() { return nested_; }
 
 private:
-  NestedContainer nested_;
+  NestedMachine nested_;
 };
 
 } // namespace escad::new_fsm

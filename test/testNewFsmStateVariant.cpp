@@ -5,7 +5,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <new_fsm/state_variant.h>
+#include <new_fsm/state_machine.h>
 #include <variant>
 
 using namespace escad::new_fsm;
@@ -34,7 +34,7 @@ using States = states<myStates::Initial, myStates::Second, myStates::Third>;
 
 TEST_CASE("state_variant no ctx", "[new_fsm]") {
 
-  auto fsm = state_variant(mpl::type_identity<States>{}, {});
+  auto fsm = StateMachine(mpl::type_identity<States>{}, {});
 
   auto mono = fsm.state<std::monostate>();
 
@@ -76,7 +76,7 @@ using StatesCtx =
 
 TEST_CASE("state_variant rvalue ctx", "[new_fsm]") {
 
-  auto fsm = state_variant(mpl::type_identity<StatesCtx>{}, Ctx{});
+  auto fsm = StateMachine(mpl::type_identity<StatesCtx>{}, Ctx{});
 
   auto mono = fsm.state<std::monostate>();
 
@@ -97,7 +97,7 @@ TEST_CASE("state_variant lvalue ctx", "[new_fsm]") {
 
   Ctx ctx(1);
 
-  auto fsm = state_variant(mpl::type_identity<StatesCtx>{}, ctx);
+  auto fsm = StateMachine(mpl::type_identity<StatesCtx>{}, ctx);
 
   auto mono = fsm.state<std::monostate>();
 

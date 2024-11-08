@@ -53,7 +53,7 @@ struct Error;
 
 using States = states<Initial, Content, Finished, Error>;
 
-using StateContainer = state_variant<States, Context &>;
+using StateContainer = StateMachine<States, Context &>;
 
 struct Initial : initial_state<Initial, StateContainer, Context> {
 
