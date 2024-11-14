@@ -29,6 +29,15 @@ struct NumberInfo {
 class JsonNumber {
 
 public:
+  JsonNumber() = default;
+
+  JsonNumber(unsigned value) { value_.emplace<1>(value); }
+  JsonNumber(int value) { value_.emplace<2>(value); }
+  JsonNumber(uint64_t value) { value_.emplace<3>(value); }
+  JsonNumber(int64_t value) { value_.emplace<4>(value); }
+  JsonNumber(double value) { value_.emplace<5>(value); }
+  
+
   void construct(NumberInfo &info) {
     if (info.decimalCount == 0) {
       constructInteger(info);

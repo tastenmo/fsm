@@ -121,6 +121,8 @@ TEST_CASE("Json Context reference", "[new_fsm]") {
 
   auto fsm = StateMachine(mpl::type_identity<States>{}, ctx_);
 
+  fsm.emplace<Initial>();
+
   REQUIRE(&ctx_ == &fsm.context());
 
   REQUIRE(fsm.is_in<Initial>());
@@ -139,12 +141,10 @@ TEST_CASE("Json Context reference", "[new_fsm]") {
 
   REQUIRE(&ctx_.getView() == &fsm.state<String>().nested().context().getView());
 
-  REQUIRE(ctx_.getView().pos_ == 15);
+  REQUIRE(ctx_.getView().pos_ == 16);
 
   result = fsm.dispatch(start{});
   REQUIRE(result);
 
   REQUIRE(fsm.is_in<Number>());
-
-  
 }

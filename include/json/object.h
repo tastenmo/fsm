@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <map>
+#include <string_view>
 #include <sys/types.h>
 
 #include <magic_enum.hpp>
@@ -23,6 +24,11 @@ using jsonValue = std::variant<std::monostate, bool, std::string,
                                number::JsonNumber, jsonObject>;
 
 class jsonObject {
+
+public:
+  void addValue(std::string key, jsonValue val) { values_[key] = val; }
+
+  jsonValue getValue(std::string_view key) { return values_[std::string(key)]; }
 
 private:
   std::map<std::string, jsonValue> values_;
@@ -54,11 +60,25 @@ public:
     return end_ - start_;
   }
 
+  std::string_view key() const { return key_; }
+
+  void key(std::string_view key) { key_ = key; }
+
+  void addValue(jsonValue val) { values_.addValue(std::string(key_), val); }
+
+  jsonValue getValue(std::string_view key) {
+    return values_.getValue(std::string(key));
+  }
+
+  jsonObject values() const { return values_; }
+
 private:
   std::size_t start_ = 0;
   std::size_t end_ = 0;
 
-  std::map<std::string, jsonValue> values_;
+  std::string_view key_;
+
+  jsonObject values_;
 };
 
 struct Initial;
@@ -67,6 +87,7 @@ struct Colon;
 struct String;
 struct Number;
 struct Boolean;
+struct Object;
 struct Null;
 struct Comma;
 struct Finished;
@@ -83,6 +104,7 @@ struct Initial : state<Initial, Context> {
     if (context_.isToken(jsonTokenType::OPEN_BRACE)) {
       context_.start();
       context_.consume(jsonTokenType::OPEN_BRACE);
+      context_.consume(jsonTokenType::WS);
       return sibling<Key>();
     }
 
@@ -102,6 +124,7 @@ struct Key : composite_state<Key, string::StateContainer, Context> {
   auto transitionInternalTo() -> transitions<Colon, Error> const {
     if (nested_in<string::Finished>()) {
       std::cout << "key: " << nested().context().value() << std::endl;
+      context_.key(nested().context().value());
 
       context_.consume(jsonTokenType::WS);
 
@@ -136,6 +159,10 @@ struct Colon : state<Colon, Context> {
       return sibling<Null>();
     }
 
+    if (context_.isToken(jsonTokenType::OPEN_BRACE)) {
+      return sibling<Object>();
+    }
+
     return sibling<Number>();
   }
 };
@@ -152,6 +179,10 @@ struct String : composite_state<String, string::StateContainer, Context> {
   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
     if (nested_in<string::Finished>()) {
       std::cout << "string value: " << nested().context().value() << std::endl;
+
+      jsonValue val = std::string(nested().context().value());
+
+      context_.addValue(val);
 
       context_.consume(jsonTokenType::WS);
 
@@ -186,6 +217,10 @@ struct Number : composite_state<Number, number::StateContainer, Context> {
       std::cout << "number value found: " << nested().context().value()
                 << std::endl;
 
+      jsonValue val = nested().context().number;
+
+      context_.addValue(val);
+
       context_.consume(jsonTokenType::WS);
 
       if (context_.consume(jsonTokenType::COMMA)) {
@@ -210,8 +245,15 @@ struct Boolean : state<Boolean, Context> {
   void onEnter() {
     if (context_.consume(jsonTokenType::TRUE)) {
       std::cout << "boolean value True found: " << std::endl;
+      jsonValue val = bool(true);
+
+      context_.addValue(val);
+
     } else if (context_.consume(jsonTokenType::FALSE)) {
       std::cout << "boolean value False found: " << std::endl;
+      jsonValue val = bool(false);
+
+      context_.addValue(val);
     }
   }
 
@@ -236,6 +278,10 @@ struct Null : state<Null, Context> {
   void onEnter() {
     if (context_.consume(jsonTokenType::NULL_)) {
       std::cout << "null value found: " << std::endl;
+
+      jsonValue val = std::monostate();
+
+      context_.addValue(val);
     }
   }
 
@@ -277,6 +323,40 @@ struct Finished : state<Finished, Context> {
 struct Error : state<Error, Context> {
 
   void onEnter() { std::cout << "Error" << std::endl; }
+};
+
+struct Object : composite_state<Object, StateContainer, Context> {
+
+  Object(Context &ctx) noexcept
+      : composite_state(ctx, StateContainer(mpl::type_identity<States>{},
+                                            Context(ctx.view_))) {
+    nested_emplace<Initial>();
+  }
+
+  auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
+    if (nested_in<Finished>()) {
+      std::cout << "object found: " << nested().context().value() << std::endl;
+
+      jsonValue val = nested().context().values();
+      context_.addValue(val);
+
+      context_.consume(jsonTokenType::WS);
+
+      if (context_.consume(jsonTokenType::COMMA)) {
+        return sibling<Comma>();
+      };
+
+      if (context_.consume(jsonTokenType::CLOSE_BRACE)) {
+        return sibling<Finished>();
+      };
+
+      return sibling<Error>();
+    }
+
+    //   context_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
+
+    return sibling<Error>();
+  }
 };
 
 } // namespace escad::json::object

@@ -32,6 +32,7 @@ TEST_CASE("Context reference", "[new_fsm]") {
   flat::Context ctx_;
 
   auto fsm = StateMachine(mpl::type_identity<flat::States>{}, ctx_);
+  fsm.emplace<flat::Initial>();
 
   REQUIRE(&ctx_ == &fsm.context());
 
@@ -87,6 +88,7 @@ TEST_CASE("Context instantiated reference", "[new_fsm]") {
   flat::Context ctx_(42);
 
   auto fsm = StateMachine(mpl::type_identity<flat::States>{}, ctx_);
+  fsm.emplace<flat::Initial>();
 
   REQUIRE(&ctx_ == &fsm.context());
 
@@ -130,6 +132,7 @@ TEST_CASE("Context implicit", "[new_fsm]") {
 
   auto fsm =
       StateMachine(mpl::type_identity<flat::States>{}, flat::Context{42});
+  fsm.emplace<flat::Initial>();
 
   auto &ctx = fsm.context();
 
@@ -137,6 +140,8 @@ TEST_CASE("Context implicit", "[new_fsm]") {
   REQUIRE(ctx.value() == 42);
 
   REQUIRE(fsm.is_in<flat::Initial>());
+
+  fsm.emplace<flat::Initial>();
 
   REQUIRE(&ctx == &fsm.state<flat::Initial>().ctx_);
   REQUIRE_FALSE(fsm.state<flat::Initial>().ctx_.is_valid());
