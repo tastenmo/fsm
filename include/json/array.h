@@ -6,11 +6,12 @@
 #include <string_view>
 #include <sys/types.h>
 
-#include "json.h"
-#include "tokenizer.h"
+#include <magic_enum.hpp>
 
+#include "json.h"
 #include "number.h"
 #include "string.h"
+#include "tokenizer.h"
 #include <new_fsm/composite_state.h>
 #include <new_fsm/recursive_state.h>
 
@@ -18,7 +19,7 @@
 
 using namespace escad::new_fsm;
 
-namespace escad::json::object {
+namespace escad::json::array {
 
 class Context : public jsonTokenizer {
 
@@ -56,7 +57,7 @@ public:
     return values_.getValue(std::string(key));
   }
 
-  jsonObject values() const { return values_; }
+  jsonArray values() const { return values_; }
 
 private:
   std::size_t start_ = 0;
@@ -64,92 +65,59 @@ private:
 
   std::string_view key_;
 
-  jsonObject values_;
+  jsonArray values_;
 };
 
 struct Initial;
-struct Key;
-struct Colon;
 struct String;
 struct Number;
 struct Boolean;
-struct Object;
+struct Array;
 struct Null;
 struct Comma;
 struct Finished;
 struct Error;
 
-using States = states<Initial, Key, Colon, String, Number, Boolean, Object,
-                      Null, Comma, Finished, Error>;
+using States = states<Initial, String, Number, Boolean, Array, Null, Comma,
+                      Finished, Error>;
 
 using StateContainer = StateMachine<States, Context>;
 
 struct Initial : state<Initial, Context> {
 
-  auto transitionInternalTo() -> transitions<Key, Error> const {
-    if (context_.isToken(jsonTokenType::OPEN_BRACE)) {
+  auto transitionInternalTo() -> transitions<String, Number, Boolean, Null,
+                                             Array, Finished, Error> const {
+
+    if (context_.isToken(jsonTokenType::OPEN_BRACKET)) {
       context_.start();
-      context_.consume(jsonTokenType::OPEN_BRACE);
+      context_.consume(jsonTokenType::OPEN_BRACKET);
       context_.consume(jsonTokenType::WS);
-      return sibling<Key>();
+
+      if (context_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
+        return sibling<String>();
+      }
+
+      if (context_.isToken(jsonTokenType::TRUE) ||
+          context_.isToken(jsonTokenType::FALSE)) {
+        return sibling<Boolean>();
+      }
+
+      if (context_.isToken(jsonTokenType::NULL_)) {
+        return sibling<Null>();
+      }
+
+      if (context_.isToken(jsonTokenType::OPEN_BRACKET)) {
+        return sibling<Array>();
+      }
+
+      if (context_.isToken(jsonTokenType::CLOSE_BRACKET)) {
+        return sibling<Finished>();
+      }
+
+      return sibling<Number>();
     }
 
     return sibling<Error>();
-  }
-};
-
-struct Key : composite_state<Key, string::StateContainer, Context> {
-
-  Key(Context &ctx) noexcept
-      : composite_state(
-            ctx, string::StateContainer(mpl::type_identity<string::States>{},
-                                        string::Context(ctx.view_))) {
-    nested_emplace<string::Initial>();
-  }
-
-  auto transitionInternalTo() -> transitions<Colon, Error> const {
-    if (nested_in<string::Finished>()) {
-      std::cout << "key: " << nested().context().value() << std::endl;
-      context_.key(nested().context().value());
-
-      context_.consume(jsonTokenType::WS);
-
-      if (context_.consume(jsonTokenType::COLON)) {
-        return sibling<Colon>();
-      };
-    }
-
-    //   context_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
-
-    return sibling<Error>();
-  }
-};
-
-struct Colon : state<Colon, Context> {
-
-  auto transitionInternalTo()
-      -> transitions<String, Number, Boolean, Null, Object, Error> const {
-
-    context_.consume(jsonTokenType::WS);
-
-    if (context_.isToken(jsonTokenType::DOUBLE_QUOTE)) {
-      return sibling<String>();
-    }
-
-    if (context_.isToken(jsonTokenType::TRUE) ||
-        context_.isToken(jsonTokenType::FALSE)) {
-      return sibling<Boolean>();
-    }
-
-    if (context_.isToken(jsonTokenType::NULL_)) {
-      return sibling<Null>();
-    }
-
-    if (context_.isToken(jsonTokenType::OPEN_BRACE)) {
-      return sibling<Object>();
-    }
-
-    return sibling<Number>();
   }
 };
 
@@ -345,4 +313,4 @@ struct Object : recursive_state<Object, StateContainer, Context> {
   }
 };
 
-} // namespace escad::json::object
+} // namespace escad::json::array

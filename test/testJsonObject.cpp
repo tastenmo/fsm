@@ -86,4 +86,14 @@ TEST_CASE("Json_object - nested", "[json]") {
   auto showDetails = std::get<1>(theObject.getValue("show Details"));
 
   REQUIRE(showDetails == false);
+
+  auto numbers = std::get<4>(theObject.getValue("numbers"));
+
+  auto numbers_unsigned = std::get<3>(numbers.getValue("unsigned"));
+
+  REQUIRE(numbers_unsigned.get<unsigned>() == 1234);
+
+  auto numbers_real = std::get<3>(numbers.getValue("real"));
+
+  REQUIRE(numbers_real.get<double>() == 1234.5678);
 }
