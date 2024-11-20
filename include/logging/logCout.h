@@ -5,7 +5,8 @@
 #include <string_view>
 
 #include <date/date.h>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
+#include <magic_enum/magic_enum_iostream.hpp>
 
 #include "logEvent.h"
 

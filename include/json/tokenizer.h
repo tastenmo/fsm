@@ -8,7 +8,7 @@
 #include <string_view>
 #include <utility>
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 #include "base/type_traits.h"
 
@@ -120,7 +120,7 @@ public:
 
   const view &getView() const { return view_; }
 
-//protected:
+  // protected:
   view &view_;
 };
 

@@ -42,39 +42,18 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 #add_compile_options(-Wall -Wextra -pedantic -Werror)
 
 
-FetchContent_Declare(
-  magic_enum
-  GIT_REPOSITORY https://github.com/Neargye/magic_enum.git
-  GIT_TAG        v0.8.2 # or a later release
-)
-
 set(MAGIC_ENUM_OPT_INSTALL ON) 
+add_subdirectory(ext/magic_enum)
 
-FetchContent_MakeAvailable(magic_enum)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 set(USE_SYSTEM_TZ_DB ON) # use system timezone support
 set(BUILD_TZ_LIB ON) # build timezone support
-
-FetchContent_Declare(
-  date_src
-  GIT_REPOSITORY https://github.com/HowardHinnant/date.git
-  GIT_TAG        v3.0.1 # or a later release
-)
+add_subdirectory(ext/date)
 
 
-
-FetchContent_MakeAvailable(date_src)
-
-FetchContent_Declare(
-  ctre
-  GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions.git
-  GIT_TAG        v3.7.2 # or a later release
-)
-
-FetchContent_MakeAvailable(ctre)
-
+add_subdirectory(ext/compile-time-regular-expressions)
 #add_subdirectory(external/regs)
 
 add_library(${PROJECT_NAME} INTERFACE)

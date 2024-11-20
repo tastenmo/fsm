@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <sys/types.h>
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 #include "../new_fsm/state_machine.h"
 #include "tokenizer.h"

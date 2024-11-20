@@ -14,7 +14,7 @@
 #include <new_fsm/composite_state.h>
 #include <new_fsm/recursive_state.h>
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 using namespace escad::new_fsm;
 

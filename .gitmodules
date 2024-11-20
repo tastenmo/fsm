@@ -1,0 +1,9 @@
+[submodule "ext/magic_enum"]
+	path = ext/magic_enum
+	url = https://github.com/Neargye/magic_enum.git
+[submodule "ext/date"]
+	path = ext/date
+	url = https://github.com/HowardHinnant/date.git
+[submodule "ext/compile-time-regular-expressions"]
+	path = ext/compile-time-regular-expressions
+	url = https://github.com/hanickadot/compile-time-regular-expressions.git
