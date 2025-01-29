@@ -35,17 +35,22 @@ add_subdirectory(ext/date)
 
 add_subdirectory(ext/compile-time-regular-expressions)
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME} STATIC)
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
-        INTERFACE
+        PUBLIC
             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
             )
 
+target_sources(${PROJECT_NAME} PRIVATE
+    src/json/value.cpp
+    src/json/json.cpp
+)
+
 #target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
-target_link_libraries(${PROJECT_NAME} INTERFACE date::date magic_enum::magic_enum ctre::ctre)
+target_link_libraries(${PROJECT_NAME} PUBLIC date::date magic_enum::magic_enum ctre::ctre)
 
 
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets)

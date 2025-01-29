@@ -67,7 +67,7 @@ TEST_CASE("Json_object - nested", "[json]") {
 
   fsm.emplace<object::Initial>();
 
-  // REQUIRE(fsm.is_in<object::Finished>());
+  REQUIRE(fsm.is_in<object::Finished>());
 
   auto theObject = ctx.values();
 

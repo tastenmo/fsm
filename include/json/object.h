@@ -94,7 +94,7 @@ struct KeyValuePair
     nested_emplace<kvp::Initial>();
   }
 
-  auto transitionInternalTo() -> transitions<Comma, Error> const {
+  auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
     if (nested_in<kvp::Finished>()) {
       std::cout << "key: " << nested().context().value() << std::endl;
       jsonKeyValuePair val = nested().context().getValue();
@@ -133,7 +133,10 @@ struct Comma : state<Comma, Context> {
 
 struct Finished : state<Finished, Context> {
 
-  void onEnter() { std::cout << "Finished" << std::endl; }
+  void onEnter() {
+    context_.consume(jsonTokenType::CLOSE_BRACE);
+    std::cout << "Object -> Finished" << std::endl;
+  }
 };
 
 struct Error : state<Error, Context> {

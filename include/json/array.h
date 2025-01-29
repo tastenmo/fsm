@@ -100,7 +100,7 @@ struct Value : composite_state<Value, value::StateContainer, Context> {
     if (nested_in<value::Finished>()) {
       std::cout << "value: " << nested().context().value() << std::endl;
 
-      jsonValue val = nested()->context().values();
+      jsonValue val = nested().context().getValue();
 
       context_.addValue(val);
 

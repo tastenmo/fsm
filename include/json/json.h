@@ -23,7 +23,6 @@ class jsonArray;
 using jsonValue = std::variant<std::monostate, bool, std::string,
                                number::JsonNumber, jsonObject, jsonArray>;
 
-
 using jsonKeyValuePair = std::pair<std::string, jsonValue>;
 
 class jsonObject {
@@ -44,15 +43,5 @@ public:
 private:
   std::vector<jsonValue> values_;
 };
-
-void jsonObject::addValue(jsonKeyValuePair val) {
-  values_.emplace(val);
-}
-
-jsonValue jsonObject::getValue(std::string_view key) {
-  return values_[std::string(key)];
-}
-
-void jsonArray::addValue(jsonValue val) { values_.push_back(val); }
 
 } // namespace escad::json
