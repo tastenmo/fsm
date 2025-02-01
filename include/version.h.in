@@ -1,0 +1,2 @@
+#pragma once
+#define FSM_VERSION "@DYNAMIC_VERSION@"

@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 include(CMakeDependentOption)
+include_directories(${CMAKE_BINARY_DIR})
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(IS_TOPLEVEL_PROJECT TRUE)
@@ -52,6 +53,15 @@ target_sources(${PROJECT_NAME} PRIVATE
 #target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 target_link_libraries(${PROJECT_NAME} PUBLIC date::date magic_enum::magic_enum ctre::ctre)
 
+# Dynamic versioning
+find_package(Git)
+add_custom_target(version
+  ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/include/version.h.in
+                   -D DST=${CMAKE_BINARY_DIR}/include/version.h
+                   -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
+                   -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+  )
+add_dependencies(${PROJECT_NAME} version)
 
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets)
 
