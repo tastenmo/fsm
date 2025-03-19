@@ -1,14 +1,13 @@
-#include "fsmpp17/transitions.h"
+
 #include <chrono>
 #include <functional>
 #include <iostream>
 #include <utility>
 
 #include <catch2/catch_test_macros.hpp>
-#include <ctre.hpp>
 
 // #include <new_fsm/state.h>
-#include <new_fsm/transition.h>
+#include <fsm/transition.h>
 
 using namespace escad::new_fsm;
 
@@ -169,4 +168,3 @@ TEST_CASE("transition_for", "[new_fsm]") {
 
   REQUIRE(result1);
 }
-

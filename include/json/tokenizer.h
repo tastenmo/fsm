@@ -9,7 +9,7 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-#include "base/type_traits.h"
+#include <core/type_traits.h>
 
 using namespace std::literals;
 

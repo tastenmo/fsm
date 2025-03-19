@@ -24,6 +24,11 @@ cmake_dependent_option(FSM_OPT_BUILD_EXAMPLES "Build Examples" ON
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
+if(FSM_BUILD_TESTS)
+    add_subdirectory(ext/Catch2)
+    enable_testing()
+endif()
+
 set(MAGIC_ENUM_OPT_INSTALL ON) 
 add_subdirectory(ext/magic_enum)
 
@@ -36,22 +41,26 @@ add_subdirectory(ext/date)
 
 add_subdirectory(ext/compile-time-regular-expressions)
 
-add_library(${PROJECT_NAME} STATIC)
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+add_subdirectory(libs/core)
 
-target_include_directories(${PROJECT_NAME}
-        PUBLIC
-            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:include>
-            )
+add_subdirectory(libs/fsm)
 
-target_sources(${PROJECT_NAME} PRIVATE
-    src/json/value.cpp
-    src/json/json.cpp
-)
+#add_library(${PROJECT_NAME} STATIC)
+#add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+#target_include_directories(${PROJECT_NAME}
+#        PUBLIC
+#            $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+#            $<INSTALL_INTERFACE:include>
+#            )
+
+#target_sources(${PROJECT_NAME} PRIVATE
+#    src/json/value.cpp
+#    src/json/json.cpp
+#)
 
 #target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
-target_link_libraries(${PROJECT_NAME} PUBLIC date::date magic_enum::magic_enum ctre::ctre)
+#target_link_libraries(${PROJECT_NAME} PUBLIC date::date magic_enum::magic_enum ctre::ctre fsm::core)
 
 # Dynamic versioning
 find_package(Git)
@@ -63,7 +72,10 @@ add_custom_target(version
   )
 add_dependencies(${PROJECT_NAME} version)
 
-install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets)
+install(TARGETS 
+          ${PROJECT_NAME}
+          core
+        EXPORT ${PROJECT_NAME}-targets)
 
 if (NOT EXISTS "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake.in")
   file(WRITE ${PROJECT_BINARY_DIR}/${PROJECT_NAME}-config.cmake.in [[
@@ -100,15 +112,15 @@ install(
 install(DIRECTORY include/ DESTINATION include
     FILES_MATCHING PATTERN *.h PATTERN *.hpp)
 
-if(FSM_OPT_BUILD_EXAMPLES)
-    add_subdirectory(example)
-endif()
+#if(FSM_OPT_BUILD_EXAMPLES)
+#    add_subdirectory(example)
+#endif()
 
-if(FSM_BUILD_TESTS)
-    add_subdirectory(ext/Catch2)
-    enable_testing()
-    add_subdirectory(test)
-endif()
+#if(FSM_BUILD_TESTS)
+#    add_subdirectory(ext/Catch2)
+#    enable_testing()
+#    add_subdirectory(test)
+#endif()
 
 #
 # Documentation

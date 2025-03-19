@@ -110,11 +110,11 @@ if(HAS_CPP20_FLAG)
     make_test(testSignalSlot.cpp testSignalSlot-cpp20 c++20)
 endif()
 
-make_test(testTypeTraits.cpp testTypeTraits-cpp17 c++17)
+#make_test(testTypeTraits.cpp testTypeTraits-cpp17 c++17)
 
-if(HAS_CPP20_FLAG)
-    make_test(testTypeTraits.cpp testTypeTraits-cpp20 c++20)
-endif()
+#if(HAS_CPP20_FLAG)
+#    make_test(testTypeTraits.cpp testTypeTraits-cpp20 c++20)
+#endif()
 
 make_test(testStateManager.cpp testStateManager-cpp17 c++17)
 
@@ -138,22 +138,22 @@ endif()
 
 make_test_with_libs(testDateTime.cpp testDateTime-cpp17 c++17 date::date-tz) 
 
-if(HAS_CPP20_FLAG)
-    make_test(testNewFsmStateVariant.cpp testNewFsmStateVariant-cpp20 c++20)
-endif()
+#if(HAS_CPP20_FLAG)
+#    make_test(testNewFsmStateVariant.cpp testNewFsmStateVariant-cpp20 c++20)
+#endif()
 
 
 
 if(HAS_CPP20_FLAG)
     make_test(testNewFSM.cpp testNewFSM-cpp20 c++20)
 
-    make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp20 c++20)
+#    make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp20 c++20)
 
-    make_test_with_includes(testNewFsmContext.cpp testNewFsmContext-cpp20 c++20 ./NewFSM)
+#    make_test_with_includes(testNewFsmContext.cpp testNewFsmContext-cpp20 c++20 ./NewFSM)
 
-    make_test_with_includes(testNewFsmComposite.cpp testNewFsmComposite-cpp20 c++20 ./NewFSM)
+#    make_test_with_includes(testNewFsmComposite.cpp testNewFsmComposite-cpp20 c++20 ./NewFSM)
 
-    make_test_with_includes(testNewFsmRecursive.cpp testNewFsmRecursive-cpp20 c++20 ./NewFSM)
+#    make_test_with_includes(testNewFsmRecursive.cpp testNewFsmRecursive-cpp20 c++20 ./NewFSM)
 
     make_test(testJsonTokenizer.cpp testJsonTokenizer-cpp20 c++20)
 

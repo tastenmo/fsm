@@ -20,11 +20,11 @@
 
 #pragma once
 
-#include "../base/type_traits.h"
+#include <core/type_traits.h>
 #include <iostream>
 #include <variant>
 
-#include "../base/utils.h"
+#include <core/utils.h>
 
 #include "state.h"
 #include "transition.h"

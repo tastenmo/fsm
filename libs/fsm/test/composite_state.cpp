@@ -1,16 +1,11 @@
-#include <chrono>
-#include <functional>
 #include <iostream>
-#include <utility>
 
 #include <catch2/catch_test_macros.hpp>
-#include <ctre.hpp>
 
-#include <new_fsm/composite_state.h>
+#include <fsm/composite_state.h>
 #include <variant>
 
 #include "flat_fsm.h"
-#include "new_fsm/transition.h"
 
 using namespace escad::new_fsm;
 
@@ -97,7 +92,7 @@ struct Error : state<Error, Context> {
 
 // State Constructors
 
-TEST_CASE("basic composite with common context", "[new_fsm]") {
+TEST_CASE("composite_state", "[new_fsm]") {
 
   std::cout << "start" << std::endl;
 

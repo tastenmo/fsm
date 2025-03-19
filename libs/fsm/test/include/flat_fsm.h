@@ -1,6 +1,6 @@
 
-#include <new_fsm/state.h>
-#include <new_fsm/state_machine.h>
+#include <fsm/state.h>
+#include <fsm/state_machine.h>
 
 using namespace escad::new_fsm;
 

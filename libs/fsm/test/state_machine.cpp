@@ -5,7 +5,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <new_fsm/state_machine.h>
+#include <fsm/state_machine.h>
 #include <variant>
 
 using namespace escad::new_fsm;

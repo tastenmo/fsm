@@ -1,12 +1,8 @@
-#include <chrono>
-#include <functional>
 #include <iostream>
-#include <utility>
 
 #include <catch2/catch_test_macros.hpp>
-#include <ctre.hpp>
 
-#include <new_fsm/recursive_state.h>
+#include <fsm/recursive_state.h>
 #include <variant>
 
 #include "flat_fsm.h"
@@ -74,7 +70,7 @@ struct Recursive : recursive_state<Recursive, MachineWithOwnContext, Context> {
 
 // State Constructors
 
-TEST_CASE("basic composite with common context", "[new_fsm]") {
+TEST_CASE("recusive_state", "[new_fsm]") {
 
   std::cout << "start" << std::endl;
 

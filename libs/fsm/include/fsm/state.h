@@ -21,8 +21,8 @@
 #include <optional>
 #include <type_traits>
 
-#include "../base/type_traits.h"
 #include "transition.h"
+#include <core/type_traits.h>
 
 namespace escad {
 /**

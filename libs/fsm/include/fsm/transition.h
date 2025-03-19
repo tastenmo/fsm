@@ -10,7 +10,7 @@
  */
 #pragma once
 
-#include "../base/type_traits.h"
+#include <core/type_traits.h>
 
 namespace escad {
 
@@ -68,15 +68,15 @@ public:
   template <class T>
   transitions(detail::sibling<T>) noexcept
       : idx{mpl::type_list_index_v<T, list>}, outcome{result::sibling} {}
-  
-    template <class T>
+
+  template <class T>
   transitions(detail::inner<T>) noexcept
       : idx{mpl::type_list_index_v<T, list>}, outcome{result::inner} {}
 
-      template <class T>
+  template <class T>
   transitions(detail::inner_entry<T>) noexcept
       : idx{mpl::type_list_index_v<T, list>}, outcome{result::inner_entry} {}
-  
+
   /**
    * @brief Constructs a new transitions object from another transitions object.
    * @tparam T The list of state types.
