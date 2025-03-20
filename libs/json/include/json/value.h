@@ -14,8 +14,8 @@
 // #include "object.h"
 #include "string.h"
 
-#include <new_fsm/composite_state.h>
-#include <new_fsm/recursive_state.h>
+#include <fsm/composite_state.h>
+#include <fsm/recursive_state.h>
 
 #include <magic_enum/magic_enum.hpp>
 

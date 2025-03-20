@@ -12,7 +12,7 @@
 #include "tokenizer.h"
 
 #include "value.h"
-#include <new_fsm/composite_state.h>
+#include <fsm/composite_state.h>
 
 using namespace escad::new_fsm;
 

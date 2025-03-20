@@ -39,6 +39,7 @@ private:
 class jsonArray {
 public:
   void addValue(jsonValue val);
+  jsonValue getValue(unsigned index);
 
 private:
   std::vector<jsonValue> values_;

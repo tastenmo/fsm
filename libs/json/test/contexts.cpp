@@ -6,10 +6,10 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <fsm/composite_state.h>
 #include <json/number.h>
 #include <json/string.h>
 #include <json/tokenizer.h>
-#include <new_fsm/composite_state.h>
 
 using namespace escad::json;
 
@@ -115,7 +115,7 @@ struct Finished : state<Finished, Context> {
   void onEnter() { std::cout << "Finished" << std::endl; }
 };
 
-TEST_CASE("Json Context reference", "[new_fsm]") {
+TEST_CASE("Context reference", "[new_fsm]") {
 
   Context ctx_{view{"\"simple string.\" 1234"sv}};
 

@@ -1,9 +1,5 @@
 
-#include "base/type_traits.h"
-#include <chrono>
-#include <functional>
-#include <iostream>
-#include <utility>
+#include <core/type_traits.h>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -13,7 +9,6 @@
 using namespace escad::json;
 
 using namespace std::literals;
-
 
 TEST_CASE("Json_simple strings", "[json]") {
 

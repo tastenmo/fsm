@@ -14,7 +14,7 @@ using namespace escad::json;
 
 using namespace std::literals;
 
-TEST_CASE("Json_object - simple", "[json]") {
+TEST_CASE("Object - simple", "[json]") {
 
   view v(
       "{\"unsigned\":1234,\"string\":\"Das ist ein Test\", \"isValid\":true, \"show Details\":false}"sv);
@@ -46,7 +46,7 @@ TEST_CASE("Json_object - simple", "[json]") {
   REQUIRE(showDetails == false);
 }
 
-TEST_CASE("Json_object - nested", "[json]") {
+TEST_CASE("Object - nested", "[json]") {
 
   std::string_view input = "{\n"
                            "\"unsigned\":1234, \n"

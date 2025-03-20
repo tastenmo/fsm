@@ -12,7 +12,7 @@ using namespace escad::json;
 
 using namespace std::literals;
 
-TEST_CASE("Json_number unsigned", "[json]") {
+TEST_CASE("Number unsigned", "[json]") {
 
   auto fsm = StateMachine(mpl::type_identity<number::States>{},
                           number::Context(view{"123"sv}));
@@ -32,7 +32,7 @@ TEST_CASE("Json_number unsigned", "[json]") {
   REQUIRE_FALSE(fsm.context().number.get<int>());
 }
 
-TEST_CASE("Json_number negative integer", "[json]") {
+TEST_CASE("Number negative integer", "[json]") {
 
   view v("-54321"sv);
 
@@ -55,7 +55,7 @@ TEST_CASE("Json_number negative integer", "[json]") {
   REQUIRE_FALSE(ctx.number.get<unsigned>());
 }
 
-TEST_CASE("Json_number positive integer", "[json]") {
+TEST_CASE("Number positive integer", "[json]") {
 
   view v("+54321"sv);
 
@@ -78,7 +78,7 @@ TEST_CASE("Json_number positive integer", "[json]") {
   REQUIRE_FALSE(ctx.number.get<unsigned>());
 }
 
-TEST_CASE("Json_number very large unsigned", "[json]") {
+TEST_CASE("Number very large unsigned", "[json]") {
 
   std::cout << "unsigned max: " << std::numeric_limits<unsigned>::max()
             << std::endl;
@@ -105,7 +105,7 @@ TEST_CASE("Json_number very large unsigned", "[json]") {
   REQUIRE_FALSE(ctx.number.get<unsigned>());
 }
 
-TEST_CASE("Json_number very large signed", "[json]") {
+TEST_CASE("Number very large signed", "[json]") {
 
   std::cout << "int min: " << std::numeric_limits<int>::min() << std::endl;
 
@@ -131,7 +131,7 @@ TEST_CASE("Json_number very large signed", "[json]") {
   REQUIRE_FALSE(ctx.number.get<int>());
 }
 
-TEST_CASE("Json_number double", "[json]") {
+TEST_CASE("Number double", "[json]") {
 
   view v("123.3756"sv);
 
@@ -154,7 +154,7 @@ TEST_CASE("Json_number double", "[json]") {
   REQUIRE_FALSE(ctx.number.get<int>());
 }
 
-TEST_CASE("Json_number scientific1", "[json]") {
+TEST_CASE("Number scientific1", "[json]") {
 
   view v("-1.234e06"sv);
 
@@ -177,7 +177,7 @@ TEST_CASE("Json_number scientific1", "[json]") {
   REQUIRE_FALSE(ctx.number.get<int>());
 }
 
-TEST_CASE("Json_number scientific2", "[json]") {
+TEST_CASE("Number scientific2", "[json]") {
 
   view v("-1.234e-06"sv);
 
@@ -200,7 +200,7 @@ TEST_CASE("Json_number scientific2", "[json]") {
   REQUIRE_FALSE(ctx.number.get<int>());
 }
 
-TEST_CASE("Json_number 1.", "[json]") {
+TEST_CASE("Number 1.", "[json]") {
 
   view v("1."sv);
 

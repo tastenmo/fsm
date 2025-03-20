@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../new_fsm/state_machine.h"
 #include "tokenizer.h"
+#include <fsm/state_machine.h>
+
 
 using namespace escad::new_fsm;
 

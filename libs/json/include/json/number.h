@@ -6,8 +6,9 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-#include "../new_fsm/state_machine.h"
 #include "tokenizer.h"
+#include <fsm/state_machine.h>
+
 
 using namespace escad::new_fsm;
 
@@ -36,7 +37,6 @@ public:
   JsonNumber(uint64_t value) { value_.emplace<3>(value); }
   JsonNumber(int64_t value) { value_.emplace<4>(value); }
   JsonNumber(double value) { value_.emplace<5>(value); }
-  
 
   void construct(NumberInfo &info) {
     if (info.decimalCount == 0) {

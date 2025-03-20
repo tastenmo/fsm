@@ -11,7 +11,7 @@
 
 #include "kvp.h"
 
-#include <new_fsm/composite_state.h>
+#include <fsm/composite_state.h>
 
 #include <magic_enum/magic_enum.hpp>
 
