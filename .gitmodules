@@ -7,3 +7,6 @@
 [submodule "ext/compile-time-regular-expressions"]
 	path = ext/compile-time-regular-expressions
 	url = https://github.com/hanickadot/compile-time-regular-expressions.git
+[submodule "ext/Catch2"]
+	path = ext/Catch2
+	url = https://github.com/catchorg/Catch2.git

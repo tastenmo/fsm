@@ -1,15 +1,18 @@
 include(CheckCXXCompilerFlag)
-Include(FetchContent)
+#Include(FetchContent)
 
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG        v3.0.1 # or a later release
-)
+#FetchContent_Declare(
+#  Catch2
+#  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+#  GIT_TAG        v3.0.1 # or a later release
+#)
 
-FetchContent_MakeAvailable(Catch2)
+#FetchContent_MakeAvailable(Catch2)
 
-list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+#list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
+
+#find_package(Catch2 3 REQUIRED)
+
 include(CTest)
 include(Catch)
 
@@ -127,7 +130,7 @@ make_test(testEmitter.cpp testEmitter-cpp17 c++17)
 
 make_test(testDispatcher.cpp testDispatcher-cpp17 c++17)
 
-make_test(testLogging.cpp testLogging-cpp17 c++17)
+#make_test(testLogging.cpp testLogging-cpp17 c++17)
 
 if(HAS_CPP20_FLAG)
     make_test(testLogging.cpp testLogging-cpp20 c++20)
@@ -135,28 +138,33 @@ endif()
 
 make_test_with_libs(testDateTime.cpp testDateTime-cpp17 c++17 date::date-tz) 
 
-make_test(testNewFsmStateVariant.cpp testNewFsmStateVariant-cpp20 c++20)
+if(HAS_CPP20_FLAG)
+    make_test(testNewFsmStateVariant.cpp testNewFsmStateVariant-cpp20 c++20)
+endif()
 
-make_test(testNewFSM.cpp testNewFSM-cpp17 c++17)
 
-make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp17 c++17)
 
-make_test_with_includes(testNewFsmContext.cpp testNewFsmContext-cpp20 c++20 ./NewFSM)
+if(HAS_CPP20_FLAG)
+    make_test(testNewFSM.cpp testNewFSM-cpp20 c++20)
 
-make_test_with_includes(testNewFsmComposite.cpp testNewFsmComposite-cpp20 c++20 ./NewFSM)
+    make_test(testNewFsmTransition.cpp testNewFsmTransition-cpp20 c++20)
 
-make_test_with_includes(testNewFsmRecursive.cpp testNewFsmRecursive-cpp20 c++20 ./NewFSM)
+    make_test_with_includes(testNewFsmContext.cpp testNewFsmContext-cpp20 c++20 ./NewFSM)
 
-make_test(testJsonTokenizer.cpp testJsonTokenizer-cpp20 c++20)
+    make_test_with_includes(testNewFsmComposite.cpp testNewFsmComposite-cpp20 c++20 ./NewFSM)
 
-make_test(testJsonContexts.cpp testJsonContexts-cpp20 c++20)
+    make_test_with_includes(testNewFsmRecursive.cpp testNewFsmRecursive-cpp20 c++20 ./NewFSM)
 
-make_test(testJsonString.cpp testJsonString-cpp20 c++20)
+    make_test(testJsonTokenizer.cpp testJsonTokenizer-cpp20 c++20)
 
-make_test(testJsonNumber.cpp testJsonNumber-cpp20 c++20)
+    make_test(testJsonContexts.cpp testJsonContexts-cpp20 c++20)
 
-make_test(testJsonObject.cpp testJsonObject-cpp20 c++20)
+    make_test(testJsonString.cpp testJsonString-cpp20 c++20)
 
+    make_test(testJsonNumber.cpp testJsonNumber-cpp20 c++20)
+
+    make_test(testJsonObject.cpp testJsonObject-cpp20 c++20)
+endif()
 
 #make_test(testNewFsmPublish.cpp testNewFsmPublish-cpp17 c++17)
 

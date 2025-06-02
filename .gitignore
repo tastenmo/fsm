@@ -31,11 +31,15 @@
 *.out
 *.app
 
+.vs/*
+
 
 # build dir
 build/*
 docs/_build/*
 docs/doc_out/*
+
+/out/*
 
 # cahe dir
 .cache/*

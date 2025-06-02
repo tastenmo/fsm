@@ -52,14 +52,14 @@ TEST_CASE("Json_object - nested", "[json]") {
                            "\"unsigned\":1234, \n"
                            "\"string\":\"Das ist ein Test\",\n"
                            "\"numbers\": {\n"
-                            "  \"unsigned\":1234, \n"
-                            "  \"real\": 1234.5678\n"
-                            "},\n"
-                            "\"isValid\":true, \n"
-                            "\"show Details\":false\n"
-                            "}"sv;
+                           "  \"unsigned\":1234, \n"
+                           "  \"real\": 1234.5678\n"
+                           "},\n"
+                           "\"isValid\":true, \n"
+                           "\"show Details\":false\n"
+                           "}"sv;
 
-      view v(input);
+  view v(input);
 
   object::Context ctx(v);
 

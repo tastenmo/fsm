@@ -8,7 +8,7 @@
 #include <chrono>
 #include <csignal>
 #include <ctime>
-#include <experimental/source_location>
+#include <source_location>
 #include <string_view>
 
 namespace escad {
@@ -23,14 +23,14 @@ struct LogEvent {
 
   std::chrono::system_clock::time_point time_stamp;
 
-  std::experimental::source_location location;
+  std::source_location location;
 
   std::string name;
 
   std::string msg;
 
   LogEvent(LogLevel tlevel, std::string_view tname, std::string_view tmsg,
-           const std::experimental::source_location &tloc)
+           const std::source_location &tloc)
       : level(tlevel), location(tloc), name(tname), msg(tmsg) {
 
     time_stamp = std::chrono::system_clock::now();

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <bits/utility.h>
 #include <cstddef>
 #include <ctre.hpp>
 #include <optional>
