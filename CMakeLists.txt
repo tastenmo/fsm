@@ -56,10 +56,10 @@ target_link_libraries(${PROJECT_NAME} PUBLIC date::date magic_enum::magic_enum c
 # Dynamic versioning
 find_package(Git)
 add_custom_target(version
-  ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/include/version.h.in
+  ${CMAKE_COMMAND} -D SRC=${PROJECT_SOURCE_DIR}/include/version.h.in
                    -D DST=${CMAKE_BINARY_DIR}/include/version.h
                    -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
-                   -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+                   -P ${PROJECT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
   )
 add_dependencies(${PROJECT_NAME} version)
 
