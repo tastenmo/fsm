@@ -1,12 +1,11 @@
-#include "base/type_traits.h"
 #include <chrono>
 #include <functional>
 #include <iostream>
 #include <utility>
 
-// #include <new_fsm/machine.h>
-#include <new_fsm/state.h>
-#include <new_fsm/state_machine.h>
+#include <fsm/version.h>
+#include <fsm/state.h>
+#include <fsm/state_machine.h>
 
 using namespace escad::new_fsm;
 
@@ -112,6 +111,8 @@ using States = states<Initial, Running, Paused, Stopped>;
 int main() {
 
   std::cout << "A simple fsm..." << std::endl;
+
+  std::cout << "Build with version: " << FSM_VERSION << std::endl;
 
   NoContext ctx;
 

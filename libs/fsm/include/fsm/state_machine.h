@@ -79,10 +79,10 @@ public:
    * @tparam State The type of the state to be emplaced.
    */
   template <class State> void emplace() {
-    if constexpr (std::is_constructible_v<State, Context &>) {
-      states_.template emplace<State>(context_);
+    if constexpr (std::is_constructible_v<State, StateMachine&, Context &>) {
+      states_.template emplace<State>(*this, context_);
     } else {
-      states_.template emplace<State>();
+      states_.template emplace<State>(*this);
     }
 
     std::visit(overloaded{[](auto &state) { state.enter(); },
@@ -108,10 +108,10 @@ public:
    * @param e The event to be passed to the state.
    */
   template <class State, class Event> void emplace(Event const &e) {
-    if constexpr (std::is_constructible_v<State, Context &>) {
-      states_.template emplace<State>(context_);
+    if constexpr (std::is_constructible_v<State, StateMachine&, Context &>) {
+      states_.template emplace<State>(*this, context_);
     } else {
-      states_.template emplace<State>();
+      states_.template emplace<State>(*this);
     }
     std::visit(overloaded{[&e](auto &state) {
                             // state.enter();

@@ -199,11 +199,12 @@ template <class... S> struct states {
  * @tparam Derived
  * @tparam StateContainer
  */
-template <class Derived, class Context = detail::NoContext> struct state {
+template <class Derived, class Machine, class Context = detail::NoContext> struct state {
+  using sm = Machine;
   using ctx = Context;
 
   // state() : context_{} {}
-  state(Context &context) : context_(context) {}
+  state(Machine &sm, Context &context) : machine_(sm), context_(context) {}
 
   /**
    * @brief Calls onEnter(const Event &event) of Derived if it exists.
@@ -294,15 +295,29 @@ template <class Derived, class Context = detail::NoContext> struct state {
   //    return detail::none{};
   //  }
 
-  template <class Event> bool dispatch(const Event &) { return false; }
+  template <class Event> bool dispatch(const Event &) { 
+
+    //machine_.dispatch(event);
+    
+    return false; 
+  
+  }
+
+  template <class Event> void asyncDispatch(const Event &event) {
+    machine_.dispatch(event);
+  }
 
   const Context &context() { return context_; }
+  const Machine &machine() { return machine_; }
 
 protected:
   /**
    * @brief Reference to the Context.
    */
+  Machine &machine_;
   Context &context_;
+
+
 };
 
 } // namespace new_fsm

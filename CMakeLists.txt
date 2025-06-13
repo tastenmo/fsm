@@ -6,6 +6,7 @@ set(PROJECT_DESCRIPTION "Modern C++ fsm library")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+include(FetchContent)
 include(CMakeDependentOption)
 include_directories(${CMAKE_BINARY_DIR})
 
@@ -14,6 +15,11 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 else()
     set(IS_TOPLEVEL_PROJECT FALSE)
 endif()
+
+find_package( 
+ Boost 1.83.0 REQUIRED 
+ COMPONENTS system thread json program_options 
+)
 
 cmake_dependent_option(FSM_BUILD_TESTS "Build fsm Tests" ON
   "BUILD_TESTING;IS_TOPLEVEL_PROJECT" OFF)
@@ -28,6 +34,11 @@ if(FSM_BUILD_TESTS)
     add_subdirectory(ext/Catch2)
     enable_testing()
 endif()
+
+if(FSM_OPT_BUILD_EXAMPLES)
+    add_subdirectory(example)   
+endif()
+
 
 set(MAGIC_ENUM_OPT_INSTALL ON) 
 add_subdirectory(ext/magic_enum)
@@ -67,8 +78,8 @@ add_subdirectory(libs/json)
 # Dynamic versioning
 find_package(Git)
 add_custom_target(version
-  ${CMAKE_COMMAND} -D SRC=${CMAKE_SOURCE_DIR}/include/version.h.in
-                   -D DST=${CMAKE_BINARY_DIR}/include/version.h
+  ${CMAKE_COMMAND} -D SRC=${PROJECT_SOURCE_DIR}/include/version.h.in
+                   -D DST=${CMAKE_BINARY_DIR}/fsm/version.h
                    -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
                    -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
   )
