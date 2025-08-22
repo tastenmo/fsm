@@ -57,12 +57,18 @@ struct Initial;
 struct Second;
 struct Third;
 
-struct Initial : state<Initial, Context> {
+using States = states<Initial, Second, Third>;
+
+using Machine = StateMachine<States, Context &>;
+
+using MachineWithOwnContext = StateMachine<States, Context>;
+
+struct Initial : state<Initial, Machine, Context> {
 
   // using state<StateInitial, StateContainer>::state;
 
-  Initial(Context &ctx) noexcept
-      : state(ctx), count1(0), value2(0), ctx_(ctx) {}
+  Initial(Machine &sm, Context &ctx) noexcept
+      : state(sm, ctx), count1(0), value2(0) {}
 
   void onEnter(const event1 &) { count1++; }
 
@@ -82,19 +88,18 @@ struct Initial : state<Initial, Context> {
   int count1;
   int value2;
 
-  Context &ctx_;
 };
 
-struct Second : state<Second, Context> {
+struct Second : state<Second, Machine, Context> {
 
-  //  using state<StateSecond, StateContainer>::state;
+  //using state<Second, StateContainer>::state;
 
-  Second(Context &ctx) noexcept : state(ctx), count1(0), ctx_(ctx) {}
+  Second(Machine &sm, Context &ctx) noexcept : state(sm, ctx), count1(0) {}
 
   void onEnter() {
     count1++;
-    ctx_.is_valid(true);
-    ctx_.value(ctx_.value() + 1);
+    context_.is_valid(true);
+    context_.value(context_.value() + 1);
   }
 
   auto transitionTo(const event2 &event) const
@@ -112,18 +117,17 @@ struct Second : state<Second, Context> {
 
   int count1;
 
-  Context &ctx_;
 };
 
-struct Third : state<Third, Context> {
+struct Third : state<Third, Machine, Context> {
 
-  Third(Context &ctx) noexcept : state(ctx), count1(0), ctx_(ctx) {}
+  Third(Machine &sm,Context &ctx) noexcept : state(sm, ctx), count1(0) {}
 
   void onEnter(const event2 &ev) {
     count1++;
-    ctx_.is_valid(false);
+    context_.is_valid(false);
     if (ev.value_ == 2) {
-      ctx_.value(10);
+      context_.value(10);
       // state_container_.emplace<StateInitial>();
     }
   }
@@ -134,13 +138,9 @@ struct Third : state<Third, Context> {
   // StateThird() : count1(0) {}
 
   int count1;
-  Context &ctx_;
+
 };
 
-using States = states<Initial, Second, Third>;
 
-using MachineWithReferenceContext = StateMachine<States, Context &>;
-
-using MachineWithOwnContext = StateMachine<States, Context>;
 
 } // namespace flat

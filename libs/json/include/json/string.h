@@ -56,7 +56,7 @@ using States = states<Initial, Content, Finished, Error>;
 
 using StateContainer = StateMachine<States, Context>;
 
-struct Initial : state<Initial, Context> {
+struct Initial : state<Initial, StateContainer, Context> {
 
   auto transitionInternalTo() -> transitions<Content, Error> const {
     if (context_.consume(stringTokenType::DOUBLE_QUOTE)) {
@@ -67,7 +67,7 @@ struct Initial : state<Initial, Context> {
   }
 };
 
-struct Content : state<Content, Context> {
+struct Content : state<Content, StateContainer, Context> {
 
   auto transitionInternalTo() -> transitions<Content, Finished> const {
     if (context_.isToken(stringTokenType::DOUBLE_QUOTE)) {
@@ -95,7 +95,7 @@ struct Content : state<Content, Context> {
   }
 };
 
-struct Finished : state<Finished, Context> {
+struct Finished : state<Finished, StateContainer, Context> {
 
   void onEnter() {
     context_.consume(stringTokenType::DOUBLE_QUOTE);
@@ -103,7 +103,7 @@ struct Finished : state<Finished, Context> {
   }
 };
 
-struct Error : state<Error, Context> {
+struct Error : state<Error, StateContainer, Context> {
 
   void onEnter() { ; }
 };

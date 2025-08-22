@@ -24,9 +24,13 @@ struct Running;
 struct Paused;
 struct Stopped;
 
-struct Initial : state<Initial, NoContext> {
+using States = states<Initial, Running, Paused, Stopped>;
 
-  using state<Initial, NoContext>::state;
+using Machine = StateMachine<States, NoContext &>;
+
+struct Initial : state<Initial, Machine, NoContext> {
+
+  using state<Initial, Machine, NoContext>::state;
 
   void onEnter() { std::cout << "Initial::onEnter()" << std::endl; }
 
@@ -38,9 +42,9 @@ struct Initial : state<Initial, NoContext> {
   auto transitionTo(const start &) { return sibling<Running>(); }
 };
 
-struct Running : state<Running, NoContext> {
+struct Running : state<Running, Machine, NoContext> {
 
-  using state<Running, NoContext>::state;
+  using state<Running, Machine, NoContext>::state;
 
   /**
    * @brief onEnter
@@ -66,9 +70,9 @@ struct Running : state<Running, NoContext> {
   auto transitionTo(const stop &) const { return sibling<Stopped>(); }
 };
 
-struct Paused : state<Paused, NoContext> {
+struct Paused : state<Paused, Machine, NoContext> {
 
-  using state<Paused, NoContext>::state;
+  using state<Paused, Machine, NoContext>::state;
 
   /**
    * @brief onEnter
@@ -94,9 +98,9 @@ struct Paused : state<Paused, NoContext> {
   auto transitionTo(const stop &) const { return sibling<Stopped>(); }
 };
 
-struct Stopped : state<Stopped, NoContext> {
+struct Stopped : state<Stopped, Machine, NoContext> {
 
-  using state<Stopped, NoContext>::state;
+  using state<Stopped, Machine, NoContext>::state;
 
   /**
    * @brief onEnter
@@ -106,7 +110,7 @@ struct Stopped : state<Stopped, NoContext> {
   void onEnter() { std::cout << "Stopped::onEnter()" << std::endl; }
 };
 
-using States = states<Initial, Running, Paused, Stopped>;
+
 
 int main() {
 
@@ -116,8 +120,8 @@ int main() {
 
   NoContext ctx;
 
-  StateMachine sm(mpl::type_identity<States>{}, ctx); // create a state machine
-
+  //StateMachine sm(mpl::type_identity<States>{}, ctx); // create a state machine
+  auto sm = Machine(mpl::type_identity<States>{}, ctx); // create a state machine with reference context
   sm.emplace<Initial>();
 
   sm.dispatch(start{});
