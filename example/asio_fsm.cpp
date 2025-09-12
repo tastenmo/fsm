@@ -45,12 +45,12 @@ struct Stopped;
 
 
 using States = states<Initial, Running, Paused, Stopped>;
-using Machine = StateMachine<States, Context &>;
+using Machine = StateMachine<States, Context>;
 
 
-struct Initial : state<Initial, Machine, Context> {
+struct Initial : state<Initial, Machine> {
 
-  using state<Initial, Machine, Context>::state;
+  using state<Initial, Machine>::state;
 
   void onEnter() { std::cout << "Initial::onEnter()" << std::endl; }
 
@@ -62,9 +62,9 @@ struct Initial : state<Initial, Machine, Context> {
   auto transitionTo(const start &) { return sibling<Running>(); }
 };
 
-struct Running : state<Running, Machine, Context> {
+struct Running : state<Running, Machine> {
 
-  using state<Running, Machine, Context>::state;
+  using state<Running, Machine>::state;
 
   /**
    * @brief onEnter
@@ -88,9 +88,9 @@ struct Running : state<Running, Machine, Context> {
   auto transitionTo(const stop &) const { return sibling<Stopped>(); }
 };
 
-struct Paused : state<Paused, Machine, Context> {
+struct Paused : state<Paused, Machine> {
 
-  using state<Paused, Machine, Context>::state;
+  using state<Paused, Machine>::state;
 
   /**
    * @brief onEnter
@@ -114,9 +114,9 @@ struct Paused : state<Paused, Machine, Context> {
   auto transitionTo(const stop &) const { return sibling<Stopped>(); }
 };
 
-struct Stopped : state<Stopped, Machine, Context> {
+struct Stopped : state<Stopped, Machine> {
 
-  using state<Stopped, Machine, Context>::state;
+  using state<Stopped, Machine>::state;
 
   /**
    * @brief onEnter
@@ -153,17 +153,17 @@ void Running::onEnter(const start &) {
 
     std::cout << "Running::onEnter(cost start &), timestamp: " << tp << std::endl;
 
-    context_.deadline.expires_after(std::chrono::seconds(5));
+    machine_.context().deadline.expires_after(std::chrono::seconds(5));
 
-    context_.deadline.async_wait([&sm = this->machine_](error_code ec) {
+    machine_.context().deadline.async_wait([this](error_code ec) {
 
-      if constexpr (std::is_lvalue_reference_v<decltype(sm)>) {
+      if constexpr (std::is_lvalue_reference_v<decltype(this->machine_)>) {
         std::cout << "sm is a lvalue_reference" << std::endl;
       } 
       
       if (!ec) {
         std::cout << "Running::deadline expired, transitioning to Stopped." << std::endl;
-         sm.dispatch(stop{}); // Dispatch stop event to transition to Stopped state
+         this->machine_.dispatch(stop{}); // Dispatch stop event to transition to Stopped state
       } 
       else if (ec == boost::asio::error::operation_aborted) {
         std::cout << "Running::deadline was cancelled." << std::endl;
@@ -184,13 +184,13 @@ void Paused::onEnter(const pausing &pause) {
 
      std::cout << "Paused::onEnter(cost pausing &), timestamp: " << tp << " value: " << pause.value_ << std::endl;
 
-    context_.deadline.expires_after(std::chrono::seconds(pause.value_));
+    machine_.context().deadline.expires_after(std::chrono::seconds(pause.value_));
 
-    context_.deadline.async_wait([&sm = this->machine_](error_code ec) {
-      
+    machine_.context().deadline.async_wait([this](error_code ec) {
+
       if (!ec) {
         std::cout << "Paused::deadline expired, transitioning back to Running." << std::endl;
-         sm.dispatch(start{}); // Dispatch stop event to transition to Stopped state
+         machine_.dispatch(start{}); // Dispatch stop event to transition to Stopped state
       } 
       else if (ec == boost::asio::error::operation_aborted) {
         std::cout << "Paused::deadline was cancelled." << std::endl;

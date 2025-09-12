@@ -1,5 +1,4 @@
 
-#include <fsm/state.h>
 #include <fsm/state_machine.h>
 
 using namespace escad::new_fsm;
@@ -9,24 +8,24 @@ namespace flat {
 class Context {
 
 public:
-  Context() : value_() { std::cout << "Context::Context()" << std::endl; }
+  Context() : value_() { std::cout << "flat::Context::Context()" << std::endl; }
 
   Context(int val) : value_(val) {
-    std::cout << "Context::Context(int val)" << std::endl;
+    std::cout << "flat::Context::Context(int val)" << std::endl;
   }
 
   Context(const Context &other)
       : is_valid_(other.is_valid()), value_(other.value()) {
-    std::cout << "Context::Context(const Context &other)" << std::endl;
+    std::cout << "flat::Context::Context(const Context &other)" << std::endl;
   }
 
   Context(Context &&other) noexcept
       : is_valid_(std::move(other.is_valid())),
         value_(std::move(other.value())) {
-    std::cout << "Context::Context(Context &&other)" << std::endl;
+    std::cout << "flat::Context::Context(Context &&other)" << std::endl;
   }
 
-  ~Context() { std::cout << "Context::~Context()" << std::endl; }
+  ~Context() { std::cout << "flat::Context::~Context()" << std::endl; }
 
   int value() const { return value_; }
 
@@ -59,16 +58,13 @@ struct Third;
 
 using States = states<Initial, Second, Third>;
 
-using Machine = StateMachine<States, Context &>;
+using Machine = StateMachine<States, Context>;
 
-using MachineWithOwnContext = StateMachine<States, Context>;
-
-struct Initial : state<Initial, Machine, Context> {
+struct Initial : state<Initial, Machine> {
 
   // using state<StateInitial, StateContainer>::state;
 
-  Initial(Machine &sm, Context &ctx) noexcept
-      : state(sm, ctx), count1(0), value2(0) {}
+  Initial(Machine &sm) noexcept;
 
   void onEnter(const event1 &) { count1++; }
 
@@ -90,17 +86,13 @@ struct Initial : state<Initial, Machine, Context> {
 
 };
 
-struct Second : state<Second, Machine, Context> {
+struct Second : state<Second, Machine> {
 
   //using state<Second, StateContainer>::state;
 
-  Second(Machine &sm, Context &ctx) noexcept : state(sm, ctx), count1(0) {}
+  Second(Machine &sm) noexcept;
 
-  void onEnter() {
-    count1++;
-    context_.is_valid(true);
-    context_.value(context_.value() + 1);
-  }
+  void onEnter();
 
   auto transitionTo(const event2 &event) const
       -> transitions<Initial, Second, Third> {
@@ -119,18 +111,10 @@ struct Second : state<Second, Machine, Context> {
 
 };
 
-struct Third : state<Third, Machine, Context> {
+struct Third : state<Third, Machine> {
 
-  Third(Machine &sm,Context &ctx) noexcept : state(sm, ctx), count1(0) {}
-
-  void onEnter(const event2 &ev) {
-    count1++;
-    context_.is_valid(false);
-    if (ev.value_ == 2) {
-      context_.value(10);
-      // state_container_.emplace<StateInitial>();
-    }
-  }
+  Third(Machine &sm) noexcept;
+  void onEnter(const event2 &ev);
 
   // auto transitionTo(const event2 &) const { return handled(); }
   // auto transitionTo(const event1 &) const { return handled(); }
@@ -140,7 +124,6 @@ struct Third : state<Third, Machine, Context> {
   int count1;
 
 };
-
 
 
 } // namespace flat

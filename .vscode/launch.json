@@ -13,5 +13,11 @@
             "stopOnEntry": true,
             "cwd": "${workspaceFolder}"
         },
+        {
+            "name": "TestDebugConfig",
+            "type": "cppdbg",
+            "request": "launch",
+            "stopAtEntry": true
+        }
     ]
 }

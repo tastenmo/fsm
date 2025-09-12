@@ -5,33 +5,34 @@
 
 namespace escad::new_fsm {
 
-template <class Derived, class NestedMachine, class Context = detail::NoContext>
-class composite_state : public state<Derived, Context> {
+template <class Derived, class NestedMachine, class Machine>
+class composite_state : public state<Derived, Machine> {
 
 public:
-  composite_state(Context &context, NestedMachine &&nested)
-      : state<Derived, Context>{context}, nested_(nested) {}
+  composite_state(NestedMachine &&nested, Machine &machine)
+      : state<Derived, Machine>(machine), nested_(nested) {}
 
   template <class Event> bool dispatch(const Event &event) {
-    return nested_.dispatch(event);
+    return nested().dispatch(event);
   }
 
   template <class State> auto nested_in() const {
-    return nested_.template is_in<State>();
+    return nested().template is_in<State>();
   }
 
   template <class State> auto &nested_state() {
-    return nested_.template state<State>();
+    return nested().template state<State>();
   }
 
   template <class State> void nested_emplace() {
-    nested_.template emplace<State>();
+    nested().template emplace<State>();
   }
 
-  mpl::const_reference_t<NestedMachine> nested() { return nested_; }
+  auto& nested() { return nested_.get(); }
+  const auto& nested() const { return nested_.get(); }
 
 private:
-  NestedMachine nested_;
+  std::reference_wrapper<NestedMachine> nested_;
 };
 
 } // namespace escad::new_fsm

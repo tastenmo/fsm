@@ -36,28 +36,28 @@ void Third::onEnter(const event2 &ev) {
 struct event1 {};
 
 struct Initial;
-struct CompositeRef;
+struct Composite;
 struct Finished;
 struct Error;
 
 using Context = flat::Context;
 
-using States = states<Initial, CompositeRef, Finished>;
+using States = states<Initial, Composite, Finished>;
 using Machine = StateMachine<States, Context>;
 
 struct Initial : state<Initial, Machine> {
 
-  using state<Initial, Machine>::state;
-
+    using state<Initial, Machine>::state;
+    
   void onEnter();
 
-  auto transitionTo(const event1 &) { return sibling<CompositeRef>(); }
+  auto transitionTo(const event1 &) { return sibling<Composite>(); }
 };
 
-struct CompositeRef
-    : composite_state<CompositeRef, flat::Machine, Machine> {
+struct Composite
+    : composite_state<Composite, flat::Machine, Machine> {
 
-  CompositeRef(Machine &sm) noexcept;
+  Composite(Machine &sm) noexcept;
 
   void onEnter(const event1 &);
 
@@ -91,16 +91,15 @@ void Initial::onEnter() {
   }
 
 
-  CompositeRef::CompositeRef(Machine &sm) noexcept
+  Composite::Composite(Machine &sm) noexcept
       : composite_state(flat::Machine(
-                                 mpl::type_identity<flat::States>{}, sm.context()), sm) {
+                                 mpl::type_identity<flat::States>{}, flat::Context{42}), sm) {
     nested_emplace<flat::Initial>();
   }
 
-  void CompositeRef::onEnter(const event1 &) { context().value(10); }
+  void Composite::onEnter(const event1 &) { context().value(10); }
 
-
-    void Finished::onEnter() {
+void Finished::onEnter() {
     context().is_valid(false);
     context().value(0);
   }
@@ -109,7 +108,6 @@ void Initial::onEnter() {
     context().is_valid(false);
     context().value(0);
   }
-
 
 // State Constructors
 
@@ -134,43 +132,43 @@ TEST_CASE("composite_state", "[new_fsm]") {
   REQUIRE(ctx_.is_valid());
   REQUIRE(ctx_.value() == 1);
 
-  std::cout << "dispatch event1, --> CompositeRef" << std::endl;
+  std::cout << "dispatch event1, --> Composite" << std::endl;
 
   auto result = fsm.dispatch(event1{});
   REQUIRE(result);
 
   // REQUIRE(result);
-  REQUIRE(fsm.is_in<CompositeRef>());
+  REQUIRE(fsm.is_in<Composite>());
 
-  REQUIRE(&ctx_ == &fsm.state<CompositeRef>().context());
-  REQUIRE(&ctx_ == &fsm.state<CompositeRef>().nested().context());
+  REQUIRE(&ctx_ == &fsm.state<Composite>().context());
+  REQUIRE_FALSE(&ctx_ == &fsm.state<Composite>().nested().context());
 
   // Context is nor copied here????
   REQUIRE(fsm.context().is_valid());
   REQUIRE(fsm.context().value() == 10);
 
-  auto nested = fsm.state<CompositeRef>().nested_state<flat::Initial>();
+  auto nested = fsm.state<Composite>().nested();
 
-  REQUIRE(nested.context().is_valid());
-  REQUIRE(nested.context().value() == 10);
+  CHECK(nested.context().is_valid());
+  CHECK(nested.context().value() == 42);
 
   result = fsm.dispatch(flat::event1{});
   REQUIRE(result);
 
-  REQUIRE(fsm.state<CompositeRef>().nested_in<flat::Second>());
+  REQUIRE(fsm.state<Composite>().nested_in<flat::Second>());
 
   REQUIRE(ctx_.value() == 11);
 
   result = fsm.dispatch(flat::event2{0});
   REQUIRE(result);
 
-  REQUIRE(fsm.state<CompositeRef>().nested_in<flat::Second>());
+  REQUIRE(fsm.state<Composite>().nested_in<flat::Second>());
   REQUIRE(ctx_.value() == 12);
 
   result = fsm.dispatch(flat::event2{2});
   REQUIRE(result);
 
-  REQUIRE(fsm.state<CompositeRef>().nested_in<flat::Third>());
+  REQUIRE(fsm.state<Composite>().nested_in<flat::Third>());
   REQUIRE(ctx_.is_valid() == false);
   REQUIRE(ctx_.value() == 10);
 

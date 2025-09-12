@@ -40,11 +40,9 @@ namespace escad::new_fsm {
  *
  * @tparam States The type representing the list of states in the FSM.
  */
-template <class States, class Context = detail::NoContext> class StateMachine {
+template <class States, class Context> class StateMachine {
 public:
   using type_list = typename States::type_list;
-
-  using ctx = Context;
 
   using states_variant_list =
       typename mpl::type_list_push_front<type_list, std::monostate>::result;
@@ -67,8 +65,12 @@ public:
    * the constructor.
    * @param context The context object.
    */
+  explicit StateMachine(mpl::type_identity<States>, Context &context)
+      : context_(context) {}
+
   explicit StateMachine(mpl::type_identity<States>, Context &&context)
-      : context_(std::forward<Context>(context)) {}
+      : context_(context) {}
+
 
   /**
    * @brief Emplaces a state of type State into the variant.
@@ -79,12 +81,9 @@ public:
    * @tparam State The type of the state to be emplaced.
    */
   template <class State> void emplace() {
-    if constexpr (std::is_constructible_v<State, StateMachine&, Context &>) {
-      states_.template emplace<State>(*this, context_);
-    } else {
-      states_.template emplace<State>(*this);
-    }
-
+ 
+    states_.template emplace<State>(*this);
+    
     std::visit(overloaded{[](auto &state) { state.enter(); },
                           [](std::monostate) { ; }},
                states_);
@@ -108,12 +107,9 @@ public:
    * @param e The event to be passed to the state.
    */
   template <class State, class Event> void emplace(Event const &e) {
-    if constexpr (std::is_constructible_v<State, StateMachine&, Context &>) {
-      states_.template emplace<State>(*this, context_);
-    } else {
       states_.template emplace<State>(*this);
-    }
-    std::visit(overloaded{[&e](auto &state) {
+
+      std::visit(overloaded{[&e](auto &state) {
                             // state.enter();
                             if (!state.enter(e)) {
                               state.enter();
@@ -287,11 +283,11 @@ public:
    *
    * @return A const reference to the context object.
    */
-  mpl::const_reference_t<Context> context() const { return context_; }
+  auto& context() const { return context_.get(); }
 
 private:
   states_variant states_;
-  Context context_;
+  std::reference_wrapper<Context> context_;
 };
 
 /**

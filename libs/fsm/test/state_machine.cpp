@@ -10,42 +10,55 @@
 
 using namespace escad::new_fsm;
 
+struct noContext {};
+
 struct event1 {};
 
-struct myStates {
+// Forward declarations for states
+struct Initial;
+struct Second;
+struct Third;
 
-  struct Initial : state<Initial> {
+using States = states<Initial, Second, Third>;
+using Machine = StateMachine<States, noContext>;
+
+
+
+  struct Initial : state<Initial, Machine> {
+    using state<Initial, Machine>::state;
+
     void enter() { std::cout << "Initial" << std::endl; }
     auto transition(const event1 &) { return sibling<Second>(); }
   };
 
-  struct Second : state<Second> {
+  struct Second : state<Second, Machine> {
+    using state<Second, Machine>::state;
     void enter() { std::cout << "Second" << std::endl; }
     auto transition(const event1 &) { return sibling<Third>(); }
   };
 
-  struct Third : state<Third> {
+  struct Third : state<Third, Machine> {
+    using state<Third, Machine>::state;
     void enter() { std::cout << "Third" << std::endl; }
     auto transition(const event1 &) { return sibling<Initial>(); }
   };
-};
 
-using States = states<myStates::Initial, myStates::Second, myStates::Third>;
+
 
 TEST_CASE("state_variant no ctx", "[new_fsm]") {
 
-  auto fsm = StateMachine(mpl::type_identity<States>{}, {});
+  auto fsm = Machine(mpl::type_identity<States>{}, noContext{});
 
   auto mono = fsm.state<std::monostate>();
 
   STATIC_REQUIRE(std::is_same_v<decltype(mono), std::monostate>);
 
-  fsm.emplace<myStates::Initial>();
+  fsm.emplace<Initial>();
 
-  REQUIRE(fsm.is_in<myStates::Initial>());
-  auto Initial = fsm.state<myStates::Initial>();
+  REQUIRE(fsm.is_in<Initial>());
+  auto initial = fsm.state<Initial>();
 
-  STATIC_REQUIRE(std::is_same_v<decltype(Initial), myStates::Initial>);
+  STATIC_REQUIRE(std::is_same_v<decltype(initial), Initial>);
   REQUIRE(fsm.valueless_by_exception() == false);
 }
 
@@ -53,41 +66,49 @@ struct Ctx {
   int i = 0;
 };
 
-struct myStatesCtx {
+// Forward declarations for states
+struct InitialCtx;
+struct SecondCtx;
+struct ThirdCtx;
 
-  struct Initial : state<Initial, Ctx> {
+using StatesCtx = states<InitialCtx, SecondCtx, ThirdCtx>;
+using MachineCtx = StateMachine<StatesCtx, Ctx>;
+//using MachineLCtx = StateMachine<StatesCtx, Ctx &>;
+
+
+  struct InitialCtx : state<InitialCtx, MachineCtx> {
+    using state<InitialCtx, MachineCtx>::state;
     void enter() { std::cout << "Initial" << std::endl; }
-    auto transition(const event1 &) { return sibling<Second>(); }
+    auto transition(const event1 &) { return sibling<SecondCtx>(); }
   };
 
-  struct Second : state<Second, Ctx> {
+  struct SecondCtx : state<SecondCtx, MachineCtx> {
+    using state<SecondCtx, MachineCtx>::state;
     void enter() { std::cout << "Second" << std::endl; }
-    auto transition(const event1 &) { return sibling<Third>(); }
+    auto transition(const event1 &) { return sibling<ThirdCtx>(); }
   };
 
-  struct Third : state<Third> {
+  struct ThirdCtx : state<ThirdCtx, MachineCtx> {
+    using state<ThirdCtx, MachineCtx>::state;
     void enter() { std::cout << "Third" << std::endl; }
-    auto transition(const event1 &) { return sibling<Initial>(); }
+    auto transition(const event1 &) { return sibling<InitialCtx>(); }
   };
-};
 
-using StatesCtx =
-    states<myStatesCtx::Initial, myStatesCtx::Second, myStatesCtx::Third>;
 
 TEST_CASE("state_variant rvalue ctx", "[new_fsm]") {
 
-  auto fsm = StateMachine(mpl::type_identity<StatesCtx>{}, Ctx{});
+  auto fsm = MachineCtx(mpl::type_identity<StatesCtx>{}, Ctx{});
 
   auto mono = fsm.state<std::monostate>();
 
   STATIC_REQUIRE(std::is_same_v<decltype(mono), std::monostate>);
 
-  fsm.emplace<myStatesCtx::Initial>();
+  fsm.emplace<InitialCtx>();
 
-  REQUIRE(fsm.is_in<myStatesCtx::Initial>());
-  auto Initial = fsm.state<myStatesCtx::Initial>();
+  REQUIRE(fsm.is_in<InitialCtx>());
+  auto Initial = fsm.state<InitialCtx>();
 
-  STATIC_REQUIRE(std::is_same_v<decltype(Initial), myStatesCtx::Initial>);
+  STATIC_REQUIRE(std::is_same_v<decltype(Initial), InitialCtx>);
 
   STATIC_REQUIRE(
       std::is_same_v<decltype(fsm.context()), decltype(Initial.context())>);
@@ -97,18 +118,18 @@ TEST_CASE("state_variant lvalue ctx", "[new_fsm]") {
 
   Ctx ctx(1);
 
-  auto fsm = StateMachine(mpl::type_identity<StatesCtx>{}, ctx);
+  auto fsm = MachineCtx(mpl::type_identity<StatesCtx>{}, std::forward<Ctx>(ctx));
 
   auto mono = fsm.state<std::monostate>();
 
   STATIC_REQUIRE(std::is_same_v<decltype(mono), std::monostate>);
 
-  fsm.emplace<myStatesCtx::Initial>();
+  fsm.emplace<InitialCtx>();
 
-  REQUIRE(fsm.is_in<myStatesCtx::Initial>());
-  auto Initial = fsm.state<myStatesCtx::Initial>();
+  REQUIRE(fsm.is_in<InitialCtx>());
+  auto Initial = fsm.state<InitialCtx>();
 
-  STATIC_REQUIRE(std::is_same_v<decltype(Initial), myStatesCtx::Initial>);
+  STATIC_REQUIRE(std::is_same_v<decltype(Initial), InitialCtx>);
 
   STATIC_REQUIRE(
       std::is_same_v<decltype(fsm.context()), decltype(Initial.context())>);

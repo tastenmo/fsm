@@ -57,8 +57,6 @@ namespace new_fsm {
 
 namespace detail {
 
-struct NoContext {};
-
 struct InternalEvent {};
 
 /**
@@ -199,12 +197,11 @@ template <class... S> struct states {
  * @tparam Derived
  * @tparam StateContainer
  */
-template <class Derived, class Machine, class Context = detail::NoContext> struct state {
-  using sm = Machine;
-  using ctx = Context;
+template <class Derived, class Machine> struct state {
+//  using Sm = Machine;
 
   // state() : context_{} {}
-  state(Machine &sm, Context &context) : machine_(sm), context_(context) {}
+  state(Machine &sm) : machine_(sm) {}
 
   /**
    * @brief Calls onEnter(const Event &event) of Derived if it exists.
@@ -307,16 +304,15 @@ template <class Derived, class Machine, class Context = detail::NoContext> struc
     machine_.dispatch(event);
   }
 
-  const Context &context() { return context_; }
-  const Machine &machine() { return machine_; }
+  auto& context() { return machine_.context(); }
+  auto& machine() { return machine_; }
 
 protected:
   /**
-   * @brief Reference to the Context.
+   * @brief Reference to the Machine.
    */
   Machine &machine_;
-  Context &context_;
-
+ 
 
 };
 
