@@ -113,7 +113,7 @@ void Initial::onEnter() {
 
 // State Constructors
 
-TEST_CASE("composite_state", "[new_fsm]") {
+TEST_CASE("composite_state shared context", "[new_fsm]") {
 
   std::cout << "start" << std::endl;
 
@@ -149,7 +149,7 @@ TEST_CASE("composite_state", "[new_fsm]") {
   REQUIRE(fsm.context().is_valid());
   REQUIRE(fsm.context().value() == 10);
 
-  auto nested = fsm.state<CompositeRef>().nested_state<flat::Initial>();
+  auto& nested = fsm.state<CompositeRef>().nested_state<flat::Initial>();
 
   REQUIRE(nested.context().is_valid());
   REQUIRE(nested.context().value() == 10);

@@ -2,6 +2,7 @@
 
 #include "state.h"
 #include "state_machine.h"
+#include "context.h"
 
 namespace escad::new_fsm {
 
@@ -10,7 +11,7 @@ class composite_state : public state<Derived, Machine> {
 
 public:
   composite_state(NestedMachine &&nested, Machine &machine)
-      : state<Derived, Machine>(machine), nested_(nested) {}
+      : state<Derived, Machine>(machine), nested_(std::move(nested)) {}
 
   template <class Event> bool dispatch(const Event &event) {
     return nested().dispatch(event);
@@ -28,11 +29,14 @@ public:
     nested().template emplace<State>();
   }
 
-  auto& nested() { return nested_.get(); }
-  const auto& nested() const { return nested_.get(); }
+  auto& nested() { return nested_; }
+  const auto& nested() const { return nested_; }
+
+  auto& nested_context() { return nested_.context(); }
+  const auto& nested_context() const { return nested_.context(); }
 
 private:
-  std::reference_wrapper<NestedMachine> nested_;
+  NestedMachine nested_;
 };
 
 } // namespace escad::new_fsm

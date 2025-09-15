@@ -28,6 +28,7 @@
 
 #include "state.h"
 #include "transition.h"
+#include <fsm/context.h>
 
 namespace escad::new_fsm {
 
@@ -40,7 +41,7 @@ namespace escad::new_fsm {
  *
  * @tparam States The type representing the list of states in the FSM.
  */
-template <class States, class Context> class StateMachine {
+template <class States, class Context> class StateMachine  {
 public:
   using type_list = typename States::type_list;
 
@@ -50,6 +51,7 @@ public:
   // transform a type list to a corresponding variant
   using states_variant =
       typename mpl::type_list_rename<states_variant_list, std::variant>::result;
+
 
   /**
    * @brief Default constructor for the state_variant class.
@@ -69,7 +71,7 @@ public:
       : context_(context) {}
 
   explicit StateMachine(mpl::type_identity<States>, Context &&context)
-      : context_(context) {}
+      : context_(std::forward<Context>(context)) {}
 
 
   /**
@@ -283,11 +285,13 @@ public:
    *
    * @return A const reference to the context object.
    */
-  auto& context() const { return context_.get(); }
+  auto& context() { return context_.get(); }
+
+  auto const& context() const { return context_.get(); }
 
 private:
   states_variant states_;
-  std::reference_wrapper<Context> context_;
+  ContextWrapper<Context> context_;
 };
 
 /**
@@ -302,8 +306,8 @@ private:
  * constructor.
  * @param context The context object.
  */
-template <class States, class Context>
-explicit StateMachine(mpl::type_identity<States>,
-                      Context &&) -> StateMachine<States, Context>;
+//template <class States, class Context>
+//explicit StateMachine(mpl::type_identity<States>,
+//                      Context &&) -> StateMachine<States, Context>;
 
 } // namespace escad::new_fsm

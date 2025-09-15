@@ -22,7 +22,7 @@ public:
   Context(Context &&other) noexcept
       : is_valid_(std::move(other.is_valid())),
         value_(std::move(other.value())) {
-    std::cout << "flat::Context::Context(Context &&other)" << std::endl;
+    std::cout << "flat::Context::Context(Context &&other) value=" << value_  << std::endl;
   }
 
   ~Context() { std::cout << "flat::Context::~Context()" << std::endl; }
