@@ -4,7 +4,7 @@
 #include "state_machine.h"
 #include <memory>
 
-namespace escad::new_fsm {
+namespace spie::fsm {
 
 template <class Derived, class NestedMachine, class Context = detail::NoContext>
 class recursive_state : public state<Derived, Context> {
@@ -38,4 +38,4 @@ private:
   std::shared_ptr<NestedMachine> nested_;
 };
 
-} // namespace escad::new_fsm
+} // namespace spie::fsm

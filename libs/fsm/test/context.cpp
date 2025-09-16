@@ -8,31 +8,29 @@
 
 #include "flat_fsm.h"
 
-using namespace escad::new_fsm;
+using namespace spie::fsm;
 
 namespace flat {
 
-Initial::Initial(Machine &sm) noexcept
-      : state(sm), count1(0), value2(0) {}
+Initial::Initial(Machine &sm) noexcept : state(sm), count1(0), value2(0) {}
 
 Second::Second(Machine &sm) noexcept : state(sm), count1(0) {}
 
 void Second::onEnter() {
-    count1++;
-    machine_.context().is_valid(true);
-    machine_.context().value(machine_.context().value() + 1);
-  }
+   count1++;
+   machine_.context().is_valid(true);
+   machine_.context().value(machine_.context().value() + 1);
+}
 
 Third::Third(Machine &sm) noexcept : state(sm), count1(0) {}
 
-
 void Third::onEnter(const event2 &ev) {
-    count1++;
-    machine_.context().is_valid(false);
-    machine_.context().value(10);
-  }
-
+   count1++;
+   machine_.context().is_valid(false);
+   machine_.context().value(10);
 }
+
+} // namespace flat
 
 // State Constructors
 
@@ -46,145 +44,143 @@ auto myStatePrinter = escad::overloaded{
 
 TEST_CASE("Context reference", "[new_fsm]") {
 
-  std::cout << "start" << std::endl;
+   std::cout << "start" << std::endl;
 
-  flat::Context ctx_;
+   flat::Context ctx_;
 
-  auto fsm = flat::Machine(mpl::type_identity<flat::States>{}, ctx_);
-  fsm.emplace<flat::Initial>();
+   auto fsm = flat::Machine(mpl::type_identity<flat::States>{}, ctx_);
+   fsm.emplace<flat::Initial>();
 
-  //REQUIRE(&ctx_ == &fsm.context());
+   // REQUIRE(&ctx_ == &fsm.context());
 
-  std::cout << "fsm constructed" << std::endl;
-  // Context is copied here!!!!
-  auto ctx1 = fsm.context();
+   std::cout << "fsm constructed" << std::endl;
+   // Context is copied here!!!!
+   auto ctx1 = fsm.context();
 
-  REQUIRE(&ctx_ != &ctx1);
+   REQUIRE(&ctx_ != &ctx1);
 
-  const flat::Context &ctx2 = fsm.context();
-  REQUIRE(&ctx_ == &ctx2);
+   const flat::Context &ctx2 = fsm.context();
+   REQUIRE(&ctx_ == &ctx2);
 
-  auto& ctx = fsm.context();
+   auto &ctx = fsm.context();
 
-  REQUIRE(&ctx == &ctx_);
+   REQUIRE(&ctx == &ctx_);
 
-  std::cout << "after fsm.context()" << std::endl;
+   std::cout << "after fsm.context()" << std::endl;
 
-  REQUIRE_FALSE(ctx.is_valid());
-  REQUIRE(ctx.value() == 0);
+   REQUIRE_FALSE(ctx.is_valid());
+   REQUIRE(ctx.value() == 0);
 
-  REQUIRE(fsm.is_in<flat::Initial>());
+   REQUIRE(fsm.is_in<flat::Initial>());
 
-  REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
-  REQUIRE(fsm.state<flat::Initial>().context().value() == 0);
+   REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
+   REQUIRE(fsm.state<flat::Initial>().context().value() == 0);
 
-  auto result = fsm.dispatch(flat::event1{});
+   auto result = fsm.dispatch(flat::event1{});
 
-  // REQUIRE(result);
-  REQUIRE(fsm.is_in<flat::Second>());
+   // REQUIRE(result);
+   REQUIRE(fsm.is_in<flat::Second>());
 
-  // Context is nor copied here????
-  REQUIRE(fsm.context().is_valid());
-  REQUIRE(fsm.context().value() == 1);
+   // Context is nor copied here????
+   REQUIRE(fsm.context().is_valid());
+   REQUIRE(fsm.context().value() == 1);
 
-  auto state2 = fsm.state<flat::Second>();
+   auto state2 = fsm.state<flat::Second>();
 
-  REQUIRE(state2.count1 == 1);
-  REQUIRE(state2.context().is_valid());
-  REQUIRE(state2.context().value() == 1);
+   REQUIRE(state2.count1 == 1);
+   REQUIRE(state2.context().is_valid());
+   REQUIRE(state2.context().value() == 1);
 
-  // state2.dispatch(event2{2});
-  auto result2 = fsm.dispatch(flat::event2{2});
+   // state2.dispatch(event2{2});
+   auto result2 = fsm.dispatch(flat::event2{2});
 
-  REQUIRE(fsm.is_in<flat::Third>());
-  REQUIRE_FALSE(fsm.context().is_valid());
-  REQUIRE(fsm.context().value() == 10);
+   REQUIRE(fsm.is_in<flat::Third>());
+   REQUIRE_FALSE(fsm.context().is_valid());
+   REQUIRE(fsm.context().value() == 10);
 }
 
 TEST_CASE("Context instantiated reference", "[new_fsm]") {
 
-  flat::Context ctx_(42);
+   flat::Context ctx_(42);
 
-  auto fsm = flat::Machine(mpl::type_identity<flat::States>{}, ctx_);
-  fsm.emplace<flat::Initial>();
+   auto fsm = flat::Machine(mpl::type_identity<flat::States>{}, ctx_);
+   fsm.emplace<flat::Initial>();
 
-  ///
-  // REQUIRE(&ctx_ == &fsm.context());
+   ///
+   // REQUIRE(&ctx_ == &fsm.context());
 
-  auto& ctx = fsm.context();
+   auto &ctx = fsm.context();
 
-  REQUIRE(&ctx == &ctx_);
+   REQUIRE(&ctx == &ctx_);
 
-  REQUIRE_FALSE(ctx.is_valid());
-  REQUIRE(ctx.value() == 42);
+   REQUIRE_FALSE(ctx.is_valid());
+   REQUIRE(ctx.value() == 42);
 
-  REQUIRE(fsm.is_in<flat::Initial>());
+   REQUIRE(fsm.is_in<flat::Initial>());
 
-  REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
-  REQUIRE(fsm.state<flat::Initial>().context().value() == 42);
+   REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
+   REQUIRE(fsm.state<flat::Initial>().context().value() == 42);
 
-  auto result = fsm.dispatch(flat::event1{});
+   auto result = fsm.dispatch(flat::event1{});
 
-  // REQUIRE(result);
-  REQUIRE(fsm.is_in<flat::Second>());
+   // REQUIRE(result);
+   REQUIRE(fsm.is_in<flat::Second>());
 
-  // Context is nor copied here????
-  REQUIRE(fsm.context().is_valid());
-  REQUIRE(fsm.context().value() == 43);
+   // Context is nor copied here????
+   REQUIRE(fsm.context().is_valid());
+   REQUIRE(fsm.context().value() == 43);
 
-  auto state2 = fsm.state<flat::Second>();
+   auto state2 = fsm.state<flat::Second>();
 
-  REQUIRE(state2.count1 == 1);
-  REQUIRE(state2.context().is_valid());
-  REQUIRE(state2.context().value() == 43);
+   REQUIRE(state2.count1 == 1);
+   REQUIRE(state2.context().is_valid());
+   REQUIRE(state2.context().value() == 43);
 
-  // state2.dispatch(event2{2});
-  auto result2 = fsm.dispatch(flat::event2{2});
+   // state2.dispatch(event2{2});
+   auto result2 = fsm.dispatch(flat::event2{2});
 
-  REQUIRE(fsm.is_in<flat::Third>());
-  REQUIRE_FALSE(fsm.context().is_valid());
-  REQUIRE(fsm.context().value() == 10);
+   REQUIRE(fsm.is_in<flat::Third>());
+   REQUIRE_FALSE(fsm.context().is_valid());
+   REQUIRE(fsm.context().value() == 10);
 }
-
-
 
 TEST_CASE("Context implicit", "[new_fsm]") {
 
-  auto fsm =
-      flat::Machine(mpl::type_identity<flat::States>{}, flat::Context{42});
-  fsm.emplace<flat::Initial>();
+   auto fsm =
+       flat::Machine(mpl::type_identity<flat::States>{}, flat::Context{42});
+   fsm.emplace<flat::Initial>();
 
-  auto& ctx = fsm.context();
+   auto &ctx = fsm.context();
 
-  REQUIRE_FALSE(ctx.is_valid());
-  REQUIRE(ctx.value() == 42);
+   REQUIRE_FALSE(ctx.is_valid());
+   REQUIRE(ctx.value() == 42);
 
-  REQUIRE(fsm.is_in<flat::Initial>());
+   REQUIRE(fsm.is_in<flat::Initial>());
 
-  fsm.emplace<flat::Initial>();
+   fsm.emplace<flat::Initial>();
 
-  REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
-  REQUIRE(fsm.state<flat::Initial>().context().value() == 42);
+   REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
+   REQUIRE(fsm.state<flat::Initial>().context().value() == 42);
 
-  auto result = fsm.dispatch(flat::event1{});
+   auto result = fsm.dispatch(flat::event1{});
 
-  // REQUIRE(result);
-  REQUIRE(fsm.is_in<flat::Second>());
+   // REQUIRE(result);
+   REQUIRE(fsm.is_in<flat::Second>());
 
-  // Context is nor copied here????
-  REQUIRE(fsm.context().is_valid());
-  REQUIRE(fsm.context().value() == 43);
+   // Context is nor copied here????
+   REQUIRE(fsm.context().is_valid());
+   REQUIRE(fsm.context().value() == 43);
 
-  auto state2 = fsm.state<flat::Second>();
+   auto state2 = fsm.state<flat::Second>();
 
-  REQUIRE(state2.count1 == 1);
-  REQUIRE(state2.context().is_valid());
-  REQUIRE(state2.context().value() == 43);
+   REQUIRE(state2.count1 == 1);
+   REQUIRE(state2.context().is_valid());
+   REQUIRE(state2.context().value() == 43);
 
-  // state2.dispatch(event2{2});
-  auto result2 = fsm.dispatch(flat::event2{2});
+   // state2.dispatch(event2{2});
+   auto result2 = fsm.dispatch(flat::event2{2});
 
-  REQUIRE(fsm.is_in<flat::Third>());
-  REQUIRE_FALSE(fsm.context().is_valid());
-  REQUIRE(fsm.context().value() == 10);
+   REQUIRE(fsm.is_in<flat::Third>());
+   REQUIRE_FALSE(fsm.context().is_valid());
+   REQUIRE(fsm.context().value() == 10);
 }

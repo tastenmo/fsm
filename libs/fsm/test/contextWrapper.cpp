@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <fsm/context.h>
 
-using namespace escad::new_fsm;
+using namespace spie::fsm;
 
 struct Context {
    int value;

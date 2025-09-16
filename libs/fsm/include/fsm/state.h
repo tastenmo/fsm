@@ -12,8 +12,8 @@
  * @version 0.1
  * @date 2023-02-23
  *
- * @namespace escad
- * @namespace new_fsm
+ * @namespace spie
+ * @namespace fsm
  */
 
 #pragma once
@@ -24,36 +24,8 @@
 #include "transition.h"
 #include <core/type_traits.h>
 
-namespace escad {
-/**
- * @file state.h
- * @brief Defines the state class and helper templates for state management in a
- * finite state machine.
- *
- * This file contains the implementation of the state class, which is a CRTP
- * (Curiously Recurring Template Pattern) base class for states in a finite
- * state machine. It also includes helper templates for detecting the presence
- * of certain methods in derived state classes.
- *
- * The state class provides methods for handling state entry, event dispatching,
- * and state transitions. It uses SFINAE (Substitution Failure Is Not An Error)
- * and type traits to conditionally call methods based on their existence in the
- * derived state class.
- *
- * The helper templates in the details namespace are used to detect the presence
- * of the following methods in the derived state class:
- * - onEnter(): Called when entering the state without an event.
- * - onEnter(const Event&): Called when entering the state with an event.
- * - transitionTo(const Event&): Called to transition to another state based on
- * an event.
- *
- * The state class also includes a handle_result() method for handling the
- * result of state transitions and a dispatch() method for dispatching events to
- * the state.
- *
- * This file is part of the new_fsm namespace.
- */
-namespace new_fsm {
+namespace spie {
+namespace fsm {
 
 namespace detail {
 
@@ -187,8 +159,8 @@ inline constexpr bool has_transitionInternalTo_v =
  * Defines a set of states. This is used as a parameter to a StateContainer.
  **/
 template <class... S> struct states {
-  using type_list = mpl::type_list<S...>;
-  static constexpr auto count = type_list::size;
+   using type_list = mpl::type_list<S...>;
+   static constexpr auto count = type_list::size;
 };
 
 /**
@@ -198,123 +170,120 @@ template <class... S> struct states {
  * @tparam StateContainer
  */
 template <class Derived, class Machine> struct state {
-//  using Sm = Machine;
+   //  using Sm = Machine;
 
-  // state() : context_{} {}
-  state(Machine &sm) : machine_(sm) {}
+   // state() : context_{} {}
+   state(Machine &sm) : machine_(sm) {}
 
-  /**
-   * @brief Calls onEnter(const Event &event) of Derived if it exists.
-   *
-   * @tparam Target The Derived type.
-   * @tparam Event The Event type.
-   * @param event The event object.
-   * @return decltype(std::declval<Target>().onEnter(event), void())
-   */
-  template <class Target = Derived, class Event>
-  bool enter(const Event &event) {
-    if constexpr (detail::has_onEnterWithEvent_v<Target, Event>) {
-      static_cast<Target *>(this)->onEnter(event);
-      return true;
-    }
-    return false;
-  }
+   /**
+    * @brief Calls onEnter(const Event &event) of Derived if it exists.
+    *
+    * @tparam Target The Derived type.
+    * @tparam Event The Event type.
+    * @param event The event object.
+    * @return decltype(std::declval<Target>().onEnter(event), void())
+    */
+   template <class Target = Derived, class Event>
+   bool enter(const Event &event) {
+      if constexpr (detail::has_onEnterWithEvent_v<Target, Event>) {
+         static_cast<Target *>(this)->onEnter(event);
+         return true;
+      }
+      return false;
+   }
 
-  /**
-   * @brief Calls onEnter() of Derived if it exists.
-   *
-   * @tparam Target The Derived type.
-   * @return decltype(std::declval<Target>().onEnter(), void())
-   *
-   * @see https://arne-mertz.de/2017/01/decltype-declval/
-   */
-  template <class Target = Derived> bool enter() {
-    if constexpr (detail::has_onEnter_v<Target>) {
-      static_cast<Target *>(this)->onEnter();
-      return true;
-    }
-    return false;
-  }
+   /**
+    * @brief Calls onEnter() of Derived if it exists.
+    *
+    * @tparam Target The Derived type.
+    * @return decltype(std::declval<Target>().onEnter(), void())
+    *
+    * @see https://arne-mertz.de/2017/01/decltype-declval/
+    */
+   template <class Target = Derived> bool enter() {
+      if constexpr (detail::has_onEnter_v<Target>) {
+         static_cast<Target *>(this)->onEnter();
+         return true;
+      }
+      return false;
+   }
 
-  template <class Target = Derived> bool exit() {
-    if constexpr (detail::has_onExit_v<Target>) {
-      static_cast<Target *>(this)->doRun();
-      return true;
-    }
-    return false;
-  }
+   template <class Target = Derived> bool exit() {
+      if constexpr (detail::has_onExit_v<Target>) {
+         static_cast<Target *>(this)->doRun();
+         return true;
+      }
+      return false;
+   }
 
-  /**
-   * @brief Calls transitionTo(const Event &event) of Derived if it exists.
-   *
-   * @tparam Target The Derived type.
-   * @tparam Event The Event type.
-   * @param event The event object.
-   * @return decltype(std::declval<Target>().transitionTo(event))
-   */
-  template <class Target = Derived, class Event>
-  auto transition(const Event &event)
-      -> decltype(std::declval<Target>().transitionTo(event)) {
-    if constexpr (detail::has_transitionTo_v<Target, Event>) {
-      return static_cast<Target *>(this)->transitionTo(event);
-    }
-  }
+   /**
+    * @brief Calls transitionTo(const Event &event) of Derived if it exists.
+    *
+    * @tparam Target The Derived type.
+    * @tparam Event The Event type.
+    * @param event The event object.
+    * @return decltype(std::declval<Target>().transitionTo(event))
+    */
+   template <class Target = Derived, class Event>
+   auto transition(const Event &event)
+       -> decltype(std::declval<Target>().transitionTo(event)) {
+      if constexpr (detail::has_transitionTo_v<Target, Event>) {
+         return static_cast<Target *>(this)->transitionTo(event);
+      }
+   }
 
-  /**
-   * @brief For non-existing transitionTo() methods.
-   *
-   * @tparam Target The Derived type.
-   * @param ...
-   * @return transitions<detail::not_handled>
-   */
-  template <class Target = Derived>
-  auto transition(...) -> transitions<detail::none> {
-    return detail::none{};
-  }
+   /**
+    * @brief For non-existing transitionTo() methods.
+    *
+    * @tparam Target The Derived type.
+    * @param ...
+    * @return transitions<detail::not_handled>
+    */
+   template <class Target = Derived>
+   auto transition(...) -> transitions<detail::none> {
+      return detail::none{};
+   }
 
-  /**
-   * @brief Calls transitionInternalTo() of Derived if it exists.
-   *
-   * @tparam Target The Derived type.
-   * @return decltype(std::declval<Target>().transitionTo())
-   */
-  template <class Target = Derived>
-  auto transitionInternal()
-      -> decltype(std::declval<Target>().transitionInternalTo()) {
-    if constexpr (detail::has_transitionInternalTo_v<Target>) {
-      return static_cast<Target *>(this)->transitionInternalTo();
-    }
-    // return detail::none{};
-  }
+   /**
+    * @brief Calls transitionInternalTo() of Derived if it exists.
+    *
+    * @tparam Target The Derived type.
+    * @return decltype(std::declval<Target>().transitionTo())
+    */
+   template <class Target = Derived>
+   auto transitionInternal()
+       -> decltype(std::declval<Target>().transitionInternalTo()) {
+      if constexpr (detail::has_transitionInternalTo_v<Target>) {
+         return static_cast<Target *>(this)->transitionInternalTo();
+      }
+      // return detail::none{};
+   }
 
-  // template <class Target = Derived>
-  //  auto transitionInternal(...) -> transitions<detail::none> {
-  //    return detail::none{};
-  //  }
+   // template <class Target = Derived>
+   //  auto transitionInternal(...) -> transitions<detail::none> {
+   //    return detail::none{};
+   //  }
 
-  template <class Event> bool dispatch(const Event &) { 
+   template <class Event> bool dispatch(const Event &) {
 
-    //machine_.dispatch(event);
-    
-    return false; 
-  
-  }
+      // machine_.dispatch(event);
 
-  template <class Event> void asyncDispatch(const Event &event) {
-    machine_.dispatch(event);
-  }
+      return false;
+   }
 
-  auto& context() { return machine_.context(); }
-  auto& machine() { return machine_; }
+   template <class Event> void asyncDispatch(const Event &event) {
+      machine_.dispatch(event);
+   }
 
-protected:
-  /**
-   * @brief Reference to the Machine.
-   */
-  Machine &machine_;
- 
+   auto &context() { return machine_.context(); }
+   auto &machine() { return machine_; }
 
+ protected:
+   /**
+    * @brief Reference to the Machine.
+    */
+   Machine &machine_;
 };
 
-} // namespace new_fsm
-} // namespace escad
+} // namespace fsm
+} // namespace spie

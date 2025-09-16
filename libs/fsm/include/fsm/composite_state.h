@@ -4,7 +4,7 @@
 #include "state_machine.h"
 #include "context.h"
 
-namespace escad::new_fsm {
+namespace spie::fsm {
 
 template <class Derived, class NestedMachine, class Machine>
 class composite_state : public state<Derived, Machine> {
@@ -39,4 +39,4 @@ private:
   NestedMachine nested_;
 };
 
-} // namespace escad::new_fsm
+} // namespace spie::fsm

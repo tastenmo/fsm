@@ -11,5 +11,6 @@ target_include_directories(fsm
 target_link_libraries(fsm INTERFACE magic_enum::magic_enum fsm::core)
 
 if(FSM_BUILD_TESTS)
+    
     add_subdirectory(test)
 endif()
