@@ -105,6 +105,5 @@
         "stack": "cpp"
     },
     "editor.formatOnSave": true,
-    "clang-format.executable": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Tools\\Llvm\\bin\\clang-format.exe",
     "cmake.configureOnOpen": true
 }

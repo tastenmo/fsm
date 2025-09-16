@@ -1,44 +1,62 @@
 #pragma once
 
+#include <functional>
+#include <iostream>
 #include <optional>
 #include <type_traits>
 
 namespace escad {
-
 namespace new_fsm {
 
+enum class ContextKind { LValue, RValue };
 
-    template <class Context> struct ContextWrapper {
-        ContextWrapper(Context& ctx) : context({}), ref(ctx) {
+template <class Context> class ContextWrapper {
+ private:
+   std::optional<Context> owned_context_;
+   std::reference_wrapper<Context> ref_;
 
-            std::cout << "ContextWrapper(Context& ctx) lvalue at: " << &ref << std::endl;
-        }
-        ContextWrapper(Context&& ctx) : context(std::move(ctx)), ref(context) {
-            std::cout << "ContextWrapper(Context&& ctx) rvalue at: " << &ref << std::endl;
-        }
+ public:
+   /**
+    * @brief Constructs a ContextWrapper from an lvalue reference to a Context
+    * object.
+    */
+   constexpr ContextWrapper(Context &ctx) noexcept
+       : owned_context_(std::nullopt), ref_(ctx) {}
 
-        ContextWrapper(ContextWrapper && other) noexcept
-            : context(std::move(other.context)), ref(context) {
-            std::cout << "ContextWrapper(ContextWrapper && other) at: " << &ref << std::endl;
-        }
+   /**
+    * @brief Constructs a ContextWrapper from an rvalue Context object (takes
+    * ownership).
+    */
+   constexpr ContextWrapper(Context &&ctx) noexcept(
+       std::is_nothrow_move_constructible_v<Context>)
+       : owned_context_(std::move(ctx)), ref_(*owned_context_) {}
 
-        ContextWrapper(ContextWrapper const&) = delete;
-        ContextWrapper& operator=(ContextWrapper const&) = delete;
-        ContextWrapper& operator=(ContextWrapper &&) = delete;
+   /**
+    * @brief Move constructor: preserves reference or ownership as appropriate.
+    */
+   ContextWrapper(ContextWrapper &&other) noexcept
+       : owned_context_(std::move(other.owned_context_)),
+         ref_(other.owned_context_.has_value() ? *owned_context_
+                                               : other.ref_.get()) {}
 
+   ContextWrapper &operator=(ContextWrapper &&other) noexcept {
+      if (this != &other) {
+         owned_context_ = std::move(other.owned_context_);
+         if (owned_context_.has_value()) {
+            ref_ = *owned_context_;
+         } else {
+            ref_ = other.ref_.get();
+         }
+      }
+      return *this;
+   }
 
+   ContextWrapper(const ContextWrapper &) = delete;
+   ContextWrapper &operator=(const ContextWrapper &) = delete;
 
-        Context context;
-        std::reference_wrapper<Context> ref;
+   constexpr auto &get() noexcept { return ref_.get(); }
+   constexpr const auto &get() const noexcept { return ref_.get(); }
+};
 
-
-        auto& get() { return ref.get(); }
-        auto const& get() const { return ref.get(); }
-    };
-
-    
-
-
-}
-
-}
+} // namespace new_fsm
+} // namespace escad
