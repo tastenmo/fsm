@@ -81,7 +81,7 @@ template <class... S> class transitions {
 
     * @param h The handled tag object.
     */
-   constexpr transitions(detail::none) noexcept
+   transitions(detail::none) noexcept
        : idx{mpl::type_list_index_v<detail::none, list>},
          outcome{result::none} {}
 
@@ -90,15 +90,15 @@ template <class... S> class transitions {
     * handled.
     * @param t The transitions object.
     */
-   constexpr transitions(transitions<detail::none>) noexcept
+   transitions(transitions<detail::none>) noexcept
        : idx{mpl::type_list_index_v<detail::none, list>},
          outcome{result::none} {}
 
-   constexpr transitions(detail::handled) noexcept
+   transitions(detail::handled) noexcept
        : idx{mpl::type_list_index_v<detail::handled, list>},
          outcome{result::handled} {}
 
-   constexpr transitions(transitions<detail::handled>) noexcept
+   transitions(transitions<detail::handled>) noexcept
        : idx{mpl::type_list_index_v<detail::handled, list>},
          outcome{result::handled} {}
 
@@ -106,23 +106,19 @@ template <class... S> class transitions {
     * @brief Checks if this object represents a transition.
     * @return true if the object represents a transition, false otherwise.
     */
-   constexpr bool is_transition() const noexcept {
-      return outcome == result::transition;
-   }
+   bool is_transition() const noexcept { return outcome == result::transition; }
 
    /**
     * @brief Checks if the event was handled.
     * @return true if the event was handled, false otherwise.
     */
-   constexpr bool is_handled() const noexcept {
-      return outcome == result::handled;
-   }
+   bool is_handled() const noexcept { return outcome == result::handled; }
 
    /**
     * @brief Checks if there is no transition.
     * @return true if there is no transition, false otherwise.
     */
-   constexpr bool is_none() const noexcept { return outcome == result::none; }
+   bool is_none() const noexcept { return outcome == result::none; }
 
    using list = mpl::type_list<S...>;
 
@@ -136,7 +132,7 @@ template <class... S> class transitions {
  * @return A transitions object representing the transition.
  */
 
-template <class S> constexpr auto transition() noexcept {
+template <class S> inline auto transition() noexcept {
    return transitions<S>{detail::transition<S>{}};
 }
 
@@ -145,7 +141,7 @@ template <class S> constexpr auto transition() noexcept {
  * event was not handled.
  * @return A transitions object indicating that the event was not handled.
  */
-constexpr auto none() noexcept {
+inline auto none() noexcept {
    return transitions<detail::none>{detail::none{}};
 }
 
@@ -154,7 +150,7 @@ constexpr auto none() noexcept {
  * event was handled.
  * @return A transitions object indicating that the event was handled.
  */
-constexpr auto handled() noexcept {
+inline auto handled() noexcept {
    return transitions<detail::handled>{detail::handled{}};
 }
 

@@ -21,46 +21,37 @@ using Context = flat::Context;
 
 using States = states<Initial, Recursive, Finished>;
 
-using MachineWithOwnContext = StateMachine<States, Context>;
+using Machine = StateMachine<States, Context>;
 
-struct Initial : state<Initial, Context> {
+struct Initial : state<Initial, Machine> {
 
-   void onEnter() {
-      context_.is_valid(true);
-      context_.value(1);
-   }
+   using state<Initial, Machine>::state;
+
+   void onEnter();
 
    auto transitionTo(const event1 &) { return transition<Recursive>(); }
    auto transitionTo(const event2 &) { return transition<Finished>(); }
 };
 
-struct Finished : state<Finished, Context> {
+struct Finished : state<Finished, Machine> {
 
-   void onEnter() {
-      context_.is_valid(false);
-      context_.value(0);
-   }
+   using state<Finished, Machine>::state;
+
+   void onEnter();
 };
 
-struct Error : state<Error, Context> {
+struct Error : state<Error, Machine> {
 
-   void onEnter() {
-      context_.is_valid(false);
-      context_.value(0);
-   }
+   using state<Error, Machine>::state;
+
+   void onEnter();
 };
 
-struct Recursive : recursive_state<Recursive, MachineWithOwnContext, Context> {
+struct Recursive : recursive_state<Recursive, Machine, Machine> {
 
-   Recursive(Context &ctx) noexcept
-       : recursive_state(ctx,
-                         MachineWithOwnContext(mpl::type_identity<States>{},
-                                               flat::Context{})) {
-      nested_emplace<Initial>();
-   }
+   Recursive(Machine &sm) noexcept;
 
-   void onEnter(const event1 &) { context_.value(10); }
-
+   void onEnter(const event1 &);
    auto transitionTo(const event1 &) const -> transitions<Finished, Error> {
       if (nested_in<Finished>()) {
          return transition<Finished>();
@@ -68,6 +59,28 @@ struct Recursive : recursive_state<Recursive, MachineWithOwnContext, Context> {
       return transition<Error>();
    }
 };
+
+void Initial::onEnter() {
+   context().is_valid(true);
+   context().value(1);
+}
+
+Recursive::Recursive(Machine &sm) noexcept
+    : recursive_state(Machine(mpl::type_identity<States>{}, Context{42}), sm) {
+   nested_emplace<Initial>();
+}
+
+void Recursive::onEnter(const event1 &) { context().value(10); }
+
+void Finished::onEnter() {
+   context().is_valid(false);
+   context().value(0);
+}
+
+void Error::onEnter() {
+   context().is_valid(false);
+   context().value(0);
+}
 
 // State Constructors
 
@@ -77,7 +90,7 @@ TEST_CASE("recusive_state", "[new_fsm]") {
 
    Context ctx_;
 
-   auto fsm = StateMachine(mpl::type_identity<States>{}, ctx_);
+   auto fsm = Machine(mpl::type_identity<States>{}, ctx_);
 
    REQUIRE(fsm.is_in<std::monostate>());
    REQUIRE(&fsm.context() == &ctx_);

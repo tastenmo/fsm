@@ -7,9 +7,9 @@
 
 #include <boost/asio.hpp>
 
-#include <fsm/version.h>
 #include <fsm/state.h>
 #include <fsm/state_machine.h>
+#include <fsm/version.h>
 
 namespace io = boost::asio;
 
@@ -18,23 +18,20 @@ using namespace std::chrono;
 
 using error_code = boost::system::error_code;
 
-using namespace escad::new_fsm;
+using namespace spie::fsm;
 
 struct Context {
 
+   Context(io::io_context &io_context) : deadline(io_context) {}
 
-   Context(io::io_context &io_context)
-      : deadline(io_context) {}
-   
    io::steady_timer deadline;
 };
 
-
 struct start {};
 struct pausing {
-  pausing(int val) : value_(val) {}
+   pausing(int val) : value_(val) {}
 
-  int value_;
+   int value_;
 };
 struct stop {};
 
@@ -43,95 +40,91 @@ struct Running;
 struct Paused;
 struct Stopped;
 
-
 using States = states<Initial, Running, Paused, Stopped>;
 using Machine = StateMachine<States, Context>;
 
-
 struct Initial : state<Initial, Machine> {
 
-  using state<Initial, Machine>::state;
+   using state<Initial, Machine>::state;
 
-  void onEnter() { std::cout << "Initial::onEnter()" << std::endl; }
+   void onEnter() { std::cout << "Initial::onEnter()" << std::endl; }
 
-  /**
-   * @brief transition to Running
-   *
-   * @return auto
-   */
-  auto transitionTo(const start &) { return sibling<Running>(); }
+   /**
+    * @brief transition to Running
+    *
+    * @return auto
+    */
+   auto transitionTo(const start &) { return transition<Running>(); }
 };
 
 struct Running : state<Running, Machine> {
 
-  using state<Running, Machine>::state;
+   using state<Running, Machine>::state;
 
-  /**
-   * @brief onEnter
-   *
-   * @param start
-   */
-  void onEnter(const start &);
+   /**
+    * @brief onEnter
+    *
+    * @param start
+    */
+   void onEnter(const start &);
 
-  /**
-   * @brief transition to Paused
-   *
-   * @return auto
-   */
-  auto transitionTo(const pausing &) const { return sibling<Paused>(); }
+   /**
+    * @brief transition to Paused
+    *
+    * @return auto
+    */
+   auto transitionTo(const pausing &) const { return transition<Paused>(); }
 
-  /**
-   * @brief transition to Stopped
-   *
-   * @return auto
-   */
-  auto transitionTo(const stop &) const { return sibling<Stopped>(); }
+   /**
+    * @brief transition to Stopped
+    *
+    * @return auto
+    */
+   auto transitionTo(const stop &) const { return transition<Stopped>(); }
 };
 
 struct Paused : state<Paused, Machine> {
 
-  using state<Paused, Machine>::state;
+   using state<Paused, Machine>::state;
 
-  /**
-   * @brief onEnter
-   *
-   * @param start
-   */
-  void onEnter(const pausing &);
+   /**
+    * @brief onEnter
+    *
+    * @param start
+    */
+   void onEnter(const pausing &);
 
-  /**
-   * @brief transition to Paused
-   *
-   * @return auto
-   */
-  auto transitionTo(const start &) const { return sibling<Running>(); }
+   /**
+    * @brief transition to Paused
+    *
+    * @return auto
+    */
+   auto transitionTo(const start &) const { return transition<Running>(); }
 
-  /**
-   * @brief transition to Stopped
-   *
-   * @return auto
-   */
-  auto transitionTo(const stop &) const { return sibling<Stopped>(); }
+   /**
+    * @brief transition to Stopped
+    *
+    * @return auto
+    */
+   auto transitionTo(const stop &) const { return transition<Stopped>(); }
 };
 
 struct Stopped : state<Stopped, Machine> {
 
-  using state<Stopped, Machine>::state;
+   using state<Stopped, Machine>::state;
 
-  /**
-   * @brief onEnter
-   *
-   * @param start
-   */
-  void onEnter() { 
-   
-         auto tp = system_clock::now();
+   /**
+    * @brief onEnter
+    *
+    * @param start
+    */
+   void onEnter() {
 
-     std::cout << "Stopped::onEnter(), timestamp: " << tp << std::endl;
+      auto tp = system_clock::now();
 
-}
+      std::cout << "Stopped::onEnter(), timestamp: " << tp << std::endl;
+   }
 };
-
 
 /**
  * @brief onEnter method for Running state.
@@ -151,88 +144,90 @@ void Running::onEnter(const start &) {
 
    auto tp = system_clock::now();
 
-    std::cout << "Running::onEnter(cost start &), timestamp: " << tp << std::endl;
+   std::cout << "Running::onEnter(cost start &), timestamp: " << tp
+             << std::endl;
 
-    machine_.context().deadline.expires_after(std::chrono::seconds(5));
+   machine_.context().deadline.expires_after(std::chrono::seconds(5));
 
-    machine_.context().deadline.async_wait([this](error_code ec) {
-
+   machine_.context().deadline.async_wait([this](error_code ec) {
       if constexpr (std::is_lvalue_reference_v<decltype(this->machine_)>) {
-        std::cout << "sm is a lvalue_reference" << std::endl;
-      } 
-      
+         std::cout << "sm is a lvalue_reference" << std::endl;
+      }
+
       if (!ec) {
-        std::cout << "Running::deadline expired, transitioning to Stopped." << std::endl;
-         this->machine_.dispatch(stop{}); // Dispatch stop event to transition to Stopped state
-      } 
-      else if (ec == boost::asio::error::operation_aborted) {
-        std::cout << "Running::deadline was cancelled." << std::endl;
+         std::cout << "Running::deadline expired, transitioning to Stopped."
+                   << std::endl;
+         this->machine_.dispatch(
+             stop{}); // Dispatch stop event to transition to Stopped state
+      } else if (ec == boost::asio::error::operation_aborted) {
+         std::cout << "Running::deadline was cancelled." << std::endl;
 
       }
-    
+
       else {
-        std::cout << "Running::deadline error: " << ec.message() << std::endl;
+         std::cout << "Running::deadline error: " << ec.message() << std::endl;
       }
    }
 
-
-    );
-  }
+   );
+}
 
 void Paused::onEnter(const pausing &pause) {
-      auto tp = system_clock::now();
+   auto tp = system_clock::now();
 
-     std::cout << "Paused::onEnter(cost pausing &), timestamp: " << tp << " value: " << pause.value_ << std::endl;
+   std::cout << "Paused::onEnter(cost pausing &), timestamp: " << tp
+             << " value: " << pause.value_ << std::endl;
 
-    machine_.context().deadline.expires_after(std::chrono::seconds(pause.value_));
+   machine_.context().deadline.expires_after(
+       std::chrono::seconds(pause.value_));
 
-    machine_.context().deadline.async_wait([this](error_code ec) {
-
+   machine_.context().deadline.async_wait([this](error_code ec) {
       if (!ec) {
-        std::cout << "Paused::deadline expired, transitioning back to Running." << std::endl;
-         machine_.dispatch(start{}); // Dispatch stop event to transition to Stopped state
-      } 
-      else if (ec == boost::asio::error::operation_aborted) {
-        std::cout << "Paused::deadline was cancelled." << std::endl;
+         std::cout << "Paused::deadline expired, transitioning back to Running."
+                   << std::endl;
+         machine_.dispatch(
+             start{}); // Dispatch stop event to transition to Stopped state
+      } else if (ec == boost::asio::error::operation_aborted) {
+         std::cout << "Paused::deadline was cancelled." << std::endl;
 
       }
-    
+
       else {
-        std::cout << "Paused::deadline error: " << ec.message() << std::endl;
+         std::cout << "Paused::deadline error: " << ec.message() << std::endl;
       }
    }
 
-
-    );
-  }
-
+   );
+}
 
 int main() {
 
-  std::cout << "A simple fsm..." << std::endl;
+   std::cout << "A simple fsm..." << std::endl;
 
-  std::cout << "Build with version: " << FSM_VERSION << std::endl;
+   std::cout << "Build with version: " << FSM_VERSION << std::endl;
 
-  io::io_context io_context; // create an io_context for asynchronous operations
+   io::io_context
+       io_context; // create an io_context for asynchronous operations
 
-  Context ctx(io_context); // create a context for the state machine
+   Context ctx(io_context); // create a context for the state machine
 
-  //StateMachine sm(mpl::type_identity<States>{}, ctx); // create a state machine
-  auto sm = Machine(mpl::type_identity<States>{}, ctx); // create a state machine with reference context
+   // StateMachine sm(mpl::type_identity<States>{}, ctx); // create a state
+   // machine
+   auto sm = Machine(mpl::type_identity<States>{},
+                     ctx); // create a state machine with reference context
 
-  sm.emplace<Initial>();
+   sm.emplace<Initial>();
 
-  sm.dispatch(start{});
+   sm.dispatch(start{});
 
-  sm.dispatch(pausing{2});
+   sm.dispatch(pausing{2});
 
-  
-  std::cout << "Running the asynchronous io_context..." << std::endl;
-  io_context.run(); // run the io_context to process asynchronous operations
+   std::cout << "Running the asynchronous io_context..." << std::endl;
+   io_context.run(); // run the io_context to process asynchronous operations
 
-  std::cout << "Asynchronous io_context finished." << std::endl;
+   std::cout << "Asynchronous io_context finished." << std::endl;
 
-  // Color entries: RED = -10 BLUE = 0 GREEN = 10
+   // Color entries: RED = -10 BLUE = 0 GREEN = 10
 
-  return 0;
+   return 0;
 }

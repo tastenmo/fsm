@@ -1,21 +1,22 @@
 /**
- * @file state_variant.h
- * @brief This file contains the definition of the state_variant class, which is
- * a wrapper around std::variant. It provides a container for states and allows
- * for easy manipulation and dispatching of events.
- * @version 0.1
- * @date 2023-11-28
- * @author Martin Heubuch (martin.heubuch@escad.de)
+ * @file state_machine.h
+ * @brief Defines the StateMachine class for managing FSM states using
+ * std::variant.
  *
- * @details The state_variant class is used as the current implementation of the
- * states container in the FSM library. It is designed to be easily replaceable
- * with another implementation if needed. The class provides methods for adding
- * states, dispatching events, and accessing the current state. It also supports
- * visiting the states using a visitor function. The states are stored in a
- * std::variant, which allows for efficient storage and retrieval. The first
- * state in the variant is always std::monostate, which allows for deferred
- * creation of the actual state objects. The state_variant class is part of the
- * spie::fsm::detail namespace.
+ * The StateMachine class provides:
+ *   - Type-safe state management using std::variant
+ *   - Methods for state emplacement, event dispatch, and transition handling
+ *   - Context access and state visiting utilities
+ *
+ * Usage Example:
+ *   using MyStates = states<StateA, StateB, StateC>;
+ *   StateMachine<MyStates, MyContext> fsm(mpl::type_identity<MyStates>{}, ctx);
+ *   fsm.emplace<StateA>();
+ *   fsm.dispatch(event);
+ *
+ * @author Martin Heubuch (martin.heubuch@escad.de)
+ * @date 2023-11-28
+ * @version 0.2
  */
 
 #pragma once
@@ -110,7 +111,6 @@ template <class States, class Context> class StateMachine {
       states_.template emplace<State>(*this);
 
       std::visit(overloaded{[&e](auto &state) {
-                               // state.enter();
                                if (!state.enter(e)) {
                                   state.enter();
                                }
@@ -163,7 +163,7 @@ template <class States, class Context> class StateMachine {
    template <class State, class Event>
    bool handle(State &state, Event const &e) {
 
-      if (handle_result(state.transition(e), e)) {
+      if (handle_result(state.trans(e), e)) {
          return true;
       } else {
          return false;
@@ -173,7 +173,7 @@ template <class States, class Context> class StateMachine {
    template <class State> bool handle(State &state) {
 
       if constexpr (detail::has_transitionInternalTo_v<State>) {
-         return handle_result(state.transitionInternal());
+         return handle_result(state.transInternal());
       }
 
       return false;
@@ -293,21 +293,5 @@ template <class States, class Context> class StateMachine {
    states_variant states_;
    ContextWrapper<Context> context_;
 };
-
-/**
- * @brief Deduction guide for the state_variant class.
- *
- * This deduction guide enables class template argument deduction (CTAD) for the
- * state_variant class.
- *
- * @tparam States The type representing the list of states in the FSM.
- * @tparam Context The type of the context object.
- * @param identity The type_identity object used to pass the States type to the
- * constructor.
- * @param context The context object.
- */
-// template <class States, class Context>
-// explicit StateMachine(mpl::type_identity<States>,
-//                       Context &&) -> StateMachine<States, Context>;
 
 } // namespace spie::fsm
