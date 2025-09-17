@@ -3,48 +3,47 @@
 #include "tokenizer.h"
 #include <fsm/state_machine.h>
 
+using namespace spie::fsm;
 
-using namespace escad::new_fsm;
-
-namespace escad::json::string {
+namespace spie::json::string {
 
 class Context : public stringTokenizer {
 
-public:
-  Context(view &input) : stringTokenizer(input) {
-    std::cout << "string::Context(view &input)" << std::endl;
-    std::cout << "string::Context.getView(): " << &getView() << std::endl;
-  }
-  Context(view &&input) : stringTokenizer(std::move(input)) {
-    std::cout << "string::Context(view &&input)" << std::endl;
-    std::cout << "string::Context.getView(): " << &getView() << std::endl;
-  }
+ public:
+   Context(view &input) : stringTokenizer(input) {
+      std::cout << "string::Context(view &input)" << std::endl;
+      std::cout << "string::Context.getView(): " << &getView() << std::endl;
+   }
+   Context(view &&input) : stringTokenizer(std::move(input)) {
+      std::cout << "string::Context(view &&input)" << std::endl;
+      std::cout << "string::Context.getView(): " << &getView() << std::endl;
+   }
 
-  ~Context() { std::cout << "string::~Context()" << std::endl; }
+   ~Context() { std::cout << "string::~Context()" << std::endl; }
 
-  std::string_view value() const {
-    return getView().substr(start_, end_ - start_);
-  }
+   std::string_view value() const {
+      return getView().substr(start_, end_ - start_);
+   }
 
-  /**
-   * @brief Get the size of the string in bytes
-   *
-   */
-  std::size_t size() const { return end_ - start_; }
+   /**
+    * @brief Get the size of the string in bytes
+    *
+    */
+   std::size_t size() const { return end_ - start_; }
 
-  std::size_t start() {
-    start_ = end_ = getView().pos_;
-    return start_;
-  }
+   std::size_t start() {
+      start_ = end_ = getView().pos_;
+      return start_;
+   }
 
-  std::size_t add() {
-    end_ = getView().pos_;
-    return end_ - start_;
-  }
+   std::size_t add() {
+      end_ = getView().pos_;
+      return end_ - start_;
+   }
 
-private:
-  std::size_t start_ = 0;
-  std::size_t end_ = 0;
+ private:
+   std::size_t start_ = 0;
+   std::size_t end_ = 0;
 };
 
 struct Initial;
@@ -54,58 +53,30 @@ struct Error;
 
 using States = states<Initial, Content, Finished, Error>;
 
-using StateContainer = StateMachine<States, Context>;
+using Machine = StateMachine<States, Context>;
 
-struct Initial : state<Initial, StateContainer, Context> {
+struct Initial : state<Initial, Machine> {
 
-  auto transitionInternalTo() -> transitions<Content, Error> const {
-    if (context_.consume(stringTokenType::DOUBLE_QUOTE)) {
-      context_.start();
-      return sibling<Content>();
-    }
-    return sibling<Error>();
-  }
+   using state<Initial, Machine>::state;
+
+   auto transitionInternalTo() -> transitions<Content, Error> const;
 };
 
-struct Content : state<Content, StateContainer, Context> {
+struct Content : state<Content, Machine> {
 
-  auto transitionInternalTo() -> transitions<Content, Finished> const {
-    if (context_.isToken(stringTokenType::DOUBLE_QUOTE)) {
-      return sibling<Finished>();
-    }
+   using state<Content, Machine>::state;
 
-    if (context_.consume(stringTokenType::HEX)) {
-      context_.add();
-      return sibling<Content>();
-    }
-
-    if (context_.consume(stringTokenType::CHARS)) {
-      context_.add();
-      return sibling<Content>();
-    }
-
-    if (context_.consume(stringTokenType::ESCAPE)) {
-      context_.add();
-      return sibling<Content>();
-    }
-
-    //    ctx_.consume();
-    //    ctx_.add();
-    return sibling<Error>();
-  }
+   auto transitionInternalTo() -> transitions<Content, Finished> const;
 };
 
-struct Finished : state<Finished, StateContainer, Context> {
+struct Finished : state<Finished, Machine> {
 
-  void onEnter() {
-    context_.consume(stringTokenType::DOUBLE_QUOTE);
-    // ctx_.consume();
-  }
+   void onEnter();
 };
 
-struct Error : state<Error, StateContainer, Context> {
+struct Error : state<Error, Machine> {
 
-  void onEnter() { ; }
+   void onEnter() { ; }
 };
 
-} // namespace escad::json::string
+} // namespace spie::json::string

@@ -14,47 +14,47 @@
 #include "value.h"
 #include <fsm/composite_state.h>
 
-using namespace escad::new_fsm;
+using namespace spie::fsm;
 
-namespace escad::json::array {
+namespace spie::json::array {
 
 class Context : public jsonTokenizer {
 
-public:
-  Context(view &input) : jsonTokenizer(input) {}
-  Context(view &&input) : jsonTokenizer(input) {}
+ public:
+   Context(view &input) : jsonTokenizer(input) {}
+   Context(view &&input) : jsonTokenizer(input) {}
 
-  std::string_view value() const {
-    return getView().substr(start_, end_ - start_);
-  }
+   std::string_view value() const {
+      return getView().substr(start_, end_ - start_);
+   }
 
-  /**
-   * @brief Get the size of the string in bytes
-   *
-   */
-  std::size_t size() const { return end_ - start_; }
+   /**
+    * @brief Get the size of the string in bytes
+    *
+    */
+   std::size_t size() const { return end_ - start_; }
 
-  std::size_t start() {
-    start_ = end_ = getView().pos_;
-    return start_;
-  }
+   std::size_t start() {
+      start_ = end_ = getView().pos_;
+      return start_;
+   }
 
-  std::size_t add() {
-    end_ = getView().pos_;
-    return end_ - start_;
-  }
+   std::size_t add() {
+      end_ = getView().pos_;
+      return end_ - start_;
+   }
 
-  void addValue(jsonValue val) { values_.addValue(val); }
+   void addValue(jsonValue val) { values_.addValue(val); }
 
-  jsonArray getValue() { return values_; }
+   jsonArray getValue() { return values_; }
 
-  jsonArray values() const { return values_; }
+   jsonArray values() const { return values_; }
 
-private:
-  std::size_t start_ = 0;
-  std::size_t end_ = 0;
+ private:
+   std::size_t start_ = 0;
+   std::size_t end_ = 0;
 
-  jsonArray values_;
+   jsonArray values_;
 };
 
 struct Initial;
@@ -65,85 +65,40 @@ struct Error;
 
 using States = states<Initial, Value, Comma, Finished, Error>;
 
-using StateContainer = StateMachine<States, Context>;
+using Machine = StateMachine<States, Context>;
 
-struct Initial : state<Initial, Context> {
+struct Initial : state<Initial, Machine> {
 
-  auto transitionInternalTo() -> transitions<Value, Finished, Error> const {
+   using state<Initial, Machine>::state;
 
-    if (context_.isToken(jsonTokenType::OPEN_BRACKET)) {
-      context_.start();
-      context_.consume(jsonTokenType::OPEN_BRACKET);
-      context_.consume(jsonTokenType::WS);
-
-      if (context_.isToken(jsonTokenType::CLOSE_BRACKET)) {
-        return sibling<Finished>();
-      }
-
-      return sibling<Value>();
-    }
-
-    return sibling<Error>();
-  }
+   auto transitionInternalTo() -> transitions<Value, Finished, Error> const;
 };
 
-struct Value : composite_state<Value, value::StateContainer, Context> {
+struct Value : composite_state<Value, value::Machine, Machine> {
 
-  Value(Context &ctx) noexcept
-      : composite_state(
-            ctx, value::StateContainer(mpl::type_identity<value::States>{},
-                                       value::Context(ctx.view_))) {
-    nested_emplace<value::Initial>();
-  }
+   Value(Machine &machine) noexcept;
 
-  auto transitionInternalTo() -> transitions<Comma, Finished, Error> const {
-    if (nested_in<value::Finished>()) {
-      std::cout << "value: " << nested().context().value() << std::endl;
-
-      jsonValue val = nested().context().getValue();
-
-      context_.addValue(val);
-
-      context_.consume(jsonTokenType::WS);
-
-      if (context_.consume(jsonTokenType::COMMA)) {
-        return sibling<Comma>();
-      };
-
-      if (context_.consume(jsonTokenType::CLOSE_BRACKET)) {
-        return sibling<Finished>();
-      };
-
-      return sibling<Error>();
-    }
-
-    //   context_.isToken(jsonTokenType::COLON) { return sibling<String>(); }
-
-    return sibling<Error>();
-  }
+   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const;
 };
 
-struct Comma : state<Comma, Context> {
+struct Comma : state<Comma, Machine> {
 
-  auto transitionInternalTo() -> transitions<Value, Finished, Error> const {
+   using state<Comma, Machine>::state;
 
-    context_.consume(jsonTokenType::WS);
-
-    if (context_.consume(jsonTokenType::CLOSE_BRACKET)) {
-      return sibling<Finished>();
-    };
-
-    return sibling<Value>();
-  }
+   auto transitionInternalTo() -> transitions<Value, Finished, Error> const;
 };
 
-struct Finished : state<Finished, Context> {
+struct Finished : state<Finished, Machine> {
 
-  void onEnter() { std::cout << "Finished" << std::endl; }
+   using state<Finished, Machine>::state;
+
+   void onEnter() { std::cout << "Finished" << std::endl; }
 };
 
-struct Error : state<Error, Context> {
+struct Error : state<Error, Machine> {
 
-  void onEnter() { std::cout << "Error" << std::endl; }
+   using state<Error, Machine>::state;
+
+   void onEnter() { std::cout << "Error" << std::endl; }
 };
-} // namespace escad::json::array
+} // namespace spie::json::array

@@ -13,9 +13,7 @@
 
 #include <magic_enum/magic_enum.hpp>
 
-using namespace escad::new_fsm;
-
-namespace escad::json {
+namespace spie::json {
 
 class jsonObject;
 class jsonArray;
@@ -27,22 +25,22 @@ using jsonKeyValuePair = std::pair<std::string, jsonValue>;
 
 class jsonObject {
 
-public:
-  void addValue(jsonKeyValuePair);
+ public:
+   void addValue(jsonKeyValuePair);
 
-  jsonValue getValue(std::string_view key);
+   jsonValue getValue(std::string_view key);
 
-private:
-  std::map<std::string, jsonValue> values_;
+ private:
+   std::map<std::string, jsonValue> values_;
 };
 
 class jsonArray {
-public:
-  void addValue(jsonValue val);
-  jsonValue getValue(unsigned index);
+ public:
+   void addValue(jsonValue val);
+   jsonValue getValue(unsigned index);
 
-private:
-  std::vector<jsonValue> values_;
+ private:
+   std::vector<jsonValue> values_;
 };
 
-} // namespace escad::json
+} // namespace spie::json
