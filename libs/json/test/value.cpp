@@ -49,7 +49,7 @@ TEST_CASE("Value - test_data", "[json]") {
 
    auto theObject = ctx.getValue();
 
-   REQUIRE(std::holds_alternative<jsonObject>(theObject));
+   REQUIRE(theObject.is<jsonObject>());
 
-   std::visit(myJsonPrinter, theObject);
+   auto myObject = theObject.get<jsonObject>();
 }

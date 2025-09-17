@@ -9,13 +9,14 @@ target_include_directories(json
             )            
 
 target_sources(json PRIVATE
+    src/json.cpp    
     src/number.cpp
     src/string.cpp
     src/array.cpp
     src/object.cpp
     src/kvp.cpp
     src/value.cpp
-    src/json.cpp
+    
 )
 
 target_link_libraries(json PUBLIC ctre::ctre fsm::fsm)

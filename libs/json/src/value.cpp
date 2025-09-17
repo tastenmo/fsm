@@ -47,9 +47,9 @@ auto String::transitionInternalTo() -> transitions<Finished, Error> const {
    if (nested_in<string::Finished>()) {
       std::cout << "string value: " << nested().context().value() << std::endl;
 
-      jsonValue val = std::string(nested().context().value());
+      // jsonValue val = std::string(nested().context().value());
 
-      context().addValue(val);
+      context().addValue(jsonValue(std::string(nested().context().value())));
 
       return transition<Finished>();
    }
@@ -71,9 +71,9 @@ auto Number::transitionInternalTo() -> transitions<Finished, Error> const {
       std::cout << "number value found: " << nested().context().value()
                 << std::endl;
 
-      jsonValue val = nested().context().number;
+      // jsonValue val = nested().context().number;
 
-      context().addValue(val);
+      context().addValue(jsonValue(nested().context().number));
 
       return transition<Finished>();
    }
@@ -84,17 +84,15 @@ auto Number::transitionInternalTo() -> transitions<Finished, Error> const {
 auto Boolean::transitionInternalTo() -> transitions<Finished, Error> const {
    if (context().consume(jsonTokenType::TRUE)) {
       std::cout << "boolean value True found: " << std::endl;
-      jsonValue val = bool(true);
 
-      context().addValue(val);
+      context().addValue(jsonValue(bool(true)));
 
       return transition<Finished>();
 
    } else if (context().consume(jsonTokenType::FALSE)) {
       std::cout << "boolean value False found: " << std::endl;
-      jsonValue val = bool(false);
 
-      context().addValue(val);
+      context().addValue(jsonValue(bool(true)));
 
       return transition<Finished>();
    }
@@ -107,9 +105,7 @@ auto Null::transitionInternalTo() -> transitions<Finished, Error> const {
    if (context().consume(jsonTokenType::NULL_)) {
       std::cout << "null value found: " << std::endl;
 
-      jsonValue val = std::monostate();
-
-      context().addValue(val);
+      context().addValue(jsonNull(jsonNull{}));
 
       return transition<Finished>();
    }
@@ -128,8 +124,8 @@ auto Object::transitionInternalTo() -> transitions<Finished, Error> const {
    if (nested_in<object::Finished>()) {
       std::cout << "object found: " << nested()->context().value() << std::endl;
 
-      jsonValue val = nested()->context().values();
-      context().addValue(val);
+      // jsonValue val = nested()->context().values();
+      context().addValue(jsonValue(nested()->context().values()));
 
       return transition<Finished>();
    }
@@ -148,8 +144,8 @@ auto Array::transitionInternalTo() -> transitions<Finished, Error> const {
    if (nested_in<array::Finished>()) {
       std::cout << "object found: " << nested()->context().value() << std::endl;
 
-      jsonValue val = nested()->context().values();
-      context().addValue(val);
+      // jsonValue val = nested()->context().values();
+      context().addValue(jsonValue(nested()->context().values()));
 
       return transition<Finished>();
    }
