@@ -17,16 +17,6 @@ using namespace spie::json;
 
 using namespace std::literals;
 
-auto myJsonPrinter = spie::overloaded{
-    [](number::JsonNumber &) { std::cout << "Number: " << std::endl; },
-    [](bool &value) { std::cout << "Bool: " << value << std::endl; },
-    [](std::string &value) { std::cout << "String: " << value << std::endl; },
-    [](jsonObject &) { std::cout << "Object: " << std::endl; },
-    [](jsonArray &) { std::cout << "Array: " << std::endl; },
-    [](auto) { std::cout << "unknown" << std::endl; }
-
-};
-
 TEST_CASE("Value - test_data", "[json]") {
 
    std::ifstream ifs;
@@ -49,7 +39,11 @@ TEST_CASE("Value - test_data", "[json]") {
 
    auto theObject = ctx.getValue();
 
+   std::cout << "Parsed JSON: " << theObject.toString() << std::endl;
+
    REQUIRE(theObject.is<jsonObject>());
 
    auto myObject = theObject.get<jsonObject>();
+
+   REQUIRE(myObject);
 }

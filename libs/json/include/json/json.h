@@ -81,6 +81,10 @@ template <class ValueTypes> class jsonValueType {
       return std::nullopt;
    }
 
+   const type_variant &getVariant() const { return value_; }
+
+   std::string toString() const;
+
  private:
    type_variant value_;
 };
@@ -92,9 +96,21 @@ using jsonKeyValuePair = std::pair<std::string, jsonValue>;
 class jsonObject {
 
  public:
+   using iterator = std::map<std::string, jsonValue>::iterator;
+   using const_iterator = std::map<std::string, jsonValue>::const_iterator;
+
    void addValue(jsonKeyValuePair);
 
-   jsonValue getValue(std::string_view key);
+   std::optional<jsonValue> getValue(std::string_view key) const;
+
+   iterator begin() { return values_.begin(); }
+   iterator end() { return values_.end(); }
+   const_iterator begin() const { return values_.begin(); }
+   const_iterator end() const { return values_.end(); }
+   const_iterator cbegin() const { return values_.cbegin(); }
+   const_iterator cend() const { return values_.cend(); }
+
+   std::string toString() const;
 
  private:
    std::map<std::string, jsonValue> values_;
@@ -103,7 +119,11 @@ class jsonObject {
 class jsonArray {
  public:
    void addValue(jsonValue val);
-   jsonValue getValue(unsigned index);
+
+   size_t size() const { return values_.size(); }
+   std::optional<jsonValue> getValue(unsigned index) const;
+
+   std::string toString() const;
 
  private:
    std::vector<jsonValue> values_;
@@ -114,5 +134,27 @@ jsonValueType<ValueTypes>::jsonValueType(jsonObject obj) : value_(obj) {}
 
 template <class ValueTypes>
 jsonValueType<ValueTypes>::jsonValueType(jsonArray arr) : value_(arr) {}
+
+template <class ValueTypes>
+std::string jsonValueType<ValueTypes>::toString() const {
+   if (is<std::monostate>()) {
+      return "null";
+   } else if (is<jsonNull>()) {
+      return "null";
+   } else if (is<bool>()) {
+      return std::to_string(std::get<bool>(value_));
+   } else if (is<std::string>()) {
+      return "\"" + std::get<std::string>(value_) + "\"";
+   } else if (is<number::JsonNumber>()) {
+      return std::get<number::JsonNumber>(value_).toString();
+   } else if (is<jsonObject>()) {
+      return std::get<jsonObject>(value_).toString();
+   } else if (is<jsonArray>()) {
+      return std::get<jsonArray>(value_).toString();
+   } else if (is<jsonError>()) {
+      return "error: " + std::get<jsonError>(value_).msg;
+   }
+   return "unknown";
+}
 
 } // namespace spie::json

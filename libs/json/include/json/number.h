@@ -87,6 +87,21 @@ class JsonNumber {
       return std::nullopt;
    }
 
+   std::string toString() const {
+      if (std::holds_alternative<unsigned>(value_)) {
+         return std::to_string(std::get<unsigned>(value_));
+      } else if (std::holds_alternative<int>(value_)) {
+         return std::to_string(std::get<int>(value_));
+      } else if (std::holds_alternative<uint64_t>(value_)) {
+         return std::to_string(std::get<uint64_t>(value_));
+      } else if (std::holds_alternative<int64_t>(value_)) {
+         return std::to_string(std::get<int64_t>(value_));
+      } else if (std::holds_alternative<double>(value_)) {
+         return std::to_string(std::get<double>(value_));
+      }
+      return "unknown";
+   }
+
  private:
    std::variant<std::monostate, unsigned, int, uint64_t, int64_t, double>
        value_;

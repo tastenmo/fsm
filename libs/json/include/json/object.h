@@ -47,10 +47,6 @@ class Context : public jsonTokenizer {
 
    void addValue(jsonKeyValuePair val) { values_.addValue(val); }
 
-   jsonValue getValue(std::string_view key) {
-      return values_.getValue(std::string(key));
-   }
-
    jsonObject values() const { return values_; }
 
  private:

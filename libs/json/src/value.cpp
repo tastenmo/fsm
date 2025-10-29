@@ -33,7 +33,12 @@ auto Initial::transitionInternalTo()
       return transition<Array>();
    }
 
-   return transition<Number>();
+   if (context().isToken(numberTokenType::SIGN) ||
+       context().isToken(numberTokenType::DIGIT)) {
+      return transition<Number>();
+   }
+
+   return transition<Error>();
 }
 
 String::String(Machine &machine) noexcept
