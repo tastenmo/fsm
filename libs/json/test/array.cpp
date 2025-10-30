@@ -28,7 +28,13 @@ TEST_CASE("Array - numbers", "[json]") {
 
    auto theArray = ctx.values();
 
-   auto value = std::get<3>(theArray.getValue(0));
+   auto value_obj = theArray.getValue(0);
 
-   REQUIRE(value.get<unsigned>() == 0);
+   REQUIRE(value_obj);
+
+   auto value = value_obj->get<number::JsonNumber>();
+
+   REQUIRE(value);
+
+   REQUIRE(value->get<unsigned>() == 0);
 }

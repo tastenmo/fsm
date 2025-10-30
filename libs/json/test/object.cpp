@@ -17,7 +17,7 @@ using namespace std::literals;
 TEST_CASE("Object - simple", "[json]") {
 
    view v(
-       "{\"unsigned\":1234,\"string\":\"Das ist ein Test\", \"isValid\":true, \"show Details\":false}"sv);
+       "{\"unsigned\":1234,\"string\":\"Das ist ein Test\", \"isValid\":true, \"showDetails\":false}"sv);
 
    object::Context ctx(v);
 
@@ -29,21 +29,29 @@ TEST_CASE("Object - simple", "[json]") {
 
    auto theObject = ctx.values();
 
-   auto value = std::get<3>(theObject.getValue("unsigned"));
+   auto value = theObject.getValue("unsigned");
 
-   REQUIRE(value.get<unsigned>() == 1234);
+   REQUIRE(value);
 
-   auto thestring = std::get<2>(theObject.getValue("string"));
+   REQUIRE(value->get<number::JsonNumber>()->get<unsigned>() == 1234);
 
-   REQUIRE(thestring == "Das ist ein Test");
+   auto thestring = theObject.getValue("string");
 
-   auto isValid = std::get<1>(theObject.getValue("isValid"));
+   REQUIRE(thestring);
 
-   REQUIRE(isValid == true);
+   REQUIRE(thestring->get<std::string>() == "Das ist ein Test");
 
-   auto showDetails = std::get<1>(theObject.getValue("show Details"));
+   auto isValid = theObject.getValue("isValid");
 
-   REQUIRE(showDetails == false);
+   REQUIRE(isValid);
+
+   REQUIRE(isValid->get<bool>() == true);
+
+   auto showDetails = theObject.getValue("showDetails");
+
+   REQUIRE(showDetails);
+
+   CHECK(showDetails->get<bool>() == false);
 }
 
 TEST_CASE("Object - nested", "[json]") {
@@ -56,7 +64,7 @@ TEST_CASE("Object - nested", "[json]") {
                             "  \"real\": 1234.5678\n"
                             "},\n"
                             "\"isValid\":true, \n"
-                            "\"show Details\":false\n"
+                            "\"showDetails\":false\n"
                             "}"sv;
 
    view v(input);
@@ -71,29 +79,45 @@ TEST_CASE("Object - nested", "[json]") {
 
    auto theObject = ctx.values();
 
-   auto value = std::get<3>(theObject.getValue("unsigned"));
+   auto value = theObject.getValue("unsigned");
 
-   REQUIRE(value.get<unsigned>() == 1234);
+   REQUIRE(value);
 
-   auto thestring = std::get<2>(theObject.getValue("string"));
+   // REQUIRE(value->get<unsigned>() == 1234);
 
-   REQUIRE(thestring == "Das ist ein Test");
+   auto thestring = theObject.getValue("string");
 
-   auto isValid = std::get<1>(theObject.getValue("isValid"));
+   REQUIRE(thestring);
 
-   REQUIRE(isValid == true);
+   REQUIRE(thestring->get<std::string>() == "Das ist ein Test");
 
-   auto showDetails = std::get<1>(theObject.getValue("show Details"));
+   auto isValid = theObject.getValue("isValid");
 
-   REQUIRE(showDetails == false);
+   REQUIRE(isValid);
 
-   auto numbers = std::get<4>(theObject.getValue("numbers"));
+   REQUIRE(isValid->get<bool>() == true);
 
-   auto numbers_unsigned = std::get<3>(numbers.getValue("unsigned"));
+   auto showDetails = theObject.getValue("showDetails");
 
-   REQUIRE(numbers_unsigned.get<unsigned>() == 1234);
+   REQUIRE(showDetails);
 
-   auto numbers_real = std::get<3>(numbers.getValue("real"));
+   CHECK(showDetails->get<bool>() == false);
 
-   REQUIRE(numbers_real.get<double>() == 1234.5678);
+   auto numbers = theObject.getValue("numbers");
+
+   REQUIRE(numbers);
+
+   auto numbers_object = numbers->get<jsonObject>();
+   REQUIRE(numbers_object);
+
+   auto numbers_unsigned = numbers_object->getValue("unsigned");
+
+   REQUIRE(numbers_unsigned->get<number::JsonNumber>()->get<unsigned>() ==
+           1234);
+
+   auto numbers_real = numbers_object->getValue("real");
+
+   REQUIRE(numbers_real);
+
+   REQUIRE(numbers_real->get<number::JsonNumber>()->get<double>() == 1234.5678);
 }

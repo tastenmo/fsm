@@ -33,12 +33,12 @@ auto Initial::transitionInternalTo()
       return transition<Array>();
    }
 
-   if (context().isToken(numberTokenType::SIGN) ||
-       context().isToken(numberTokenType::DIGIT)) {
-      return transition<Number>();
-   }
+   //   if (context().isToken(numberTokenType::SIGN) ||
+   //       context().isToken(numberTokenType::DIGIT)) {
+   //      return transition<Number>();
+   //   }
 
-   return transition<Error>();
+   return transition<Number>();
 }
 
 String::String(Machine &machine) noexcept
@@ -97,7 +97,7 @@ auto Boolean::transitionInternalTo() -> transitions<Finished, Error> const {
    } else if (context().consume(jsonTokenType::FALSE)) {
       std::cout << "boolean value False found: " << std::endl;
 
-      context().addValue(jsonValue(bool(true)));
+      context().addValue(jsonValue(bool(false)));
 
       return transition<Finished>();
    }

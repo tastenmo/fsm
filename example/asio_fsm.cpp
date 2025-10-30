@@ -7,8 +7,7 @@
 
 #include <boost/asio.hpp>
 
-#include <fsm/state.h>
-#include <fsm/state_machine.h>
+#include <fsm/async_machine.h>
 #include <fsm/version.h>
 
 namespace io = boost::asio;
@@ -41,7 +40,7 @@ struct Paused;
 struct Stopped;
 
 using States = states<Initial, Running, Paused, Stopped>;
-using Machine = StateMachine<States, Context>;
+using Machine = AsyncStateMachine<States, Context>;
 
 struct Initial : state<Initial, Machine> {
 
@@ -213,14 +212,15 @@ int main() {
 
    // StateMachine sm(mpl::type_identity<States>{}, ctx); // create a state
    // machine
-   auto sm = Machine(mpl::type_identity<States>{},
-                     ctx); // create a state machine with reference context
+   auto sm =
+       Machine(mpl::type_identity<States>{}, ctx,
+               io_context); // create a state machine with reference context
 
-   sm.emplace<Initial>();
+   sm.asyncEmplace<Initial>();
 
-   sm.dispatch(start{});
+   sm.asyncDispatch(start{});
 
-   sm.dispatch(pausing{2});
+   sm.asyncDispatch(pausing{2});
 
    std::cout << "Running the asynchronous io_context..." << std::endl;
    io_context.run(); // run the io_context to process asynchronous operations
