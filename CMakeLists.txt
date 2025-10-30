@@ -24,10 +24,14 @@ find_package(
 
 cmake_dependent_option(FSM_BUILD_TESTS "Build fsm Tests" ON
   "BUILD_TESTING;IS_TOPLEVEL_PROJECT" OFF)
+cmake_dependent_option(COVERAGE "Enable coverage reporting" ON
+  "BUILD_TESTING;IS_TOPLEVEL_PROJECT" OFF)
 cmake_dependent_option(FSM_BUILD_DOC "Build fsm Docs" ON
   "IS_TOPLEVEL_PROJECT" OFF)
 cmake_dependent_option(FSM_OPT_BUILD_EXAMPLES "Build Examples" ON
   "IS_TOPLEVEL_PROJECT" OFF)
+
+
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
@@ -85,6 +89,22 @@ add_custom_target(version
                    -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
   )
 add_dependencies(${PROJECT_NAME} version)
+
+# Coverage report target for all test binaries
+if(COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_custom_target(coverage_report
+        COMMAND llvm-profdata merge -sparse ${CMAKE_BINARY_DIR}/libs/*/test/default.profraw -o ${CMAKE_BINARY_DIR}/coverage.profdata
+        COMMAND rm -f ${CMAKE_BINARY_DIR}/lcov.info
+        COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/transition -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov > ${CMAKE_BINARY_DIR}/lcov.info
+        COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/state_machine -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
+        COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/context -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
+        COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/contextWrapper -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
+        COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/json/test/object -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
+        COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/core/test/property -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Exporting combined lcov coverage report for all test binaries"
+    )
+endif()
 
 install(TARGETS 
           ${PROJECT_NAME}

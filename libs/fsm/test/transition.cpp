@@ -45,7 +45,7 @@ auto transitionTo(const event4 &event)
                   // return trans<StateSecond>();
 }
 
-TEST_CASE("transition_typelist", "[new_fsm]") {
+TEST_CASE("transition_type_list_indexing", "[fsm]") {
 
    using tran =
        transitions<StateFirst, StateSecond, detail::handled, detail::none>;
@@ -56,7 +56,7 @@ TEST_CASE("transition_typelist", "[new_fsm]") {
    STATIC_REQUIRE(std::is_same_v<transition_t<3u, tran>, detail::none>);
 }
 
-TEST_CASE("transition", "[new_fsm]") {
+TEST_CASE("single_event_transition_result", "[fsm]") {
 
    auto result = transitionTo(event1{});
 
@@ -67,7 +67,6 @@ TEST_CASE("transition", "[new_fsm]") {
    auto result2 = transitionTo(event3{});
    STATIC_REQUIRE(
        std::is_same_v<decltype(result2), transitions<detail::handled>>);
-   // Removed: REQUIRE(result2.is_inner());
    REQUIRE(result2.is_handled());
    REQUIRE(result.idx == 0);
 
@@ -75,12 +74,11 @@ TEST_CASE("transition", "[new_fsm]") {
    STATIC_REQUIRE(std::is_same_v<decltype(result3),
                                  transitions<StateFirst, StateSecond,
                                              detail::handled, detail::none>>);
-   // Removed: REQUIRE(result3.is_inner_entry());
    REQUIRE(result3.is_transition());
    REQUIRE(result3.idx == 0);
 }
 
-TEST_CASE("none", "[new_fsm]") {
+TEST_CASE("none_transition_result", "[fsm]") {
 
    auto result = transitionTo(event2{});
 
@@ -90,7 +88,7 @@ TEST_CASE("none", "[new_fsm]") {
    CHECK(result.idx == 0); // fails is 1, I dont know why
 }
 
-TEST_CASE("handled transition", "[new_fsm]") {
+TEST_CASE("handled_transition_result", "[fsm]") {
    auto result = handled();
    STATIC_REQUIRE(
        std::is_same_v<decltype(result), transitions<detail::handled>>);
@@ -115,7 +113,7 @@ TEST_CASE("handled transition", "[new_fsm]") {
    REQUIRE(result3.idx == 2);
 }
 
-TEST_CASE("multiple transition path", "[new_fsm]") {
+TEST_CASE("multiple_event_transition_paths", "[fsm]") {
 
    using tran =
        transitions<StateFirst, StateSecond, detail::handled, detail::none>;
@@ -146,7 +144,7 @@ TEST_CASE("multiple transition path", "[new_fsm]") {
    // REQUIRE(first.count1 == 1);
 }
 
-TEST_CASE("transition_for", "[new_fsm]") {
+TEST_CASE("for_each_transition_iteration", "[fsm]") {
 
    auto trans1 = transitionTo(event1{});
 

@@ -20,6 +20,13 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
      check_cxx_compiler_flag(-std=c++20 HAS_CPP20_FLAG)
 endif()
 
+# Coverage flags for Clang
+if(COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(COVERAGE_FLAGS -fprofile-instr-generate -fcoverage-mapping)
+    set(COMPILE_OPTIONS ${COMPILE_OPTIONS} ${COVERAGE_FLAGS})
+    set(LINK_OPTIONS ${LINK_OPTIONS} ${COVERAGE_FLAGS})
+endif()
+
 function(assign_test src lib std)
     get_filename_component(target ${src} NAME_WE)
     add_executable(${target} ${src})
