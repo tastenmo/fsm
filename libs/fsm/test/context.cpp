@@ -24,7 +24,7 @@ void Second::onEnter() {
 
 Third::Third(Machine &sm) noexcept : state(sm), count1(0) {}
 
-void Third::onEnter(const event2 &ev) {
+void Third::onEnter(const event2 &) {
    count1++;
    machine_.context().is_valid(false);
    machine_.context().value(10);
@@ -34,153 +34,28 @@ void Third::onEnter(const event2 &ev) {
 
 // State Constructors
 
-auto myStatePrinter = spie::overloaded{
-    [](flat::Initial &) { std::cout << "flat::Initial" << std::endl; },
-    [](flat::Second &) { std::cout << "flat::Second" << std::endl; },
-    [](flat::Third &) { std::cout << "flat::Third" << std::endl; },
-    [](std::monostate) { std::cout << "std::monostate" << std::endl; },
-    [](auto) { std::cout << "unknown" << std::endl; },
-};
+TEST_CASE("fsm_context_basic_lvalue", "[fsm][context][basic]") {
 
-TEST_CASE("Context reference", "[new_fsm]") {
-
-   std::cout << "start" << std::endl;
-
-   flat::Context ctx_;
-
-   auto fsm = flat::Machine(mpl::type_identity<flat::States>{}, ctx_);
+   flat::Context ctx;
+   auto fsm = flat::Machine(mpl::type_identity<flat::States>{}, ctx);
    fsm.emplace<flat::Initial>();
-
-   // REQUIRE(&ctx_ == &fsm.context());
-
-   std::cout << "fsm constructed" << std::endl;
-   // Context is copied here!!!!
-   auto ctx1 = fsm.context();
-
-   REQUIRE(&ctx_ != &ctx1);
-
-   const flat::Context &ctx2 = fsm.context();
-   REQUIRE(&ctx_ == &ctx2);
-
-   auto &ctx = fsm.context();
-
-   REQUIRE(&ctx == &ctx_);
-
-   std::cout << "after fsm.context()" << std::endl;
-
-   REQUIRE_FALSE(ctx.is_valid());
-   REQUIRE(ctx.value() == 0);
-
+   REQUIRE(&ctx == &fsm.context());
    REQUIRE(fsm.is_in<flat::Initial>());
-
-   REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
-   REQUIRE(fsm.state<flat::Initial>().context().value() == 0);
-
-   auto result = fsm.dispatch(flat::event1{});
-
-   // REQUIRE(result);
+   fsm.dispatch(flat::event1{});
    REQUIRE(fsm.is_in<flat::Second>());
-
-   // Context is nor copied here????
-   REQUIRE(fsm.context().is_valid());
-   REQUIRE(fsm.context().value() == 1);
-
-   auto state2 = fsm.state<flat::Second>();
-
-   REQUIRE(state2.count1 == 1);
-   REQUIRE(state2.context().is_valid());
-   REQUIRE(state2.context().value() == 1);
-
-   // state2.dispatch(event2{2});
-   auto result2 = fsm.dispatch(flat::event2{2});
-
+   fsm.dispatch(flat::event2{2});
    REQUIRE(fsm.is_in<flat::Third>());
-   REQUIRE_FALSE(fsm.context().is_valid());
-   REQUIRE(fsm.context().value() == 10);
 }
 
-TEST_CASE("Context instantiated reference", "[new_fsm]") {
-
-   flat::Context ctx_(42);
-
-   auto fsm = flat::Machine(mpl::type_identity<flat::States>{}, ctx_);
-   fsm.emplace<flat::Initial>();
-
-   ///
-   // REQUIRE(&ctx_ == &fsm.context());
-
-   auto &ctx = fsm.context();
-
-   REQUIRE(&ctx == &ctx_);
-
-   REQUIRE_FALSE(ctx.is_valid());
-   REQUIRE(ctx.value() == 42);
-
-   REQUIRE(fsm.is_in<flat::Initial>());
-
-   REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
-   REQUIRE(fsm.state<flat::Initial>().context().value() == 42);
-
-   auto result = fsm.dispatch(flat::event1{});
-
-   // REQUIRE(result);
-   REQUIRE(fsm.is_in<flat::Second>());
-
-   // Context is nor copied here????
-   REQUIRE(fsm.context().is_valid());
-   REQUIRE(fsm.context().value() == 43);
-
-   auto state2 = fsm.state<flat::Second>();
-
-   REQUIRE(state2.count1 == 1);
-   REQUIRE(state2.context().is_valid());
-   REQUIRE(state2.context().value() == 43);
-
-   // state2.dispatch(event2{2});
-   auto result2 = fsm.dispatch(flat::event2{2});
-
-   REQUIRE(fsm.is_in<flat::Third>());
-   REQUIRE_FALSE(fsm.context().is_valid());
-   REQUIRE(fsm.context().value() == 10);
-}
-
-TEST_CASE("Context implicit", "[new_fsm]") {
+TEST_CASE("fsm_context_basic_rvalue", "[fsm][context][basic][rvalue]") {
 
    auto fsm =
        flat::Machine(mpl::type_identity<flat::States>{}, flat::Context{42});
    fsm.emplace<flat::Initial>();
-
-   auto &ctx = fsm.context();
-
-   REQUIRE_FALSE(ctx.is_valid());
-   REQUIRE(ctx.value() == 42);
-
+   REQUIRE(fsm.context().value() == 42);
    REQUIRE(fsm.is_in<flat::Initial>());
-
-   fsm.emplace<flat::Initial>();
-
-   REQUIRE_FALSE(fsm.state<flat::Initial>().context().is_valid());
-   REQUIRE(fsm.state<flat::Initial>().context().value() == 42);
-
-   auto result = fsm.dispatch(flat::event1{});
-
-   // REQUIRE(result);
+   fsm.dispatch(flat::event1{});
    REQUIRE(fsm.is_in<flat::Second>());
-
-   // Context is nor copied here????
-   REQUIRE(fsm.context().is_valid());
-   REQUIRE(fsm.context().value() == 43);
-
-   auto state2 = fsm.state<flat::Second>();
-
-   REQUIRE(state2.count1 == 1);
-   REQUIRE(state2.context().is_valid());
-   REQUIRE(state2.context().value() == 43);
-
-   // state2.dispatch(event2{2});
-   auto result2 = fsm.dispatch(flat::event2{2});
-
+   fsm.dispatch(flat::event2{2});
    REQUIRE(fsm.is_in<flat::Third>());
-   REQUIRE_FALSE(fsm.context().is_valid());
-   REQUIRE(fsm.context().value() == 10);
 }

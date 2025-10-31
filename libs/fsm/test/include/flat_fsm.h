@@ -51,9 +51,7 @@ struct event2 {
 
    int value_;
 };
-struct event3 {
-   std::string msg;
-};
+struct event3 {};
 
 struct Initial;
 struct Second;

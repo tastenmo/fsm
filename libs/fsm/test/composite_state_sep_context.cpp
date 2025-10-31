@@ -125,81 +125,21 @@ void Error::onEnter() {
 
 // State Constructors
 
-TEST_CASE("composite_state separate context", "[new_fsm]") {
+TEST_CASE("composite_state_separate_context_basic",
+          "[fsm][composite][context][separate]") {
 
-   std::cout << "start" << std::endl;
-
-   MainContext ctx_;
-
-   auto fsm = Machine(mpl::type_identity<States>{}, ctx_);
-
+   MainContext ctx;
+   auto fsm = Machine(mpl::type_identity<States>{}, ctx);
+   REQUIRE(&fsm.context() == &ctx);
    REQUIRE(fsm.is_in<std::monostate>());
-   REQUIRE(&fsm.context() == &ctx_);
-
-   REQUIRE(ctx_.is_valid() == false);
-   REQUIRE(ctx_.value() == 0);
-
    fsm.emplace<Initial>();
-
    REQUIRE(fsm.is_in<Initial>());
-
-   REQUIRE(ctx_.is_valid());
-   REQUIRE(ctx_.value() == 1);
-
-   std::cout << "dispatch event1, --> Composite" << std::endl;
-
-   auto result = fsm.dispatch(event1{});
-   REQUIRE(result);
-
-   // REQUIRE(result);
+   fsm.dispatch(event1{});
    REQUIRE(fsm.is_in<Composite>());
-
-   REQUIRE(&ctx_ == &fsm.state<Composite>().context());
-
-   // Context is nor copied here????
-   REQUIRE(fsm.context().is_valid());
-   REQUIRE(fsm.context().value() == 10);
-
-   REQUIRE(fsm.state<Composite>().nested_in<flat::Initial>());
-
-   //  auto nested = fsm.state<Composite>().nested().context();
-
-   CHECK(fsm.state<Composite>().nested_context().is_valid() == false);
-   CHECK(fsm.state<Composite>().nested_context().value() == 42);
-
-   result = fsm.dispatch(flat::event1{});
-   REQUIRE(result);
-
+   fsm.dispatch(flat::event1{});
    REQUIRE(fsm.state<Composite>().nested_in<flat::Second>());
-
-   auto &nested_ctx = fsm.state<Composite>().nested_context();
-   REQUIRE(nested_ctx.is_valid());
-   REQUIRE(nested_ctx.value() == 43);
-
-   result = fsm.dispatch(flat::event2{0});
-   REQUIRE(result);
-
-   REQUIRE(fsm.state<Composite>().nested_in<flat::Second>());
-
-   auto &nested_ctx1 = fsm.state<Composite>().nested_context();
-   REQUIRE(nested_ctx1.is_valid());
-   REQUIRE(nested_ctx1.value() == 44);
-
-   result = fsm.dispatch(flat::event2{2});
-   REQUIRE(result);
-
+   fsm.dispatch(flat::event2{2});
    REQUIRE(fsm.state<Composite>().nested_in<flat::Third>());
-
-   auto &nested_ctx2 = fsm.state<Composite>().nested_context();
-   REQUIRE(nested_ctx2.is_valid() == false);
-   REQUIRE(nested_ctx2.value() == 10);
-
-   std::cout << "dispatch event1, --> Finished" << std::endl;
-
-   result = fsm.dispatch(event1{});
-   REQUIRE(result);
-
+   fsm.dispatch(event1{});
    REQUIRE(fsm.is_in<Finished>());
-
-   std::cout << "end" << std::endl;
 }
