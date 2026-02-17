@@ -21,39 +21,39 @@ namespace spie::json::object {
 
 class Context : public jsonTokenizer {
 
- public:
-   Context(view &input) : jsonTokenizer(input) {}
-   Context(view &&input) : jsonTokenizer(input) {}
+public:
+  Context(view &input) : jsonTokenizer(input) {}
+  Context(view &&input) : jsonTokenizer(input) {}
 
-   std::string_view value() const {
-      return getView().substr(start_, end_ - start_);
-   }
+  std::string_view value() const {
+    return getView().substr(start_, end_ - start_);
+  }
 
-   /**
-    * @brief Get the size of the string in bytes
-    *
-    */
-   std::size_t size() const { return end_ - start_; }
+  /**
+   * @brief Get the size of the string in bytes
+   *
+   */
+  std::size_t size() const { return end_ - start_; }
 
-   std::size_t start() {
-      start_ = end_ = getView().pos_;
-      return start_;
-   }
+  std::size_t start() {
+    start_ = end_ = getView().pos_;
+    return start_;
+  }
 
-   std::size_t add() {
-      end_ = getView().pos_;
-      return end_ - start_;
-   }
+  std::size_t add() {
+    end_ = getView().pos_;
+    return end_ - start_;
+  }
 
-   void addValue(jsonKeyValuePair val) { values_.addValue(val); }
+  void addValue(jsonKeyValuePair val) { values_.addValue(val); }
 
-   jsonObject values() const { return values_; }
+  jsonObject values() const { return values_; }
 
- private:
-   std::size_t start_ = 0;
-   std::size_t end_ = 0;
+private:
+  std::size_t start_ = 0;
+  std::size_t end_ = 0;
 
-   jsonObject values_;
+  jsonObject values_;
 };
 
 struct Initial;
@@ -68,35 +68,35 @@ using Machine = StateMachine<States, Context>;
 
 struct Initial : state<Initial, Machine> {
 
-   using state<Initial, Machine>::state;
+  using state<Initial, Machine>::state;
 
-   auto transitionInternalTo() -> transitions<KeyValuePair, Error> const;
+  auto
+  transitionInternalTo() -> transitions<KeyValuePair, Finished, Error> const;
 };
 
 struct KeyValuePair : composite_state<KeyValuePair, kvp::Machine, Machine> {
 
-   KeyValuePair(Machine &machine) noexcept;
+  KeyValuePair(Machine &machine) noexcept;
 
-   auto transitionInternalTo() -> transitions<Comma, Finished, Error> const;
+  auto transitionInternalTo() -> transitions<Comma, Finished, Error> const;
 };
 
 struct Comma : state<Comma, Machine> {
 
-   auto transitionInternalTo() -> transitions<KeyValuePair, Error> const;
+  auto transitionInternalTo() -> transitions<KeyValuePair, Error> const;
 };
 
 struct Finished : state<Finished, Machine> {
 
-   using state<Finished, Machine>::state;
+  using state<Finished, Machine>::state;
 
-   void onEnter();
+  void onEnter();
 };
 
 struct Error : state<Error, Machine> {
 
-   using state<Error, Machine>::state;
-
-   void onEnter() { std::cout << "Error" << std::endl; }
+  using state<Error, Machine>::state;
+  void onEnter();
 };
 
 } // namespace spie::json::object

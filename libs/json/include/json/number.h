@@ -210,7 +210,7 @@ struct Finished : state<Finished, Machine> {
 
 struct Error : state<Error, Machine> {
 
-   void onEnter() { ; }
+   void onEnter();
 };
 
 } // namespace spie::json::number

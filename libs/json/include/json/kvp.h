@@ -104,15 +104,13 @@ struct Value : composite_state<Value, value::Machine, Machine> {
 struct Finished : state<Finished, Machine> {
 
    using state<Finished, Machine>::state;
-
-   void onEnter() { std::cout << "Finished" << std::endl; }
+   void onEnter() {}
 };
 
 struct Error : state<Error, Machine> {
 
    using state<Error, Machine>::state;
-
-   void onEnter() { std::cout << "Error" << std::endl; }
+   void onEnter();
 };
 
 } // namespace spie::json::kvp

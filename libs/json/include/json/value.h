@@ -143,15 +143,13 @@ struct Null : state<Null, Machine> {
 struct Finished : state<Finished, Machine> {
 
    using state<Finished, Machine>::state;
-
-   void onEnter() { std::cout << "Finished" << std::endl; }
+   void onEnter() {}
 };
 
 struct Error : state<Error, Machine> {
 
    using state<Error, Machine>::state;
-
-   void onEnter() { std::cout << "Error" << std::endl; }
+   void onEnter();
 };
 
 struct Object : recursive_state<Object, object::Machine, Machine> {
