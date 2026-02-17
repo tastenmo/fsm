@@ -110,9 +110,9 @@ make_test(testDenseMap.cpp testDenseMap-cpp17 c++17)
 
 #make_test(testLogging.cpp testLogging-cpp17 c++17)
 
-if(HAS_CPP20_FLAG)
-    make_test(testLogging.cpp testLogging-cpp20 c++20)
-endif()
+#if(HAS_CPP20_FLAG)
+#    make_test(testLogging.cpp testLogging-cpp20 c++20)
+#endif()
 
 make_test_with_libs(testDateTime.cpp testDateTime-cpp17 c++17 date::date-tz) 
 

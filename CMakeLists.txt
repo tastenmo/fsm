@@ -65,6 +65,8 @@ add_subdirectory(libs/fsm)
 
 add_subdirectory(libs/json)
 
+add_subdirectory(libs/logging)
+
 #add_library(${PROJECT_NAME} STATIC)
 #add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
