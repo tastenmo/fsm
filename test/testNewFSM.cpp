@@ -16,7 +16,7 @@
 
 #include <variant>
 
-using namespace escad::new_fsm;
+using namespace spie::new_fsm;
 
 class theContext {
 
@@ -126,7 +126,7 @@ using States = states<myStates::Initial, myStates::Second, myStates::Third>;
 
 // State Constructors
 
-auto myStatePrinter = escad::overloaded{
+auto myStatePrinter = spie::overloaded{
     [](myStates::Initial &) { std::cout << "Initial" << std::endl; },
     [](myStates::Second &) { std::cout << "Second" << std::endl; },
     [](myStates::Third &) { std::cout << "Third" << std::endl; },

@@ -59,6 +59,8 @@ add_subdirectory(ext/compile-time-regular-expressions)
 
 add_subdirectory(libs/core)
 
+add_subdirectory(libs/signal)
+
 add_subdirectory(libs/fsm)
 
 add_subdirectory(libs/json)

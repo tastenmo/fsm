@@ -11,7 +11,7 @@
 // #include <new_fsm/machine.h>
 #include <new_fsm/initial_state.h>
 
-using namespace escad::new_fsm;
+using namespace spie::new_fsm;
 
 struct Context {
   bool is_valid = false;
@@ -168,7 +168,7 @@ class StateHandler {
 public:
 
   void OnStateChange(const StateContainer::states_variant &state_variant) {
-    std::visit(escad::overloaded{
+    std::visit(spie::overloaded{
                    [&](const Initial &) { std::cout << "Initial" << std::endl; },
                    [&](const StateSecond &) { std::cout << "StateSecond" << std::endl; },
                    [&](const StateThird &) { std::cout << "StateThird" << std::endl; },
@@ -178,7 +178,7 @@ public:
 
 };
 
-auto myStatePrinter = escad::overloaded{
+auto myStatePrinter = spie::overloaded{
     [](Initial &) { std::cout << "Initial" << std::endl; },
     [](StateSecond &) { std::cout << "StateSecond" << std::endl; },
     [](StateThird &) { std::cout << "StateThird" << std::endl; },

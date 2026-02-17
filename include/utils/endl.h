@@ -15,7 +15,7 @@
 
 #include <ctre.hpp>
 
-namespace escad {
+namespace spie {
 
 namespace utils {
 
@@ -80,4 +80,4 @@ inline std::string fix_endl(const std::string str) {
 }
 
 } // namespace utils
-} // namespace escad
+} // namespace spie

@@ -3,11 +3,11 @@
 #include <sstream>
 #include <string_view>
 
-#include "../signal/dispatcher.h"
+#include <signal/dispatcher.h>
 
 #include "logEvent.h"
 
-namespace escad {
+namespace spie {
 
 namespace logging {
 
@@ -15,7 +15,7 @@ namespace logging {
 
 using sv = std::string_view;
 
-class Logger : public escad::dispatcher {
+class Logger : public spie::dispatcher {
 
 private:
   Logger() {}
@@ -51,8 +51,7 @@ public:
 
 struct log {
   log(LogLevel tlevel, std::string_view tname,
-      const std::source_location &loc =
-          std::source_location::current())
+      const std::source_location &loc = std::source_location::current())
       : logger(Logger::Initialize()), loglevel(tlevel), name(tname),
         location(loc) {
 
@@ -85,66 +84,57 @@ template <typename T> log &operator<<(log &&record, T &&t) {
 
 struct debug : public log {
   debug(std::string_view name = sv(""),
-        const std::source_location &loc =
-            std::source_location::current())
+        const std::source_location &loc = std::source_location::current())
       : log(LogLevel::DEBUG, name, loc) {}
 };
 
 struct info : public log {
   info(std::string_view name = sv(""),
-       const std::source_location &loc =
-           std::source_location::current())
+       const std::source_location &loc = std::source_location::current())
       : log(LogLevel::INFO, name, loc) {}
 };
 
 struct notice : public log {
   notice(std::string_view name = sv(""),
-         const std::source_location &loc =
-             std::source_location::current())
+         const std::source_location &loc = std::source_location::current())
       : log(LogLevel::NOTICE, name, loc) {}
 };
 
 struct warn : public log {
   warn(std::string_view name = sv(""),
-       const std::source_location &loc =
-           std::source_location::current())
+       const std::source_location &loc = std::source_location::current())
       : log(LogLevel::WARNING, name, loc) {}
 };
 
 struct error : public log {
   error(std::string_view name = sv(""),
-        const std::source_location &loc =
-            std::source_location::current())
+        const std::source_location &loc = std::source_location::current())
       : log(LogLevel::ERROR, name, loc) {}
 };
 
 struct fatal : public log {
   fatal(std::string_view name = sv(""),
-        const std::source_location &loc =
-            std::source_location::current())
+        const std::source_location &loc = std::source_location::current())
       : log(LogLevel::FATAL, name, loc) {}
 };
 
 struct alert : public log {
   alert(std::string_view name = sv(""),
-        const std::source_location &loc =
-            std::source_location::current())
+        const std::source_location &loc = std::source_location::current())
       : log(LogLevel::ALERT, name, loc) {}
 };
 
 struct emerg : public log {
   emerg(std::string_view name = sv(""),
-        const std::source_location &loc =
-            std::source_location::current())
+        const std::source_location &loc = std::source_location::current())
       : log(LogLevel::EMERG, name, loc) {}
 };
 
 struct none : public log {
   none(std::string_view name = sv(""),
-       const std::source_location &loc =
-           std::source_location::current())
+       const std::source_location &loc = std::source_location::current())
       : log(LogLevel::NONE, name, loc) {}
 };
 
 } // namespace logging
-} // namespace escad
+} // namespace spie

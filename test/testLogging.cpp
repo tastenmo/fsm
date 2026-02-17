@@ -7,7 +7,7 @@
 
 #include <logging/logCout.h>
 
-namespace logging = escad::logging;
+namespace logging = spie::logging;
 
 
 

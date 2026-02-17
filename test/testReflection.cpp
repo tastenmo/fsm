@@ -40,7 +40,7 @@ TEST_CASE("regex", "[Reflection]"){
 // static_assert(ctre::match<rx>("1234567890"));
 // [-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?
 
-namespace refl = escad::reflection;
+namespace refl = spie::reflection;
 
 struct TestStruct {
 

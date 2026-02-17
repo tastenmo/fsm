@@ -9,18 +9,18 @@ struct AContext {
     int shared_value = 0;
 };
 
-struct Ev1 : escad::event {};
-struct Ev2 : escad::event {};
-struct Ev3 : escad::event {};
+struct Ev1 : spie::event {};
+struct Ev2 : spie::event {};
+struct Ev3 : spie::event {};
 
-struct StateB : escad::state<> {
+struct StateB : spie::state<> {
     StateB(AContext &ctx)
     {
         ctx.shared_value = 42;
     }
 };
 
-struct StateA : escad::state<> {
+struct StateA : spie::state<> {
     auto handle(Ev1 const&) {
         eventHandled = true;
         return handled();
@@ -38,8 +38,8 @@ struct StateA : escad::state<> {
 TEST_CASE("State manager basic operations", "[state_manager]")
 {
     AContext ctx;
-    escad::detail::NullTracer nt;
-    escad::detail::state_manager<escad::states<StateA, StateB>, AContext &> sm{ctx, nt};
+    spie::detail::NullTracer nt;
+    spie::detail::state_manager<spie::states<StateA, StateB>, AContext &> sm{ctx, nt};
 
     REQUIRE(sm.is_in<StateA>() == true);
     REQUIRE(sm.is_in<StateB>() == false);
@@ -81,7 +81,7 @@ struct InnerOuterCtx {
     int ev3count = 0;
 };
 
-struct InnerState : escad::state<>
+struct InnerState : spie::state<>
 {
     InnerOuterCtx& ctx;
 
@@ -101,7 +101,7 @@ struct InnerState : escad::state<>
     }
 };
 
-struct OuterState : escad::state<InnerState>
+struct OuterState : spie::state<InnerState>
 {
     InnerOuterCtx& ctx;
     OuterState(InnerOuterCtx& ctx) : ctx{ctx}
@@ -124,8 +124,8 @@ struct OuterState : escad::state<InnerState>
 TEST_CASE("State manager substate", "[state_manager]")
 {
     InnerOuterCtx ctx;
-    escad::detail::NullTracer nt;
-    escad::detail::state_manager<escad::states<OuterState>, InnerOuterCtx> sm{ctx, nt};
+    spie::detail::NullTracer nt;
+    spie::detail::state_manager<spie::states<OuterState>, InnerOuterCtx> sm{ctx, nt};
 
     CHECK(ctx.innerConstructed);
     CHECK(ctx.outerConstructed);
@@ -145,7 +145,7 @@ namespace
 struct CtxA { bool value = false; };
 struct CtxB { bool value = false; };
 
-struct AcceptA : escad::state<>
+struct AcceptA : spie::state<>
 {
     AcceptA(CtxA &c) {
         c.value = true;
@@ -157,10 +157,10 @@ TEST_CASE("Init state manager with contexts", "[state_manager][contexts]")
 {
     CtxA ctx_a;
     CtxB ctx_b;
-    escad::detail::NullTracer nt;
-    escad::contexts<CtxA, CtxB> ctxs{ctx_a, ctx_b};
+    spie::detail::NullTracer nt;
+    spie::contexts<CtxA, CtxB> ctxs{ctx_a, ctx_b};
 
-    escad::detail::state_manager<escad::states<AcceptA>, escad::contexts<CtxA, CtxB>> sm{ctxs, nt};
+    spie::detail::state_manager<spie::states<AcceptA>, spie::contexts<CtxA, CtxB>> sm{ctxs, nt};
 
     REQUIRE(ctx_a.value);
 }
@@ -168,7 +168,7 @@ TEST_CASE("Init state manager with contexts", "[state_manager][contexts]")
 namespace
 {
 
-struct HandlerAcceptingContext : public escad::state<>
+struct HandlerAcceptingContext : public spie::state<>
 {
     auto handle(Ev1, CtxA& c) {
         c.value = true;
@@ -181,8 +181,8 @@ struct HandlerAcceptingContext : public escad::state<>
 TEST_CASE("Event handler accepting context reference", "[state_manager]")
 {
     CtxA ctx;
-    escad::detail::NullTracer nt;
-    escad::detail::state_manager<escad::states<HandlerAcceptingContext>, CtxA> sm{ctx, nt};
+    spie::detail::NullTracer nt;
+    spie::detail::state_manager<spie::states<HandlerAcceptingContext>, CtxA> sm{ctx, nt};
 
     CHECK(ctx.value == false);
     sm.dispatch(Ev1{});

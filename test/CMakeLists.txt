@@ -98,24 +98,6 @@ if(HAS_CPPLATEST_FLAG)
     make_test(testFirst.cpp testFirst-cpplatest c++latest)
 endif()
 
-make_test(testDelegates.cpp testDelegates-cpp17 c++17)
-
-if(HAS_CPP20_FLAG)
-    make_test(testDelegates.cpp testDelegates-cpp20 c++20)
-endif()
-
-make_test(testSignalSlot.cpp testSignalSlot-cpp17 c++17)
-
-if(HAS_CPP20_FLAG)
-    make_test(testSignalSlot.cpp testSignalSlot-cpp20 c++20)
-endif()
-
-#make_test(testTypeTraits.cpp testTypeTraits-cpp17 c++17)
-
-#if(HAS_CPP20_FLAG)
-#    make_test(testTypeTraits.cpp testTypeTraits-cpp20 c++20)
-#endif()
-
 make_test(testStateManager.cpp testStateManager-cpp17 c++17)
 
 make_test(testFSMpp17.cpp testFSMpp-cpp17 c++17)
@@ -125,10 +107,6 @@ make_test(testCompressedPair.cpp testCompressedPair-cpp17 c++17)
 make_test(testIterator.cpp testIterator-cpp17 c++17)
 
 make_test(testDenseMap.cpp testDenseMap-cpp17 c++17)
-
-make_test(testEmitter.cpp testEmitter-cpp17 c++17)
-
-make_test(testDispatcher.cpp testDispatcher-cpp17 c++17)
 
 #make_test(testLogging.cpp testLogging-cpp17 c++17)
 

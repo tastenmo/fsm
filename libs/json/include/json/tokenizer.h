@@ -149,7 +149,7 @@ constexpr auto stringTokenRegex =
     ctll::fixed_string{"(\")"
                        "|(\\u005Cu[0-9a-fA-F]{4})"
                        "|([^\"\\u005C\\u0000-\\u001f\\u007F]+)"
-                       "|(\\u005C[bfnrt/\\\"])"};
+                       "|(\\u005C[bfnrt/\\\\\"])"};
 
 enum class stringTokenType { DOUBLE_QUOTE, HEX, CHARS, ESCAPE };
 

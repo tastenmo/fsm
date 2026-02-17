@@ -10,11 +10,11 @@
 
 #include "logEvent.h"
 
-// namespace escad {
+// namespace spie {
 
 // namespace logging {
 
-namespace logging = escad::logging;
+namespace logging = spie::logging;
 
 class LogCout {
 

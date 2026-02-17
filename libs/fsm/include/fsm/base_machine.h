@@ -12,6 +12,8 @@
 
 namespace spie::fsm {
 
+using spie::overloaded;
+
 /**
  * @brief A template class representing a variant of states.
  *

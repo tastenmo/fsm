@@ -85,7 +85,7 @@ struct const_nonconst_noexcept {
 };
 
 TEST_CASE("SignalSlot_Lifetime", "[SignalSlot]") {
-    using sig = escad::signal<void(void)>;
+    using sig = spie::signal<void(void)>;
 
     REQUIRE_NOTHROW(sig{});
 
@@ -100,8 +100,8 @@ TEST_CASE("SignalSlot_Lifetime", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_Clear", "[SignalSlot]") {
-    escad::signal<void(int &)> sigh;
-    escad::slot slot{sigh};
+    spie::signal<void(int &)> sigh;
+    spie::slot slot{sigh};
 
     slot.connect<&sigh_listener::f>();
 
@@ -120,10 +120,10 @@ TEST_CASE("SignalSlot_Clear", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_Swap", "[SignalSlot]") {
-    escad::signal<void(int &)> sigh1;
-    escad::signal<void(int &)> sigh2;
-    escad::slot sink1{sigh1};
-    escad::slot sink2{sigh2};
+    spie::signal<void(int &)> sigh1;
+    spie::signal<void(int &)> sigh2;
+    spie::slot sink1{sigh1};
+    spie::slot sink2{sigh2};
 
     sink1.connect<&sigh_listener::f>();
 
@@ -143,8 +143,8 @@ TEST_CASE("SignalSlot_Swap", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_Functions", "[SignalSlot]") {
-    escad::signal<void(int &)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int &)> sigh;
+    spie::slot sink{sigh};
     int v = 0;
 
     sink.connect<&sigh_listener::f>();
@@ -164,8 +164,8 @@ TEST_CASE("SignalSlot_Functions", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_FunctionsWithPayload", "[SignalSlot]") {
-    escad::signal<void()> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void()> sigh;
+    spie::slot sink{sigh};
     int v = 0;
 
     sink.connect<&sigh_listener::f>(v);
@@ -192,8 +192,8 @@ TEST_CASE("SignalSlot_FunctionsWithPayload", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_Members", "[SignalSlot]") {
     sigh_listener l1, l2;
-    escad::signal<bool(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<bool(int)> sigh;
+    spie::slot sink{sigh};
 
     sink.connect<&sigh_listener::g>(l1);
     sigh.publish(42);
@@ -228,8 +228,8 @@ TEST_CASE("SignalSlot_Members", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_Collector", "[SignalSlot]") {
     sigh_listener listener;
-    escad::signal<bool(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<bool(int)> sigh;
+    spie::slot sink{sigh};
     int cnt = 0;
 
     sink.connect<&sigh_listener::g>(&listener);
@@ -262,8 +262,8 @@ TEST_CASE("SignalSlot_Collector", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_CollectorVoid" , "[SignalSlot]") {
     sigh_listener listener;
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
     int cnt = 0;
 
     sink.connect<&sigh_listener::g>(&listener);
@@ -285,8 +285,8 @@ TEST_CASE("SignalSlot_CollectorVoid" , "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_Connection", "[SignalSlot]") {
-    escad::signal<void(int &)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int &)> sigh;
+    spie::slot sink{sigh};
     int v = 0;
 
     auto conn = sink.connect<&sigh_listener::f>();
@@ -307,13 +307,13 @@ TEST_CASE("SignalSlot_Connection", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_ScopedConnection", "[SignalSlot]") {
     sigh_listener listener;
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
 
     {
         REQUIRE_FALSE(listener.k);
 
-        escad::scoped_connection conn = sink.connect<&sigh_listener::g>(listener);
+        spie::scoped_connection conn = sink.connect<&sigh_listener::g>(listener);
         sigh.publish(42);
 
         REQUIRE_FALSE(sigh.empty());
@@ -329,16 +329,16 @@ TEST_CASE("SignalSlot_ScopedConnection", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_ScopedConnectionMove", "[SignalSlot]") {
     sigh_listener listener;
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
 
-    escad::scoped_connection outer{sink.connect<&sigh_listener::g>(listener)};
+    spie::scoped_connection outer{sink.connect<&sigh_listener::g>(listener)};
 
     REQUIRE_FALSE(sigh.empty());
     REQUIRE(outer);
 
     {
-        escad::scoped_connection inner{std::move(outer)};
+        spie::scoped_connection inner{std::move(outer)};
 
         REQUIRE_FALSE(listener.k);
         REQUIRE_FALSE(outer);
@@ -357,7 +357,7 @@ TEST_CASE("SignalSlot_ScopedConnectionMove", "[SignalSlot]") {
     REQUIRE(outer);
 
     {
-        escad::scoped_connection inner{};
+        spie::scoped_connection inner{};
 
         REQUIRE(listener.k);
         REQUIRE(outer);
@@ -378,11 +378,11 @@ TEST_CASE("SignalSlot_ScopedConnectionMove", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_ScopedConnectionConstructorsAndOperators", "[SignalSlot]") {
     sigh_listener listener;
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
 
     {
-        escad::scoped_connection inner{};
+        spie::scoped_connection inner{};
 
         REQUIRE(sigh.empty());
         REQUIRE_FALSE(listener.k);
@@ -416,8 +416,8 @@ TEST_CASE("SignalSlot_ScopedConnectionConstructorsAndOperators", "[SignalSlot]")
 }
 
 TEST_CASE("SignalSlot_ConstNonConstNoExcept", "[SignalSlot]") {
-    escad::signal<void()> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void()> sigh;
+    spie::slot sink{sigh};
     const_nonconst_noexcept functor;
     const const_nonconst_noexcept cfunctor;
 
@@ -441,8 +441,8 @@ TEST_CASE("SignalSlot_ConstNonConstNoExcept", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_BeforeFunction", "[SignalSlot]") {
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
     before_after functor;
 
     sink.connect<&before_after::add>(functor);
@@ -454,8 +454,8 @@ TEST_CASE("SignalSlot_BeforeFunction", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_BeforeMemberFunction", "[SignalSlot]") {
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
     before_after functor;
 
     sink.connect<&before_after::static_add>();
@@ -467,8 +467,8 @@ TEST_CASE("SignalSlot_BeforeMemberFunction", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_BeforeFunctionWithPayload", "[SignalSlot]") {
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
     before_after functor;
 
     sink.connect<&before_after::static_add>();
@@ -480,8 +480,8 @@ TEST_CASE("SignalSlot_BeforeFunctionWithPayload", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_BeforeInstanceOrPayload", "[SignalSlot]") {
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
     before_after functor;
 
     sink.connect<&before_after::static_mul>(functor);
@@ -493,8 +493,8 @@ TEST_CASE("SignalSlot_BeforeInstanceOrPayload", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_BeforeAnythingElse", "[SignalSlot]") {
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
     before_after functor;
 
     sink.connect<&before_after::add>(functor);
@@ -505,8 +505,8 @@ TEST_CASE("SignalSlot_BeforeAnythingElse", "[SignalSlot]") {
 }
 
 TEST_CASE("SignalSlot_BeforeListenerNotPresent", "[SignalSlot]") {
-    escad::signal<void(int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(int)> sigh;
+    spie::slot sink{sigh};
     before_after functor;
 
     sink.connect<&before_after::mul>(functor);
@@ -518,8 +518,8 @@ TEST_CASE("SignalSlot_BeforeListenerNotPresent", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_UnboundDataMember", "[SignalSlot]") {
     sigh_listener listener;
-    escad::signal<bool &(sigh_listener &)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<bool &(sigh_listener &)> sigh;
+    spie::slot sink{sigh};
 
     REQUIRE_FALSE(listener.k);
 
@@ -531,8 +531,8 @@ TEST_CASE("SignalSlot_UnboundDataMember", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_UnboundMemberFunction", "[SignalSlot]") {
     sigh_listener listener;
-    escad::signal<void(sigh_listener *, int)> sigh;
-    escad::slot sink{sigh};
+    spie::signal<void(sigh_listener *, int)> sigh;
+    spie::slot sink{sigh};
 
     REQUIRE_FALSE(listener.k);
 
@@ -544,13 +544,13 @@ TEST_CASE("SignalSlot_UnboundMemberFunction", "[SignalSlot]") {
 
 TEST_CASE("SignalSlot_CustomAllocator", "[SignalSlot]") {
     std::allocator<void (*)(int)> allocator;
-    escad::signal<void(int), decltype(allocator)> sigh{allocator};
+    spie::signal<void(int), decltype(allocator)> sigh{allocator};
 
     REQUIRE(sigh.get_allocator() == allocator);
     REQUIRE_FALSE(sigh.get_allocator() != allocator);
     REQUIRE(sigh.empty());
 
-    escad::slot sink{sigh};
+    spie::slot sink{sigh};
     sigh_listener listener;
     sink.template connect<&sigh_listener::g>(listener);
 
@@ -570,7 +570,7 @@ TEST_CASE("SignalSlot_CustomAllocator", "[SignalSlot]") {
     REQUIRE(copy.empty());
     REQUIRE_FALSE(move.empty());
 
-    sink = escad::slot{move};
+    sink = spie::slot{move};
     sink.disconnect(&listener);
 
     REQUIRE(copy.empty());
@@ -582,7 +582,7 @@ TEST_CASE("SignalSlot_CustomAllocator", "[SignalSlot]") {
     REQUIRE_FALSE(copy.empty());
     REQUIRE(move.empty());
 
-    sink = escad::slot{copy};
+    sink = spie::slot{copy};
     sink.disconnect();
 
     REQUIRE(copy.empty());

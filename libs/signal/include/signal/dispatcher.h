@@ -7,15 +7,15 @@
 #include <utility>
 #include <vector>
 
-#include "../base/compressed_pair.h"
-#include "../base/forwards.h"
-#include "../base/type_info.h"
-#include "../base/utils.h"
-#include "../container/dense_map.h"
 #include "forwards.h"
 #include "signal.h"
+#include <core/compressed_pair.h>
+#include <core/dense_map.h>
+#include <core/forwards.h>
+#include <core/type_info.h>
+#include <core/utils.h>
 
-namespace escad {
+namespace spie {
 
 /**
  * @cond TURN_OFF_DOXYGEN
@@ -41,7 +41,7 @@ class dispatcher_handler final : public basic_dispatcher_handler {
   using container_type =
       std::vector<Type, typename alloc_traits::template rebind_alloc<Type>>;
 
- public:
+public:
   using allocator_type = Allocator;
 
   dispatcher_handler(const allocator_type &allocator)
@@ -67,8 +67,7 @@ class dispatcher_handler final : public basic_dispatcher_handler {
 
   void trigger(Type event) { signal_.publish(event); }
 
-  template <typename... Args>
-  void enqueue(Args &&...args) {
+  template <typename... Args> void enqueue(Args &&...args) {
     if constexpr (std::is_aggregate_v<Type>) {
       events_.push_back(Type{std::forward<Args>(args)...});
     } else {
@@ -78,12 +77,12 @@ class dispatcher_handler final : public basic_dispatcher_handler {
 
   std::size_t size() const noexcept override { return events_.size(); }
 
- private:
+private:
   signal_type signal_;
   container_type events_;
 };
 
-}  // namespace details
+} // namespace details
 
 /**
  * Internal details not to be documented.
@@ -104,12 +103,11 @@ class dispatcher_handler final : public basic_dispatcher_handler {
  *
  * @tparam Allocator Type of allocator used to manage memory and elements.
  */
-template <typename Allocator>
-class basic_dispatcher {
+template <typename Allocator> class basic_dispatcher {
   template <typename Type>
   using handler_type = details::dispatcher_handler<Type, Allocator>;
 
-  using key_type = escad::id_type;
+  using key_type = spie::id_type;
   // std::shared_ptr because of its type erased allocator which is pretty useful
   // here
   using mapped_type = std::shared_ptr<details::basic_dispatcher_handler>;
@@ -118,11 +116,11 @@ class basic_dispatcher {
   using container_allocator = typename alloc_traits::template rebind_alloc<
       std::pair<const key_type, mapped_type>>;
   using container_type =
-      escad::dense_map<key_type, mapped_type, escad::identity, std::equal_to<key_type>,
-                container_allocator>;
+      spie::dense_map<key_type, mapped_type, spie::identity,
+                       std::equal_to<key_type>, container_allocator>;
 
   template <typename Type>
-  [[nodiscard]] handler_type<Type> &assure(const escad::id_type id) {
+  [[nodiscard]] handler_type<Type> &assure(const spie::id_type id) {
     static_assert(std::is_same_v<Type, std::decay_t<Type>>,
                   "Non-decayed types not allowed");
     auto &&ptr = pools.first()[id];
@@ -135,7 +133,7 @@ class basic_dispatcher {
     return static_cast<handler_type<Type> &>(*ptr);
   }
 
- public:
+public:
   /*! @brief Allocator type. */
   using allocator_type = Allocator;
   /*! @brief Unsigned integer type. */
@@ -202,7 +200,8 @@ class basic_dispatcher {
    * @return The number of pending events for the given type.
    */
   template <typename Type>
-  size_type size(const escad::id_type id = escad::type_hash<Type>::value()) const noexcept {
+  size_type size(const spie::id_type id =
+                     spie::type_hash<Type>::value()) const noexcept {
     if (auto it = pools.first().find(id); it != pools.first().cend()) {
       return it->second->size();
     }
@@ -244,7 +243,8 @@ class basic_dispatcher {
    * @return A temporary sink object.
    */
   template <typename Type>
-  [[nodiscard]] auto slot(const escad::id_type id = escad::type_hash<Type>::value()) {
+  [[nodiscard]] auto
+  slot(const spie::id_type id = spie::type_hash<Type>::value()) {
     return assure<Type>(id).bucket();
   }
 
@@ -253,9 +253,9 @@ class basic_dispatcher {
    * @tparam Type Type of event to trigger.
    * @param value An instance of the given type of event.
    */
-  template <typename Type>
-  void trigger(Type &&value = {}) {
-    trigger(escad::type_hash<std::decay_t<Type>>::value(), std::forward<Type>(value));
+  template <typename Type> void trigger(Type &&value = {}) {
+    trigger(spie::type_hash<std::decay_t<Type>>::value(),
+            std::forward<Type>(value));
   }
 
   /**
@@ -265,7 +265,7 @@ class basic_dispatcher {
    * @param id Name used to map the event queue within the dispatcher.
    */
   template <typename Type>
-  void trigger(const escad::id_type id, Type &&value = {}) {
+  void trigger(const spie::id_type id, Type &&value = {}) {
     assure<std::decay_t<Type>>(id).trigger(std::forward<Type>(value));
   }
 
@@ -275,9 +275,9 @@ class basic_dispatcher {
    * @tparam Args Types of arguments to use to construct the event.
    * @param args Arguments to use to construct the event.
    */
-  template <typename Type, typename... Args>
-  void enqueue(Args &&...args) {
-    enqueue_hint<Type>(escad::type_hash<Type>::value(), std::forward<Args>(args)...);
+  template <typename Type, typename... Args> void enqueue(Args &&...args) {
+    enqueue_hint<Type>(spie::type_hash<Type>::value(),
+                       std::forward<Args>(args)...);
   }
 
   /**
@@ -285,9 +285,8 @@ class basic_dispatcher {
    * @tparam Type Type of event to enqueue.
    * @param value An instance of the given type of event.
    */
-  template <typename Type>
-  void enqueue(Type &&value) {
-    enqueue_hint(escad::type_hash<std::decay_t<Type>>::value(),
+  template <typename Type> void enqueue(Type &&value) {
+    enqueue_hint(spie::type_hash<std::decay_t<Type>>::value(),
                  std::forward<Type>(value));
   }
 
@@ -299,7 +298,7 @@ class basic_dispatcher {
    * @param args Arguments to use to construct the event.
    */
   template <typename Type, typename... Args>
-  void enqueue_hint(const escad::id_type id, Args &&...args) {
+  void enqueue_hint(const spie::id_type id, Args &&...args) {
     assure<Type>(id).enqueue(std::forward<Args>(args)...);
   }
 
@@ -310,7 +309,7 @@ class basic_dispatcher {
    * @param value An instance of the given type of event.
    */
   template <typename Type>
-  void enqueue_hint(const escad::id_type id, Type &&value) {
+  void enqueue_hint(const spie::id_type id, Type &&value) {
     assure<std::decay_t<Type>>(id).enqueue(std::forward<Type>(value));
   }
 
@@ -320,8 +319,7 @@ class basic_dispatcher {
    * @tparam Type Type of class or type of payload.
    * @param value_or_instance A valid object that fits the purpose.
    */
-  template <typename Type>
-  void disconnect(Type &value_or_instance) {
+  template <typename Type> void disconnect(Type &value_or_instance) {
     disconnect(&value_or_instance);
   }
 
@@ -331,8 +329,7 @@ class basic_dispatcher {
    * @tparam Type Type of class or type of payload.
    * @param value_or_instance A valid object that fits the purpose.
    */
-  template <typename Type>
-  void disconnect(Type *value_or_instance) {
+  template <typename Type> void disconnect(Type *value_or_instance) {
     for (auto &&cpool : pools.first()) {
       cpool.second->disconnect(value_or_instance);
     }
@@ -344,7 +341,7 @@ class basic_dispatcher {
    * @param id Name used to map the event queue within the dispatcher.
    */
   template <typename Type>
-  void clear(const escad::id_type id = escad::type_hash<Type>::value()) {
+  void clear(const spie::id_type id = spie::type_hash<Type>::value()) {
     assure<Type>(id).clear();
   }
 
@@ -361,7 +358,7 @@ class basic_dispatcher {
    * @param id Name used to map the event queue within the dispatcher.
    */
   template <typename Type>
-  void update(const escad::id_type id = escad::type_hash<Type>::value()) {
+  void update(const spie::id_type id = spie::type_hash<Type>::value()) {
     assure<Type>(id).publish();
   }
 
@@ -372,8 +369,8 @@ class basic_dispatcher {
     }
   }
 
- private:
-  escad::compressed_pair<container_type, allocator_type> pools;
+private:
+  spie::compressed_pair<container_type, allocator_type> pools;
 };
 
-}  // namespace signal
+} // namespace spie

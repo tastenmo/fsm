@@ -11,7 +11,7 @@
 #include <source_location>
 #include <string_view>
 
-namespace escad {
+namespace spie {
 
 namespace logging {
 
