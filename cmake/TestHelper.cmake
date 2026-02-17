@@ -20,12 +20,17 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
      check_cxx_compiler_flag(-std=c++20 HAS_CPP20_FLAG)
 endif()
 
+
 # Coverage flags for Clang
 if(COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(COVERAGE_FLAGS -fprofile-instr-generate -fcoverage-mapping)
     set(COMPILE_OPTIONS ${COMPILE_OPTIONS} ${COVERAGE_FLAGS})
     set(LINK_OPTIONS ${LINK_OPTIONS} ${COVERAGE_FLAGS})
 endif()
+
+# Global property to collect all test targets
+set_property(GLOBAL PROPERTY FSM_TEST_TARGETS "")
+
 
 function(assign_test src lib std)
     get_filename_component(target ${src} NAME_WE)
@@ -41,9 +46,11 @@ function(assign_test src lib std)
             target_compile_options(${target} PRIVATE -std=${std})
         endif()
     endif()
-#    add_test(NAME ${target} COMMAND ${target})
+    # Register target name for global test target list
+    set_property(GLOBAL APPEND PROPERTY FSM_TEST_TARGETS ${target})
     catch_discover_tests(${target} TEST_PREFIX ${lib}_ TEST_SUFFIX _${std} ADD_TAGS_AS_LABELS)
 endfunction()
+
 
 function(assign_test_with_libs src lib std libs)
     get_filename_component(target ${src} NAME_WE)
@@ -59,9 +66,10 @@ function(assign_test_with_libs src lib std libs)
             target_compile_options(${target} PRIVATE -std=${std})
         endif()
     endif()
-#    add_test(NAME ${target} COMMAND ${target})
+    set_property(GLOBAL APPEND PROPERTY FSM_TEST_TARGETS ${target})
     catch_discover_tests(${target} TEST_PREFIX ${lib}_ TEST_SUFFIX _${std} ADD_TAGS_AS_LABELS)
 endfunction()
+
 
 function(assign_test_with_includes src lib std include_dirs)
     get_filename_component(target ${src} NAME_WE)
@@ -78,6 +86,6 @@ function(assign_test_with_includes src lib std include_dirs)
             target_compile_options(${target} PRIVATE -std=${std})
         endif()
     endif()
-#    add_test(NAME ${target} COMMAND ${target})
+    set_property(GLOBAL APPEND PROPERTY FSM_TEST_TARGETS ${target})
     catch_discover_tests(${target} TEST_PREFIX ${lib}_ TEST_SUFFIX _${std} ADD_TAGS_AS_LABELS)
 endfunction()

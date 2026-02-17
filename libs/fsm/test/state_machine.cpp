@@ -41,7 +41,7 @@ struct Third : state<Third, Machine> {
    auto transitionTo(const event1 &) { return transition<Initial>(); }
 };
 
-TEST_CASE("StateMachine no context", "[new_fsm]") {
+TEST_CASE("fsm_no_context_basic", "[fsm][no_context]") {
    auto fsm = Machine(mpl::type_identity<States>{}, noContext{});
    auto mono = fsm.state<std::monostate>();
    STATIC_REQUIRE(std::is_same_v<decltype(mono), std::monostate>);
@@ -82,7 +82,7 @@ struct ThirdCtx : state<ThirdCtx, MachineCtx> {
    auto transitionTo(const event1 &) { return transition<InitialCtx>(); }
 };
 
-TEST_CASE("StateMachine rvalue context", "[new_fsm]") {
+TEST_CASE("fsm_stateful_rvalue_context", "[fsm][stateful][rvalue]") {
    auto fsm = MachineCtx(mpl::type_identity<StatesCtx>{}, Ctx{});
    auto mono = fsm.state<std::monostate>();
    STATIC_REQUIRE(std::is_same_v<decltype(mono), std::monostate>);
@@ -94,7 +94,7 @@ TEST_CASE("StateMachine rvalue context", "[new_fsm]") {
        std::is_same_v<decltype(fsm.context()), decltype(initial.context())>);
 }
 
-TEST_CASE("StateMachine lvalue context", "[new_fsm]") {
+TEST_CASE("fsm_stateful_lvalue_context", "[fsm][stateful][lvalue]") {
    Ctx ctx{1};
    auto fsm =
        MachineCtx(mpl::type_identity<StatesCtx>{}, std::forward<Ctx>(ctx));
@@ -108,7 +108,7 @@ TEST_CASE("StateMachine lvalue context", "[new_fsm]") {
        std::is_same_v<decltype(fsm.context()), decltype(initial.context())>);
 }
 
-TEST_CASE("StateMachine event-driven transitions", "[new_fsm]") {
+TEST_CASE("fsm_event_driven_cycle", "[fsm][event][cycle]") {
    auto fsm = Machine(mpl::type_identity<States>{}, noContext{});
    fsm.emplace<Initial>();
    REQUIRE(fsm.is_in<Initial>());

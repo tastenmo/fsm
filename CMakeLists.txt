@@ -96,6 +96,7 @@ if(COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         COMMAND llvm-profdata merge -sparse ${CMAKE_BINARY_DIR}/libs/*/test/default.profraw -o ${CMAKE_BINARY_DIR}/coverage.profdata
         COMMAND rm -f ${CMAKE_BINARY_DIR}/lcov.info
         COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/transition -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov > ${CMAKE_BINARY_DIR}/lcov.info
+        COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/state -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov > ${CMAKE_BINARY_DIR}/lcov.info
         COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/state_machine -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
         COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/context -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
         COMMAND llvm-cov export ${CMAKE_BINARY_DIR}/libs/fsm/test/contextWrapper -instr-profile=${CMAKE_BINARY_DIR}/coverage.profdata -format=lcov >> ${CMAKE_BINARY_DIR}/lcov.info
@@ -105,6 +106,8 @@ if(COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         COMMENT "Exporting combined lcov coverage report for all test binaries"
     )
 endif()
+
+
 
 install(TARGETS 
           ${PROJECT_NAME}

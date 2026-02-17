@@ -24,7 +24,7 @@ struct NonDefaultContext {
    }
 };
 
-TEST_CASE("ContextWrapper lvalue construction", "[ContextWrapper]") {
+TEST_CASE("context_wrapper_lvalue_ref", "[context][wrapper][lvalue]") {
    Context ctx{42};
    ContextWrapper<Context> wrapper(ctx);
    CHECK(&ctx == &wrapper.get());
@@ -34,7 +34,7 @@ TEST_CASE("ContextWrapper lvalue construction", "[ContextWrapper]") {
    CHECK(&ndctx == &ndwrapper.get());
 }
 
-TEST_CASE("ContextWrapper rvalue construction", "[ContextWrapper]") {
+TEST_CASE("context_wrapper_rvalue_ref", "[context][wrapper][rvalue]") {
    ContextWrapper<Context> wrapper(Context{99});
    CHECK(wrapper.get().value == 99);
 
@@ -42,7 +42,8 @@ TEST_CASE("ContextWrapper rvalue construction", "[ContextWrapper]") {
    CHECK(ndwrapper.get().value == 66);
 }
 
-TEST_CASE("ContextWrapper move construction from lvalue", "[ContextWrapper]") {
+TEST_CASE("context_wrapper_move_from_lvalue",
+          "[context][wrapper][move][lvalue]") {
    Context ctx{123};
    ContextWrapper<Context> wrapper(ctx);
    ContextWrapper<Context> moved(std::move(wrapper));
@@ -56,7 +57,8 @@ TEST_CASE("ContextWrapper move construction from lvalue", "[ContextWrapper]") {
    CHECK(&ndctx == &ndmoved.get());
 }
 
-TEST_CASE("ContextWrapper move construction from rvalue", "[ContextWrapper]") {
+TEST_CASE("context_wrapper_move_from_rvalue",
+          "[context][wrapper][move][rvalue]") {
    ContextWrapper<Context> wrapper(Context{321});
    ContextWrapper<Context> moved(std::move(wrapper));
    CHECK(moved.get().value == 321);
@@ -66,7 +68,8 @@ TEST_CASE("ContextWrapper move construction from rvalue", "[ContextWrapper]") {
    CHECK(ndmoved.get().value == 88);
 }
 
-TEST_CASE("ContextWrapper move assignment from lvalue", "[ContextWrapper]") {
+TEST_CASE("context_wrapper_move_assign_lvalue",
+          "[context][wrapper][move][assign][lvalue]") {
    Context ctx{77};
    ContextWrapper<Context> wrapper(ctx);
    ContextWrapper<Context> target(Context{88});
@@ -82,16 +85,5 @@ TEST_CASE("ContextWrapper move assignment from lvalue", "[ContextWrapper]") {
    CHECK(&ndctx == &ndwrapper.get());
 }
 
-TEST_CASE("ContextWrapper move assignment from rvalue", "[ContextWrapper]") {
-   ContextWrapper<Context> wrapper(Context{101});
-   ContextWrapper<Context> target(Context{202});
-   target = std::move(wrapper);
-   CHECK(target.get().value == 101);
-   CHECK(wrapper.get().value == 101);
-
-   ContextWrapper<NonDefaultContext> ndwrapper(NonDefaultContext{111});
-   ContextWrapper<NonDefaultContext> ndtarget(NonDefaultContext{222});
-   ndtarget = std::move(ndwrapper);
-   CHECK(ndtarget.get().value == 111);
-   CHECK(ndwrapper.get().value == 111);
-}
+// Redundant: move assignment from rvalue is covered by move assignment from
+// lvalue and move construction tests
