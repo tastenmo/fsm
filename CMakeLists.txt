@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.18)
 
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 OLD)
+endif()
+
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif()
+
 project(fsm VERSION "0.1.0" LANGUAGES C CXX)
 set(PROJECT_DESCRIPTION "Modern C++ fsm library")
 
@@ -19,7 +27,7 @@ endif()
 
 find_package( 
  Boost 1.83.0 REQUIRED 
- COMPONENTS system thread json program_options 
+ COMPONENTS system program_options 
 )
 
 cmake_dependent_option(FSM_BUILD_TESTS "Build fsm Tests" ON
@@ -90,7 +98,7 @@ add_custom_target(version
   ${CMAKE_COMMAND} -D SRC=${PROJECT_SOURCE_DIR}/include/version.h.in
                    -D DST=${CMAKE_BINARY_DIR}/fsm/version.h
                    -D GIT_EXECUTABLE=${GIT_EXECUTABLE}
-                   -P ${CMAKE_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
+                   -P ${PROJECT_SOURCE_DIR}/cmake/GenerateVersionHeader.cmake
   )
 add_dependencies(${PROJECT_NAME} version)
 

@@ -4,7 +4,7 @@ add_library(${PROJECT_NAME}::logging ALIAS logging)
 
 target_include_directories(logging
         INTERFACE
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/libs/logging/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
             )
 
