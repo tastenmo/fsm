@@ -11,16 +11,38 @@ include(CMakeDependentOption)
 include(CTest)
 include_directories(${CMAKE_BINARY_DIR})
 
+# Optional local Boost hint for Windows development setups.
+if(WIN32)
+  if(NOT DEFINED BOOST_ROOT AND EXISTS "C:/libs/boost_1_86_0")
+    set(BOOST_ROOT "C:/libs/boost_1_86_0" CACHE PATH "Local Boost root")
+  endif()
+
+  if(DEFINED BOOST_ROOT)
+    set(Boost_NO_SYSTEM_PATHS ON)
+    list(APPEND CMAKE_PREFIX_PATH "${BOOST_ROOT}")
+    if(EXISTS "${BOOST_ROOT}/stage/lib")
+      set(BOOST_LIBRARYDIR "${BOOST_ROOT}/stage/lib" CACHE PATH "Boost library dir")
+    endif()
+  endif()
+endif()
+
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(IS_TOPLEVEL_PROJECT TRUE)
 else()
     set(IS_TOPLEVEL_PROJECT FALSE)
 endif()
 
-find_package( 
- Boost 1.83.0 REQUIRED 
- COMPONENTS system thread json program_options 
-)
+find_package(Boost 1.83.0 QUIET COMPONENTS system thread json program_options)
+
+if(NOT Boost_FOUND)
+  find_package(Boost 1.83.0 QUIET)
+endif()
+
+if(Boost_FOUND)
+  message(STATUS "Boost found: ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
+else()
+  message(WARNING "Boost was not found with required components. Building without Boost-dependent extras.")
+endif()
 
 cmake_dependent_option(FSM_BUILD_TESTS "Build fsm Tests" ON
   "BUILD_TESTING;IS_TOPLEVEL_PROJECT" OFF)
@@ -59,11 +81,17 @@ add_subdirectory(ext/compile-time-regular-expressions)
 
 add_subdirectory(libs/core)
 
+add_subdirectory(libs/reflect)
+
 add_subdirectory(libs/signal)
 
 add_subdirectory(libs/fsm)
 
 add_subdirectory(libs/json)
+
+add_subdirectory(libs/reflect_json)
+
+add_subdirectory(libs/command)
 
 add_subdirectory(libs/logging)
 

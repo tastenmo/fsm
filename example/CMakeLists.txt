@@ -20,4 +20,22 @@ endfunction()
 make_example(example "")
 make_example(simple_fsm "")
 
-make_example(asio_fsm "${BOOOST_LIBRARIES}date")
+if(Boost_FOUND)
+    add_executable(asio_fsm asio_fsm.cpp)
+    set_target_properties(asio_fsm PROPERTIES CXX_EXTENSIONS OFF)
+    target_compile_options(asio_fsm PRIVATE ${OPTIONS})
+    target_include_directories(asio_fsm PRIVATE ${Boost_INCLUDE_DIRS})
+    target_link_libraries(asio_fsm PRIVATE ${CMAKE_PROJECT_NAME} date::date-tz)
+
+    if(TARGET Boost::headers)
+        target_link_libraries(asio_fsm PRIVATE Boost::headers)
+    endif()
+
+    if(TARGET Boost::system)
+        target_link_libraries(asio_fsm PRIVATE Boost::system)
+    endif()
+
+    if(TARGET Boost::thread)
+        target_link_libraries(asio_fsm PRIVATE Boost::thread)
+    endif()
+endif()

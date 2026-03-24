@@ -81,6 +81,15 @@ template <class ValueTypes> class jsonValueType {
       return std::nullopt;
    }
 
+   template <class ValueType> std::optional<ValueType> get() const {
+
+      if (is<ValueType>()) {
+
+         return std::get<ValueType>(value_);
+      }
+      return std::nullopt;
+   }
+
    const type_variant &getVariant() const { return value_; }
 
    std::string toString() const;
