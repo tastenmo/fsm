@@ -7,17 +7,11 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Launch",
-            "program": "${workspaceFolder}/build/example/asio_fsm",
+            "name": "CMake Debug Target (LLDB)",
+            "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "stopOnEntry": true,
             "cwd": "${workspaceFolder}"
-        },
-        {
-            "name": "TestDebugConfig",
-            "type": "cppdbg",
-            "request": "launch",
-            "stopAtEntry": true
         }
     ]
 }

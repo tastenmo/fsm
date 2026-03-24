@@ -5,6 +5,7 @@ add_library(${PROJECT_NAME}::core ALIAS core)
 target_include_directories(core
         INTERFACE
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/libs/core/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/libs/reflect/include>
         $<INSTALL_INTERFACE:include>
             )            
 
