@@ -90,7 +90,7 @@ template <class... S> class transitions {
     * handled.
     * @param t The transitions object.
     */
-   transitions(transitions<detail::none>) noexcept
+   transitions(transitions<detail::none> const &) noexcept
        : idx{mpl::type_list_index_v<detail::none, list>},
          outcome{result::none} {}
 
@@ -98,7 +98,7 @@ template <class... S> class transitions {
        : idx{mpl::type_list_index_v<detail::handled, list>},
          outcome{result::handled} {}
 
-   transitions(transitions<detail::handled>) noexcept
+   transitions(transitions<detail::handled> const &) noexcept
        : idx{mpl::type_list_index_v<detail::handled, list>},
          outcome{result::handled} {}
 

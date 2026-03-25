@@ -11,6 +11,10 @@
 #include <source_location>
 #include <string_view>
 
+#ifdef ERROR
+#undef ERROR
+#endif
+
 namespace spie {
 
 namespace logging {
